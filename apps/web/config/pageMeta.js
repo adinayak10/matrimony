@@ -97,7 +97,7 @@ const PAGES = {
             name: "Is there a Banjara Matrimony app available?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yes! The BanjaraMatch Banjara Matrimony app is available for Android. Download it from banjaramatch.com/banjara-matrimony-app. It features AI-powered matching, instant notifications, and chat. iOS version coming soon."
+              text: "Yes! The BanjaraMatch Banjara Matrimony app is available for Android. Download it from banjaramatch.com/banjara-matrimony-app. It features AI-powered matching, instant notifications, and chat."
             }
           }
         ]
@@ -159,15 +159,8 @@ const PAGES = {
         }
       }
     ],
-    hints: [
-      {
-        rel: "preload",
-        href: "/images/ban-bg.webp",
-        as: "image",
-        type: "image/webp",
-        fetchpriority: "high"
-      }
-    ]
+    // Hero image preload, split by viewport in partials/head.ejs (CSS background up to 1250px, slider above).
+    hints: [{ hero: "/images/ban-bg.jpg" }]
   },
   about: {
     title: "About BanjaraMatch - Free Banjara Matrimony Platform | Our Mission",
@@ -265,7 +258,7 @@ const PAGES = {
             name: "How are profiles verified on BanjaraMatch?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Every profile goes through a manual verification process before it becomes visible to other members, helping ensure authenticity and reduce fake or duplicate profiles. Report tools are also available if you encounter suspicious behavior."
+              text: "Administrators can review a profile and mark it as verified. Report tools are also available if you encounter suspicious behavior."
             }
           },
           {
@@ -313,7 +306,7 @@ const PAGES = {
             name: "Can I use BanjaraMatch on mobile?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Yes. BanjaraMatch has a free mobile app for Android and iOS with the same AI matching, chat, and video call features as the website."
+              text: "Yes. BanjaraMatch has a free mobile app for Android with the same AI matching, chat, and video call features as the website."
             }
           },
           {
@@ -908,10 +901,10 @@ const PAGES = {
     scripts: [
       "js/Chart.js"
     ],
-    styles: [
+    // Loaded before the site stylesheet, which overrides them (the page used to re-link /css/style.css after them).
+    stylesBefore: [
       "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css",
-      "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css",
-      "/css/style.css"
+      "https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css"
     ]
   },
   updateProfile: {

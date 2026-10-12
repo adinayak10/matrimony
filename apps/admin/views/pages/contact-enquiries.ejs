@@ -1,0 +1,31 @@
+<section class="stats-grid" aria-label="Enquiry counts">
+  <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('inbox') %></div><div><div class="stat__value" data-stat="total">&ndash;</div><div class="stat__label">Total</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('mail') %></div><div><div class="stat__value" data-stat="unread">&ndash;</div><div class="stat__label">Unread</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--info"><%- icon('clock') %></div><div><div class="stat__value" data-stat="new">&ndash;</div><div class="stat__label">New</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--neutral"><%- icon('send') %></div><div><div class="stat__value" data-stat="replied">&ndash;</div><div class="stat__label">Replied</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('check-circle') %></div><div><div class="stat__value" data-stat="resolved">&ndash;</div><div class="stat__label">Resolved</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--danger"><%- icon('slash') %></div><div><div class="stat__value" data-stat="spam">&ndash;</div><div class="stat__label">Spam</div></div></div>
+</section>
+
+<section class="card">
+  <div class="card__header card__header--stack">
+    <%- include('../partials/table-toolbar', {
+      id: 'contact-filters',
+      search: false,
+      filters: [
+        { name: 'status', label: 'Status', options: [
+          { value: '', label: 'Any status' }, { value: 'new', label: 'New' }, { value: 'read', label: 'Read' }, { value: 'replied', label: 'Replied' }, { value: 'resolved', label: 'Resolved' }, { value: 'spam', label: 'Spam' }
+        ] },
+        { name: 'isRead', label: 'Read', options: [
+          { value: '', label: 'Read and unread' }, { value: 'false', label: 'Unread only' }, { value: 'true', label: 'Read only' }
+        ] },
+        { name: 'sortOrder', label: 'Sort', options: [
+          { value: 'desc', label: 'Newest first' }, { value: 'asc', label: 'Oldest first' }
+        ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="contact-table" data-table-mount></div>
+  </div>
+</section>

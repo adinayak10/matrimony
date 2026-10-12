@@ -60,3 +60,6 @@ apps/mobile/ios/Flutter/flutter_export_environment.sh
 # local scratch
 deploy/psi/
 apps/web/logs/
+apps/web/public/favicon.ico
+apps/web/public/apple-touch-icon.png
+apps/web/public/icons/

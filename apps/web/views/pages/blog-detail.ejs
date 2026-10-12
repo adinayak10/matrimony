@@ -37,7 +37,7 @@
                         <!--BIG POST START-->
                         <div class="blog-home-box">
                             <div class="im">
-                                <img src="/<%= blog.featuredImage %>" alt="<%= blog.title %>" loading="lazy">
+                                <img src="/<%= blog.featuredImage %>" alt="<%= blog.title %>" width="800" height="400" loading="eager" fetchpriority="high" decoding="async">
                                 <span class="blog-date"><%= new Date(blog.publishedAt || blog.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></span>
                                 <% const blogShareUrl = (typeof shareUrl !== 'undefined' && shareUrl) ? shareUrl : 'https://www.banjaramatch.com/blogs/' + blog.category.toLowerCase() + '/' + blog.slug; %>
                                 <div class="shar-1">
@@ -66,7 +66,7 @@
 
                                 <div class="blog-info">
                                     <div class="blog-pro-info">
-                                        <img src="/<%= blog.author.image %>" alt="<%= blog.author.name %>" loading="lazy">
+                                        <img src="/<%= blog.author.image %>" alt="<%= blog.author.name %>" width="40" height="40" loading="lazy" decoding="async">
                                         <h5><%= blog.author.name %> <span><%= blog.author.role %></span></h5>
                                     </div>
                                 </div>
@@ -127,7 +127,7 @@
                                     <% relatedBlogs.slice(0, 5).forEach(post => { %>
                                     <li>
                                         <div class="hot-page2-hom-pre-1">
-                                            <img src="/<%= post.featuredImage %>" alt="<%= post.title %>" loading="lazy">
+                                            <img src="/<%= post.featuredImage %>" alt="<%= post.title %>" width="100" height="80" loading="lazy" decoding="async">
                                         </div>
                                         <div class="hot-page2-hom-pre-2">
                                             <h5><%= post.title %></h5>

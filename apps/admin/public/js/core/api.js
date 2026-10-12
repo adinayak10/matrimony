@@ -7,7 +7,9 @@
 //
 // Success = res.ok && data.status !== false && data.success !== false (the API
 // uses both conventions). Anything else throws ApiError{status, message, data}.
-// A 401 means the session is gone: navigate to /login and keep the current URL.
+// A 401 means the session is gone: navigate to /login and keep the current URL
+// (pass `authRedirect: false` where a 401 is an answer, e.g. a wrong current
+// password on the change-password form).
 
 export class ApiError extends Error {
   constructor(message, { status = 0, data = null, code = '' } = {}) {
@@ -52,7 +54,7 @@ function failure(status, data) {
   return new ApiError(String(message), { status, data });
 }
 
-export async function api(path, { method = 'GET', body, headers = {}, timeout = DEFAULT_TIMEOUT, signal, query } = {}) {
+export async function api(path, { method = 'GET', body, headers = {}, timeout = DEFAULT_TIMEOUT, signal, query, authRedirect = true } = {}) {
   const url = withQuery(toPath(path), query);
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeout);
@@ -84,7 +86,7 @@ export async function api(path, { method = 'GET', body, headers = {}, timeout = 
   clearTimeout(timer);
 
   const data = parseBody(await res.text());
-  if (res.status === 401) {
+  if (res.status === 401 && authRedirect) {
     redirectToLogin();
     throw new ApiError('Session expired', { status: 401, data, code: 'unauthorized' });
   }

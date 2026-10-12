@@ -6,10 +6,12 @@
 //
 // States: loading (skeleton rows, aria-busy), empty (.empty with optional Clear),
 // error (.alert--error + Retry). Sticky header via .table thead th in admin.css.
+// Images: <img data-fallback[="url"]> in a cell falls back to that URL (default: the avatar placeholder).
 // Row actions: any element with data-action (and data-id) inside tbody → onAction(action, id, row, event, el).
-import { html, raw, setHtml, delegate } from './dom.js';
+import { html, setHtml, delegate } from './dom.js';
 import { renderPagination } from './pagination.js';
 import { errorMessage } from './api.js';
+import { bindImageFallbacks } from './imageUrl.js';
 
 export function createTable({
   mount,
@@ -35,7 +37,7 @@ export function createTable({
     <div class="table-wrap">
       <table class="table">
         ${caption ? html`<caption class="sr-only">${caption}</caption>` : ''}
-        <thead><tr>${columns.map((c) => html`<th scope="col" ${c.width ? raw(`style="width:${String(c.width).replace(/[^0-9a-z%.]/gi, '')}"`) : ''} class="${c.class || ''}">${c.label}</th>`)}</tr></thead>
+        <thead><tr>${columns.map((c) => html`<th scope="col" data-style-width="${c.width || ''}" class="${c.class || ''}">${c.label}</th>`)}</tr></thead>
         <tbody></tbody>
       </table>
     </div>
@@ -78,7 +80,21 @@ export function createTable({
       renderPagination(foot, { ...pagination, pages: 1 }, goTo);
       return;
     }
+    // A reload replaces the rows: keep keyboard focus on the same row action
+    // (the button a modal returned focus to) instead of dropping it to <body>.
+    const active = document.activeElement;
+    const focusKey = active && tbody.contains(active) && active.dataset && active.dataset.action
+      ? { action: active.dataset.action, id: active.dataset.id || ((active.closest('tr[data-id]') || {}).dataset || {}).id || '' }
+      : null;
     setHtml(tbody, html`${rows.map((row) => html`<tr data-id="${row[rowKey] ?? ''}">${columns.map((c) => html`<td class="${c.class || ''}">${c.render ? c.render(row) : (row[c.key] ?? '')}</td>`)}</tr>`)}`);
+    // <img data-fallback> in a cell swaps to its placeholder when the URL is broken.
+    // Bound here, after the rows exist (a microtask queued inside fetchPage runs too early).
+    bindImageFallbacks(tbody);
+    if (focusKey) {
+      const again = Array.from(tbody.querySelectorAll('[data-action]')).find((n) => n.dataset.action === focusKey.action
+        && (n.dataset.id || ((n.closest('tr[data-id]') || {}).dataset || {}).id || '') === focusKey.id);
+      if (again) again.focus({ preventScroll: true });
+    }
     renderPagination(foot, pagination, goTo);
   }
 

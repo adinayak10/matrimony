@@ -2,20 +2,20 @@
 // admin.banjaramatch.com — Express 4 + EJS admin server.
 //
 // Middleware order is load-bearing (docs/plans/admin-base-ui.md C1.2):
-//   1. security headers       middleware/security.js (helmet CSP report-only,
+//   1. security headers       middleware/security.js (helmet CSP, enforced;
 //                             X-Robots-Tag noindex, Cache-Control no-store)
 //   2. cookieParser           the admin_session cookie is the only state
-//   3. static assets          /css /js /img /vendor + /robots.txt ONLY. The
-//                             legacy public/*.html files are never served here;
-//                             routes/pages.js sends them behind requireAdmin.
+//   3. static assets          /css /js /img /vendor + /robots.txt ONLY. No
+//                             *.html is ever served: old URLs are 301s
+//                             (routes/legacy.js) and everything else is a 404.
 //   4. GET /health            unauthenticated, never 5xx because the API is down
 //   5. /api/* proxy           routes/proxy.js at the APP ROOT (http-proxy-middleware
 //                             v3 would strip an app.use('/api') prefix) and BEFORE
 //                             any body parser so multipart uploads keep streaming
 //   6+7. auth / legacy / pages  routes/auth.js carries its own route-level
 //                             express.urlencoded; every page route is behind
-//                             requireAdmin (migrated pages render through
-//                             lib/render.js, the rest are the legacy-compat shim)
+//                             requireAdmin and rendered through lib/render.js
+//                             (views/pages/<key>.ejs + public/js/pages/<key>.js)
 //   8. *.html → 404, generic 404, error handler (error.ejs, never a stack)
 //   9. listen on HOST:PORT (loopback) and tell pm2 we are ready
 //
@@ -35,8 +35,7 @@ const legacyRoutes = require('./routes/legacy');
 const pageRoutes = require('./routes/pages');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
-// Only these paths are static. Everything else in public/ (the un-migrated
-// *.html pages) is reachable solely through routes/pages.js behind the gate.
+// Only these paths are static. Nothing else in public/ is reachable.
 const STATIC_PATH = /^\/(css|js|img|vendor)\/|^\/robots\.txt$/;
 
 function createApp() {

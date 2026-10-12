@@ -44,6 +44,7 @@ function baseLocals(req, locals) {
     admin: req.admin || null,
     assetVersion: env.ASSET_VERSION,
     apiPublicUrl: env.API_PUBLIC_URL,
+    webPublicUrl: env.WEB_PUBLIC_URL,
     releaseSha: env.RELEASE_SHA,
     appVersion: env.APP_VERSION,
     flash: null,

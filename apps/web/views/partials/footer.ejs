@@ -1,16 +1,16 @@
-    <!-- FOOTER -->
+    <%# FOOTER %>
     <section class="wed-hom-footer">
         <div class="container">
-            <!-- Support Banner -->
+            <%# Support Banner %>
             <div class="row foot-supp">
                 <div class="col-md-12">
-                    <h2 style="text-align: center;"><span>Free Support:</span>&nbsp;&nbsp;|&nbsp;&nbsp; <span>Email:</span> info@banjaramatch.com</h2>
+                    <h2 style="text-align: center;"><span>Free Support:</span>&nbsp;&nbsp;|&nbsp;&nbsp; <span>Email:</span> <%= site.supportEmail %></h2>
                 </div>
             </div>
             
-            <!-- Footer Links -->
+            <%# Footer Links %>
             <div class="row wed-foot-link wed-foot-link-1">
-                <!-- Quick Links -->
+                <%# Quick Links %>
                 <div class="col-md-3 col-sm-6">
                     <h4>Quick Links</h4>
                     <nav aria-label="Quick Links Navigation">
@@ -29,7 +29,7 @@
                     </nav>
                 </div>
 
-                <!-- Resources -->
+                <%# Resources %>
                 <div class="col-md-3 col-sm-6">
                     <h4>Community Pages</h4>
                     <nav aria-label="Community Pages">
@@ -48,22 +48,22 @@
                     </nav>
                 </div>
 
-                <!-- Contact -->
+                <%# Contact %>
                 <div class="col-md-3 col-sm-6">
                     <h4>Get In Touch</h4>
                     <address style="font-style: normal;">
                         <p style="margin-bottom: 10px; line-height: 1.6;">
                             <i class="fa fa-envelope" aria-hidden="true" style="margin-right: 10px; color: #f6af04;"></i> 
-                            <a href="mailto:info@banjaramatch.com" title="Email Support" style="color: #fff; text-decoration: none;">info@banjaramatch.com</a>
+                            <a href="mailto:<%= site.supportEmail %>" title="Email Support" style="color: #fff; text-decoration: none;"><%= site.supportEmail %></a>
                         </p>
                     </address>
                     <h5 style="font-size: 15px; margin-top: 25px; margin-bottom: 15px; font-weight: 600;">Follow Us</h5>
                     <ul class="fot-soc" style="display: inline-flex; gap: 10px; list-style: none; padding: 0; margin: 0;">
-                        <li style="margin: 0; padding: 0;"><a href="https://facebook.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Facebook - /banjaramatch" style="display: block; line-height: 0;"><img src="/images/social/1.png" alt="Facebook /banjaramatch" loading="lazy" style="width: 35px; height: 35px; display: block;"></a></li><li style="margin: 0; padding: 0;"><a href="https://instagram.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Instagram - /banjaramatch" style="display: block; line-height: 0;"><img src="/images/social/5.png" alt="Instagram /banjaramatch" loading="lazy" style="width: 35px; height: 35px; display: block;"></a></li>
+                        <li style="margin: 0; padding: 0;"><a href="https://facebook.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Facebook - /banjaramatch" style="display: block; line-height: 0;"><img src="/images/social/1.png" alt="Facebook /banjaramatch" width="35" height="35" loading="lazy" decoding="async" style="width: 35px; height: 35px; display: block;"></a></li><li style="margin: 0; padding: 0;"><a href="https://instagram.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Instagram - /banjaramatch" style="display: block; line-height: 0;"><img src="/images/social/5.png" alt="Instagram /banjaramatch" width="35" height="35" loading="lazy" decoding="async" style="width: 35px; height: 35px; display: block;"></a></li>
                     </ul>
                 </div>
                 
-                <!-- App Download -->
+                <%# App Download %>
                 <div class="col-md-3 col-sm-6">
                     <h4>Download App</h4>
                     <p style="color: #333; font-size: 13px; margin-bottom: 15px; line-height: 1.6;">Get our mobile app for better experience</p>
@@ -73,21 +73,21 @@
                 </div>
             </div>
             
-            <!-- Regional Pages: every state page with its cities (middleware/regionalIndex.js, D3.26) -->
+            <%# Regional Pages: every state page with its cities (middleware/regionalIndex.js, D3.26) %>
             <div class="row">
                 <div class="col-md-12">
                     <%- include('../partials/regional-links', { heading: 'Banjara Matrimony by State' }) %>
                 </div>
             </div>
 
-            <!-- Description -->
+            <%# Description %>
             <div class="row foot-count">
                 <div class="col-md-12">
                     <p style="text-align: center; line-height: 1.8;">BanjaraMatch - India's First Free Banjara Matrimony Platform. <a href="/register" class="btn btn-primary btn-sm" style="margin-left: 10px;">Join us today!</a></p>
                 </div>
             </div>
             
-            <!-- Matrimonial Purpose Statement -->
+            <%# Matrimonial Purpose Statement %>
             <div class="row" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
                 <div class="col-md-12" style="text-align: center;">
                     <p style="color: #fff; font-size: 13px; margin: 10px 0; font-weight: 600;">
@@ -103,4 +103,4 @@
             </div>
         </div>
     </section>
-    <!-- END -->
+    <%# END %>

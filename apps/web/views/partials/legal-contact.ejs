@@ -1,18 +1,35 @@
 <%#
   The one contact block for the legal pages (D2.23): privacy-policy,
-  terms-conditions, child-safety-policy, account-deletion. Facts come from
-  config/site.js; nothing is printed that the owner has not supplied. No phone.
-    include('../partials/legal-contact')
+  terms-conditions, child-safety-policy, account-deletion, contact.
+  Every fact comes from config/site.js (env): the support email always; the
+  legal entity, registered address, phone and Grievance Officer ONLY when the
+  owner has set them. Nothing is invented and nothing else is printed.
+
+    include('../partials/legal-contact')                          contact + grievance + deletion
+    include('../partials/legal-contact', { only: 'contact' })     contact lines only
+    include('../partials/legal-contact', { only: 'grievance' })   grievance officer line only
 %>
-<% const _lc = (typeof site !== 'undefined' && site) || {}; const _email = _lc.supportEmail || 'info@banjaramatch.com'; %>
+<%
+  const _lc = (typeof site !== 'undefined' && site) || {};
+  const _email = _lc.supportEmail || 'info@banjaramatch.com';
+  const _only = (typeof only !== 'undefined' && only) || 'all';
+  const _go = _lc.grievanceOfficer && _lc.grievanceOfficer.name ? _lc.grievanceOfficer : null;
+%>
 <address class="legal-contact" style="font-style:normal">
-  <p><strong>Contact:</strong> <a href="mailto:<%= _email %>"><%= _email %></a></p>
+<% if (_only !== 'grievance') { %>
+  <p><strong>Email:</strong> <a href="mailto:<%= _email %>"><%= _email %></a></p>
   <% if (_lc.legalEntity) { %><p><strong>Operated by:</strong> <%= _lc.legalEntity %></p><% } %>
   <% if (_lc.address) { %><p><strong>Registered address:</strong> <%= _lc.address %></p><% } %>
-  <% if (_lc.grievanceOfficer && _lc.grievanceOfficer.name) { %>
-  <p><strong>Grievance Officer (IT Rules 2021):</strong> <%= _lc.grievanceOfficer.name %><% if (_lc.grievanceOfficer.email) { %>, <a href="mailto:<%= _lc.grievanceOfficer.email %>"><%= _lc.grievanceOfficer.email %></a><% } %></p>
+  <% if (_lc.phone) { %><p><strong>Phone:</strong> <a href="tel:<%= String(_lc.phone).replace(/[^+\d]/g, '') %>"><%= _lc.phone %></a></p><% } %>
+<% } %>
+<% if (_only !== 'contact') { %>
+  <% if (_go) { %>
+  <p><strong>Grievance Officer (IT Rules 2021):</strong> <%= _go.name %>, <a href="mailto:<%= _go.email || _email %>"><%= _go.email || _email %></a></p>
   <% } else { %>
   <p><strong>Grievance Officer:</strong> to be appointed. Until then, write to <a href="mailto:<%= _email %>"><%= _email %></a> with "Grievance" in the subject line.</p>
   <% } %>
-  <p>Account and data deletion requests: <a href="/account-deletion">/account-deletion</a> or email <a href="mailto:<%= _email %>"><%= _email %></a>.</p>
+<% } %>
+<% if (_only === 'all') { %>
+  <p>Account and data deletion requests: <a href="/account-deletion">banjaramatch.com/account-deletion</a> or email <a href="mailto:<%= _email %>"><%= _email %></a>.</p>
+<% } %>
 </address>

@@ -130,19 +130,19 @@
                         <% page.bannerImages.forEach(banner => { %>
                         <li>
                             <div class="image">
-                                <img src="<%= banner.url %>" alt="<%= banner.alt || `${page.state.name} Banjara matrimony` %>" loading="lazy">
+                                <img src="<%= banner.url %>" alt="<%= banner.alt || `${page.state.name} Banjara matrimony` %>" width="1600" height="900" loading="lazy" decoding="async">
                             </div>
                         </li>
                         <% }); %>
                     <% } else { %>
                     <li>
                         <div class="image">
-                            <img src="/images/ban-bg.jpg" alt="<%= page.state.name %> Banjara matrimony - Happy couple" loading="lazy">
+                            <%- img('/images/ban-bg.jpg', { alt: `${page.state.name} Banjara matrimony - Happy couple`, width: 1920, height: 1280, priority: true, sizes: '100vw', skipMedia: '(max-width: 1250px)' }) %>
                         </div>
                     </li>
                     <li>
                         <div class="image">
-                            <img src="/images/banner.jpg" alt="BanjaraMatch <%= page.state.name %> - Free matrimony" loading="lazy">
+                            <%- img('/images/banner.jpg', { alt: `BanjaraMatch ${page.state.name} - Free matrimony`, width: 1600, height: 800, sizes: '100vw', skipMedia: '(max-width: 1250px)' }) %>
                         </div>
                     </li>
                     <% } %>
@@ -218,7 +218,7 @@
                             <li>
                                 <div class="hacc hacc1">
                                     <div class="con">
-                                        <img src="/images/icon/user.png" alt="Browse Profiles" loading="lazy">
+                                        <img src="/images/icon/user.png" alt="Browse Profiles" loading="lazy" width="256" height="256" decoding="async">
                                         <h4>Browse Profiles</h4>
                                         <p>Profiles in <%= stateName %></p>
                                         <a href="/all-profiles?state=<%= stateName %>">View more</a>
@@ -228,7 +228,7 @@
                             <li>
                                 <div class="hacc hacc3">
                                     <div class="con">
-                                        <img src="/images/icon/couple.png" alt="About Us" loading="lazy">
+                                        <img src="/images/icon/couple.png" alt="About Us" loading="lazy" width="128" height="128" decoding="async">
                                         <h4>About Us</h4>
                                         <p>Know our mission</p>
                                         <a href="/about">View more</a>
@@ -239,12 +239,12 @@
                                 <div class="hacc hacc4">
                                     <div class="con">
                                         <% if (typeof user !== 'undefined' && user) { %>
-                                            <img src="/images/icon/hall.png" alt="My Dashboard" loading="lazy">
+                                            <img src="/images/icon/hall.png" alt="My Dashboard" loading="lazy" width="256" height="256" decoding="async">
                                             <h4>My Dashboard</h4>
                                             <p>Manage profile</p>
                                             <a href="/dashboard">View more</a>
                                         <% } else { %>
-                                            <img src="/images/icon/hall.png" alt="Join Now" loading="lazy">
+                                            <img src="/images/icon/hall.png" alt="Join Now" loading="lazy" width="256" height="256" decoding="async">
                                             <h4>Join Now</h4>
                                             <p>Start for free</p>
                                             <a href="/register">Get started</a>
@@ -255,7 +255,7 @@
                             <li>
                                 <div class="hacc hacc4">
                                     <div class="con">
-                                        <img src="/images/icon/cake.png" alt="Blog & Articles" loading="lazy">
+                                        <img src="/images/icon/cake.png" alt="Blog & Articles" loading="lazy" width="128" height="128" decoding="async">
                                         <h4>Blog & Articles</h4>
                                         <p>Tips & stories</p>
                                         <a href="/blogs/culture">Read now</a>
@@ -283,21 +283,21 @@
                     <ul>
                         <li>
                             <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.1">
-                                <img src="/images/icon/prize.png" alt="100% Free Service" loading="lazy">
+                                <img src="/images/icon/prize.png" alt="100% Free Service" loading="lazy" width="128" height="128" decoding="async">
                                 <h4>100% Free & Verified Profiles</h4>
-                                <p>Every profile in <%= stateName %> is manually verified to ensure genuine Banjara community users - no hidden costs, completely free forever.</p>
+                                <p>No hidden costs, completely free forever.</p>
                             </div>
                         </li>
                         <li>
                             <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.3">
-                                <img src="/images/icon/trust.png" alt="Trusted Platform" loading="lazy">
+                                <img src="/images/icon/trust.png" alt="Trusted Platform" loading="lazy" width="128" height="128" decoding="async">
                                 <h4>Trusted by <%= stateName %> Community</h4>
                                 <p>The pioneering platform exclusively for the Banjara community, built for secure matchmaking in <%= stateName %>.</p>
                             </div>
                         </li>
                         <li>
                             <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.6">
-                                <img src="/images/icon/rings.png" alt="Success Stories" loading="lazy">
+                                <img src="/images/icon/rings.png" alt="Success Stories" loading="lazy" width="512" height="512" decoding="async">
                                 <h4>Successful Weddings</h4>
                                 <p>We've proudly helped Banjara couples from across <%= stateName %> start their love journey at no cost, preserving our cultural heritage.</p>
                             </div>
@@ -341,8 +341,8 @@
                     <div class="col-lg-6">
                         <div class="ab-wel-lhs">
                             <span class="ab-wel-3"></span>
-                            <img src="/images/about/1.jpg" alt="Banjara couple <%= stateName %>" loading="lazy" class="ab-wel-1">
-                            <img src="/images/couples/20.jpg" alt="Happy Banjara married couple <%= stateName %>" loading="lazy" class="ab-wel-2">
+                            <img src="/images/about/1.jpg" alt="Banjara couple <%= stateName %>" loading="lazy" class="ab-wel-1" width="640" height="958" decoding="async">
+                            <%- img('/images/couples/20.jpg', { alt: `Happy Banjara married couple ${stateName}`, width: 1024, height: 739, className: 'ab-wel-2', sizes: '(max-width: 992px) 80vw, 480px' }) %>
                             <span class="ab-wel-4"></span>
                         </div>
                     </div>
@@ -391,9 +391,9 @@
                         <li>
                             <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="<%= 0.1 + (index * 0.2) %>">
                                 <% if (point.icon) { %>
-                                    <img src="<%= point.icon %>" alt="<%= point.title %>" loading="lazy">
+                                    <img src="<%= point.icon %>" alt="<%= point.title %>" width="128" height="128" loading="lazy" decoding="async">
                                 <% } else { %>
-                                    <img src="/images/icon/prize.png" alt="<%= point.title %>" loading="lazy">
+                                    <img src="/images/icon/prize.png" alt="<%= point.title %>" loading="lazy" width="128" height="128" decoding="async">
                                 <% } %>
                                 <h4><%= point.title %></h4>
                                 <p><%= point.description %></p>
@@ -452,9 +452,7 @@
                 
                 <div class="col-lg-6 text-center">
                     <div style="position: relative; display: inline-block;">
-                        <img src="/images/app-mockup.png" alt="BanjaraMatch Mobile App" 
-                                onerror="this.src='/images/default-mobile-app.png'" 
-                                style="max-width: 100%; height: auto; max-height: 500px; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));">
+                        <%- img('/images/app-mockup.png', { alt: 'BanjaraMatch Mobile App', width: 1004, height: 1278, sizes: '(max-width: 600px) 80vw, 400px', style: 'max-width: 100%; height: auto; max-height: 500px; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));' }) %>
                     </div>
                 </div>
             </div>

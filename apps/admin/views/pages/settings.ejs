@@ -1,0 +1,138 @@
+<div class="page-settings">
+  <div class="alert alert--error alert--flush" role="alert" data-load-error hidden>
+    <span data-load-error-text></span>
+    <button type="button" class="btn btn--secondary btn--sm alert__retry" data-action="retry">Retry</button>
+  </div>
+
+  <form id="settings-form" novalidate aria-busy="true">
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">General</h2></div>
+      <div class="card__body">
+        <div class="form-group">
+          <label class="form-label" for="set-appName">App name</label>
+          <input class="form-control" type="text" id="set-appName" name="appName" maxlength="120" autocomplete="off" disabled>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="set-helpUrl">Help URL</label>
+            <input class="form-control" type="url" id="set-helpUrl" name="helpUrl" maxlength="500" autocomplete="off" data-url disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="set-termsUrl">Terms URL</label>
+            <input class="form-control" type="url" id="set-termsUrl" name="termsUrl" maxlength="500" autocomplete="off" data-url disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="set-privacyPolicyUrl">Privacy policy URL</label>
+            <input class="form-control" type="url" id="set-privacyPolicyUrl" name="privacyPolicyUrl" maxlength="500" autocomplete="off" data-url disabled>
+          </div>
+        </div>
+        <p class="form-help">The app opens these links from its menu. They must be https:// addresses.</p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">App limits</h2></div>
+      <div class="card__body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="set-setRoomUsersLimit">Room users limit</label>
+            <input class="form-control" type="number" id="set-setRoomUsersLimit" name="setRoomUsersLimit" min="0" step="1" data-number disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="set-maxImagesCanBeUploadedInOnePost">Max images in one post</label>
+            <input class="form-control" type="number" id="set-maxImagesCanBeUploadedInOnePost" name="maxImagesCanBeUploadedInOnePost" min="0" step="1" data-number disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="set-minuteLimitInCreatingStory">Minutes between stories</label>
+            <input class="form-control" type="number" id="set-minuteLimitInCreatingStory" name="minuteLimitInCreatingStory" min="0" step="1" data-number disabled>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">Ads</h2></div>
+      <div class="card__body">
+        <div class="form-group">
+          <label class="switch" for="set-isAdmobOn"><input type="checkbox" role="switch" id="set-isAdmobOn" name="isAdmobOn" disabled><span class="switch__track" aria-hidden="true"></span><span>Show AdMob ads in the app</span></label>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="set-adBannerAndroid">Android banner ad unit id</label>
+            <input class="form-control mono" type="text" id="set-adBannerAndroid" name="adBannerAndroid" maxlength="200" autocomplete="off" disabled>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="set-adInterstitialAndroid">Android interstitial ad unit id</label>
+            <input class="form-control mono" type="text" id="set-adInterstitialAndroid" name="adInterstitialAndroid" maxlength="200" autocomplete="off" disabled>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">Matching and security</h2></div>
+      <div class="card__body">
+        <div class="form-group">
+          <label class="switch" for="set-enforceGotraExogamy"><input type="checkbox" role="switch" id="set-enforceGotraExogamy" name="matching.enforceGotraExogamy" aria-describedby="set-enforceGotraExogamy-help" disabled><span class="switch__track" aria-hidden="true"></span><span>Enforce gotra exogamy in matching</span></label>
+          <p class="form-help" id="set-enforceGotraExogamy-help">When on, a member is never shown profiles from their own gotra (or their mother's gotra). Switching it off shows same-gotra profiles to everyone.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="set-interestDailyCap">Interests a member can send per day</label>
+          <input class="form-control" type="number" id="set-interestDailyCap" name="limits.interestDailyCap" min="1" max="500" step="1" data-number aria-describedby="set-interestDailyCap-help" disabled>
+          <p class="form-help" id="set-interestDailyCap-help">Between 1 and 500. The API clamps anything outside that range.</p>
+        </div>
+        <div class="form-group mb-0">
+          <label class="switch switch--danger" for="set-legacySocketJoin"><input type="checkbox" role="switch" id="set-legacySocketJoin" name="security.legacySocketJoin" aria-describedby="set-legacySocketJoin-help" disabled><span class="switch__track" aria-hidden="true"></span><span>Allow legacy socket join (old app builds)</span></label>
+          <div class="alert alert--warning alert--block alert--flush mt-3 mb-0" id="set-legacySocketJoin-help" role="note">
+            <strong>Change this only on purpose.</strong> While it is on, app builds that predate token-based chat can connect by sending a bare user id, which is not proof of identity. Switching it <strong>off</strong> closes that hole, and at the same moment every member still on an old build loses chat and calls until they update. Switch it off only after the mandatory update is live in APK manager and legacy joins have been at zero for seven days. Switching it back <strong>on</strong> re-opens unauthenticated joins.
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <span class="muted" data-dirty-note>No unsaved changes</span>
+        <button type="button" class="btn btn--secondary" data-action="reset" disabled>Discard changes</button>
+        <button type="submit" class="btn btn--primary" data-save disabled>Save settings</button>
+      </div>
+    </section>
+  </form>
+
+  <div class="grid grid--2">
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">Change password</h2></div>
+      <form id="password-form" novalidate autocomplete="off">
+        <div class="card__body">
+          <div class="form-group">
+            <label class="form-label" for="pw-current">Current password</label>
+            <input class="form-control" type="password" id="pw-current" name="currentPassword" autocomplete="current-password" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pw-new">New password</label>
+            <input class="form-control" type="password" id="pw-new" name="newPassword" autocomplete="new-password" minlength="12" required aria-describedby="pw-new-help">
+            <p class="form-help" id="pw-new-help">At least 12 characters and different from the current one.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pw-confirm">Repeat the new password</label>
+            <input class="form-control" type="password" id="pw-confirm" name="confirmPassword" autocomplete="new-password" minlength="12" required>
+          </div>
+          <p class="form-help">Changing the password signs out every admin session, including this one. You sign in again with the new password.</p>
+        </div>
+        <div class="card__footer">
+          <button type="submit" class="btn btn--primary" data-save-password>Change password</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="card__header"><h2 class="card__title">Session</h2></div>
+      <div class="card__body">
+        <dl class="key-value">
+          <dt>Signed in as</dt><dd><%= admin ? (admin.full_name || admin.email) : '' %></dd>
+          <dt>Email</dt><dd><%= admin ? admin.email : '' %></dd>
+          <dt>Admin panel</dt><dd class="mono"><%= releaseSha ? 'release ' + releaseSha.slice(0, 12) : 'v' + appVersion %></dd>
+          <dt>APK and updates</dt><dd><a href="/apk-manager">APK manager</a> (version, mandatory update)</dd>
+          <dt>Change history</dt><dd><a href="/audit-log?targetType=settings">Settings changes in the audit log</a></dd>
+        </dl>
+      </div>
+    </section>
+  </div>
+</div>

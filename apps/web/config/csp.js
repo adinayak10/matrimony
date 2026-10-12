@@ -28,8 +28,9 @@ const directives = {
     'https://cdnjs.cloudflare.com',
     'https://cdn.jsdelivr.net',
   ],
-  'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://cdn.jsdelivr.net'],
-  'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
+  // Fonts are self-hosted (public/fonts, public/build/fonts): no Google Fonts hosts.
+  'style-src': ["'self'", "'unsafe-inline'", 'https://cdn.jsdelivr.net'],
+  'font-src': ["'self'", 'data:'],
   'img-src': [
     "'self'",
     'data:',

@@ -200,10 +200,11 @@ async function loadActivity() {
   try {
     const { data } = await api(`/admin/users/${userId}/activity`);
     const rows = Array.isArray(data) ? data : [];
-    if (!rows.length) { setHtml(host, html`<div class="empty"><div class="empty__title">No activity recorded</div><div class="empty__hint">Activity entries are written when the member opens the app.</div></div>`); return; }
+    const auditLink = html`<div class="table-foot"><a href="/audit-log?targetType=user&amp;targetId=${userId}">Admin actions on this member (audit log)</a></div>`;
+    if (!rows.length) { setHtml(host, html`<div class="empty"><div class="empty__title">No activity recorded</div><div class="empty__hint">Activity entries are written when the member opens the app.</div></div>${auditLink}`); return; }
     setHtml(host, html`<div class="table-wrap"><table class="table table--compact"><caption class="sr-only">Activity log</caption>
       <thead><tr><th scope="col">When</th><th scope="col">Entry</th></tr></thead>
-      <tbody>${rows.map((r) => html`<tr><td class="nowrap">${fmtDateTime(r.timestamp || r.createdAt)}</td><td>${r.action ? titleCase(r.action) : 'App session'}</td></tr>`)}</tbody></table></div>`);
+      <tbody>${rows.map((r) => html`<tr><td class="nowrap">${fmtDateTime(r.timestamp || r.createdAt)}</td><td>${r.action ? titleCase(r.action) : 'App session'}</td></tr>`)}</tbody></table></div>${auditLink}`);
   } catch (err) {
     setHtml(host, html`<div class="alert alert--error" role="alert"><span>${errorMessage(err, 'Could not load activity.')}</span><button type="button" class="btn btn--secondary btn--sm" data-retry="activity">Retry</button></div>`);
   }
@@ -261,8 +262,8 @@ function renderMembership() {
       <dt>Duration</dt><dd>${plan && plan.duration_days ? `${plan.duration_days} days` : '—'}</dd>
       <dt>Assigned</dt><dd>${plan ? 'By an admin' : '—'}</dd>
     </dl>
-    <p class="form-help" style="margin-top:12px">The product is free for everyone; plans are assigned by admins only and change nothing for other members.</p>
-    <div style="margin-top:12px"><button type="button" class="btn btn--secondary btn--sm" data-assign-plan>Assign plan</button></div>`);
+    <p class="form-help mt-3">The product is free for everyone; plans are assigned by admins only and change nothing for other members.</p>
+    <div class="mt-3"><button type="button" class="btn btn--secondary btn--sm" data-assign-plan>Assign plan</button></div>`);
 }
 
 async function assignPlan() {
@@ -481,7 +482,7 @@ async function loadUser() {
   } catch (err) {
     const host = panel('profile');
     const notFound = err && err.status === 404;
-    setHtml(el('[data-user-head]'), html`<div class="empty" style="padding:8px 0"><div class="empty__title">${notFound ? 'User not found' : 'Could not load this user'}</div><div class="empty__hint">${notFound ? 'The account may have been deleted.' : errorMessage(err)}</div></div>`);
+    setHtml(el('[data-user-head]'), html`<div class="empty empty--tight"><div class="empty__title">${notFound ? 'User not found' : 'Could not load this user'}</div><div class="empty__hint">${notFound ? 'The account may have been deleted.' : errorMessage(err)}</div></div>`);
     setHtml(host, html`${notFound ? html`<a class="btn btn--secondary" href="/users">Back to users</a>` : html`<button type="button" class="btn btn--secondary" data-retry="user">Retry</button>`}`);
   }
 }

@@ -42,7 +42,7 @@
 
   
 
-<!-- BANNER & SEARCH -->
+<%# BANNER & SEARCH %>
 <section style="position: relative; z-index: 100;">
     <div class="str">
         <div class="hom-head" style="display: flex; justify-content: center; align-items: center; height: auto; min-height: auto;">
@@ -121,54 +121,48 @@
         </div>
     </div>
 </section>
-<!-- END -->
+<%# END %>
 
 
 
-    <!-- BANNER SLIDER -->
+    <%# BANNER SLIDER %>
     <section style="position: relative; z-index: 1;">
         <div class="hom-ban-sli">
             <div>
                 <ul class="ban-sli">
                     <li>
                         <div class="image">
-                            <picture>
-                                <source srcset="/images/ban-bg.webp" type="image/webp">
-                                <img src="/images/ban-bg.jpg" alt="Banjara matrimony - Happy couple celebrating wedding" width="1920" height="1280" fetchpriority="high" decoding="async" loading="eager">
-                            </picture>
+                            <%- img('/images/ban-bg.jpg', { alt: 'Banjara matrimony - Happy couple celebrating wedding', width: 1920, height: 1280, priority: true, sizes: '100vw', skipMedia: '(max-width: 1250px)' }) %>
                         </div>
                     </li>
                     <li>
                         <div class="image">
-                            <picture>
-                                <source srcset="/images/banner.webp" type="image/webp">
-                                <img src="/images/banner.jpg" alt="BanjaraMatch - Free Banjara matrimony platform" width="1600" height="800" decoding="async" loading="lazy">
-                            </picture>
+                            <%- img('/images/banner.jpg', { alt: 'BanjaraMatch - Free Banjara matrimony platform', width: 1600, height: 800, sizes: '100vw', skipMedia: '(max-width: 1250px)' }) %>
                         </div>
                     </li>
                 </ul>
             </div>
         </div>
     </section>
-    <!-- END -->
+    <%# END %>
 
-    <!-- BETA TESTER BANNER -->
+    <%# BETA TESTER BANNER %>
     <%- include('../partials/beta-tester-banner') %>
-    <!-- END BETA TESTER BANNER -->
+    <%# END BETA TESTER BANNER %>
 
     
 
-<!-- QUICK ACCESS -->
+<%# QUICK ACCESS %>
 <section style="position: relative; z-index: 1; overflow: hidden; clear: both;">
     <div class="str home-acces-main">
         <div class="container">
             <div class="row">
-                <!-- BACKGROUND SHAPE -->
+                <%# BACKGROUND SHAPE %>
                 <div class="wedd-shap">
                     <span class="abo-shap-1"></span>
                     <span class="abo-shap-4"></span>
                 </div>
-                <!-- END BACKGROUND SHAPE -->
+                <%# END BACKGROUND SHAPE %>
 
                 <div class="home-tit">
                     <p>Quick Access</p>
@@ -181,7 +175,7 @@
                         <li>
                             <div class="wow fadeInUp hacc hacc1" data-wow-delay="0.1s">
                                 <div class="con">
-                                    <img src="/images/icon/user.png" alt="Browse Profiles" loading="lazy">
+                                    <img src="/images/icon/user.png" alt="Browse Profiles" loading="lazy" decoding="async" width="256" height="256">
                                     <h4>Browse Profiles</h4>
                                     <p>Browse profiles</p>
                                     <a href="/all-profiles">View more</a>
@@ -192,7 +186,7 @@
                         <li>
                             <div class="wow fadeInUp hacc hacc3" data-wow-delay="0.3s">
                                 <div class="con">
-                                    <img src="/images/icon/couple.png" alt="About Us" loading="lazy">
+                                    <img src="/images/icon/couple.png" alt="About Us" loading="lazy" decoding="async" width="128" height="128">
                                     <h4>About Us</h4>
                                     <p>Know our mission</p>
                                     <a href="/about">View more</a>
@@ -203,12 +197,12 @@
                             <div class="wow fadeInUp hacc hacc4" data-wow-delay="0.4s">
                                 <div class="con">
                                     <% if (typeof user !== 'undefined' && user) { %>
-                                        <img src="/images/icon/hall.png" alt="My Dashboard" loading="lazy">
+                                        <img src="/images/icon/hall.png" alt="My Dashboard" loading="lazy" decoding="async" width="256" height="256">
                                         <h4>My Dashboard</h4>
                                         <p>Manage profile</p>
                                         <a href="/dashboard">View more</a>
                                     <% } else { %>
-                                        <img src="/images/icon/hall.png" alt="Join Now" loading="lazy">
+                                        <img src="/images/icon/hall.png" alt="Join Now" loading="lazy" decoding="async" width="256" height="256">
                                         <h4>Join Now</h4>
                                         <p>Start for free</p>
                                         <a href="/register">Get started</a>
@@ -220,7 +214,7 @@
                         <li>
                             <div class="wow fadeInUp hacc hacc4" data-wow-delay="0.6s">
                                 <div class="con">
-                                    <img src="/images/icon/cake.png" alt="Blog & Articles" loading="lazy">
+                                    <img src="/images/icon/cake.png" alt="Blog & Articles" loading="lazy" decoding="async" width="128" height="128">
                                     <h4>Blog & Articles</h4>
                                     <p>Tips & stories</p>
                                     <a href="/blogs">Read now</a>
@@ -234,37 +228,37 @@
         </div>
     </div>
 </section>
-<!-- END -->
+<%# END %>
 
-<!-- AD BANNER -->
+<%# AD BANNER %>
 <section style="background: #fff; padding: 12px 0; border-top: 1px solid #f0e6ff; border-bottom: 1px solid #f0e6ff; position: relative; z-index: 1; text-align: center;">
     <div class="container">
         <div style="display: inline-block; position: relative;">
-            <!-- AD SLOT: Replace the <a> block below with your actual ad code (Google AdSense, custom banner, etc.) -->
+            <%# AD SLOT: Replace the <a> block below with your actual ad code (Google AdSense, custom banner, etc.) %>
             <a href="/register" title="Join BanjaraMatch Free" style="display: block; text-decoration: none;">
                 <div style="width: 728px; max-width: 100%; height: 90px; background: linear-gradient(135deg, #f6af04 0%, #e09800 100%); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; box-shadow: 0 2px 12px rgba(246,175,4,0.25); gap: 20px; overflow: hidden; position: relative;">
                     <div style="position: absolute; right: -20px; top: -20px; width: 120px; height: 120px; background: rgba(255,255,255,0.08); border-radius: 50%;"></div>
                     <div style="position: absolute; left: 60%; bottom: -30px; width: 160px; height: 160px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
                     <div style="display: flex; align-items: center; gap: 14px; flex: 1; min-width: 0;">
-                        <img src="/images/logo-bf.png" alt="BanjaraMatch" style="height: 44px; width: auto; flex-shrink: 0;" onerror="this.style.display='none'">
+                        <img src="/images/logo-bf.png" alt="BanjaraMatch" width="257" height="44" loading="lazy" decoding="async" style="height: 44px; width: auto; flex-shrink: 0;">
                         <div style="text-align: left; min-width: 0;">
-                            <div style="font-size: 18px; font-weight: 800; color: #1a1a1a; white-space: nowrap; font-family: 'Josefin Sans', sans-serif; line-height: 1.2;">Find Your Banjara Life Partner — Free</div>
+                            <div style="font-size: 18px; font-weight: 800; color: #1a1a1a; white-space: nowrap; line-height: 1.2;">Find Your Banjara Life Partner — Free</div>
                             <div style="font-size: 13px; color: #3a2a00; margin-top: 2px; white-space: nowrap;">AI-powered matching &nbsp;•&nbsp; 100% free to join</div>
                         </div>
                     </div>
                     <div style="flex-shrink: 0;">
-                        <span style="background: #1a1a1a; color: #f6af04; font-size: 14px; font-weight: 700; padding: 10px 22px; border-radius: 50px; white-space: nowrap; font-family: 'Josefin Sans', sans-serif; letter-spacing: 0.3px;">Register Free →</span>
+                        <span style="background: #1a1a1a; color: #f6af04; font-size: 14px; font-weight: 700; padding: 10px 22px; border-radius: 50px; white-space: nowrap; letter-spacing: 0.3px;">Register Free →</span>
                     </div>
                 </div>
             </a>
         </div>
     </div>
 </section>
-<!-- END AD BANNER -->
+<%# END AD BANNER %>
 
-<!-- MOBILE APP DOWNLOAD SECTION -->
+<%# MOBILE APP DOWNLOAD SECTION %>
 <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 80px 0; position: relative; overflow: hidden; z-index: 1;">
-    <!-- Decorative elements -->
+    <%# Decorative elements %>
     <div style="position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
     <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%;"></div>
     
@@ -332,15 +326,9 @@
             
             <div class="col-lg-6 text-center">
                 <div style="position: relative; display: inline-block;">
-                    <!-- Phone mockup -->
+                    <%# Phone mockup %>
                     <div style="position: relative; display: inline-block;">
-                        <picture>
-                            <source srcset="/images/app-mockup.webp" type="image/webp">
-                            <img src="/images/app-mockup.png" alt="BanjaraMatch Mobile App" width="1004" height="1278"
-                                onerror="this.src='/images/default-mobile-app.png'"
-                                loading="lazy" decoding="async"
-                                style="max-width: 100%; height: auto; max-height: 500px; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));">
-                        </picture>
+                        <%- img('/images/app-mockup.png', { alt: 'BanjaraMatch Mobile App', width: 1004, height: 1278, sizes: '(max-width: 600px) 80vw, 400px', style: 'max-width: 100%; height: auto; max-height: 500px; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.5));' }) %>
                     </div>
                 </div>
             </div>
@@ -349,7 +337,7 @@
 </section>
 
 
-<!-- AI FEATURES CAROUSEL -->
+<%# AI FEATURES CAROUSEL %>
 <section style="background: #0f0c29; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%); padding: 75px 0; overflow: hidden; position: relative; z-index: 2; clear: both;">
   <div class="container">
     <div class="row" style="margin-bottom: 45px;">
@@ -362,100 +350,100 @@
       </div>
     </div>
 
-    <!-- SCROLLING CAROUSEL -->
+    <%# SCROLLING CAROUSEL %>
         <div style="position: relative; z-index: 1;">
-      <!-- Left fade overlay -->
+      <%# Left fade overlay %>
             <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 80px; background: linear-gradient(to right, #1a1a2e, transparent); z-index: 1; pointer-events: none;"></div>
-      <!-- Right fade overlay -->
+      <%# Right fade overlay %>
             <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: linear-gradient(to left, #0f3460, transparent); z-index: 1; pointer-events: none;"></div>
 
                         <div class="bmx-feat-track-wrap" style="position: relative; z-index: 2; overflow-x: auto; overflow-y: hidden; -ms-overflow-style: none; scrollbar-width: none; padding-bottom: 8px;">
                                 <div class="bmx-feat-track" id="featTrack" style="display: inline-flex; gap: 22px; width: auto; min-width: 100%; cursor: grab; will-change: transform; position: relative; z-index: 2;">
 
-          <!-- Card 1 -->
-          <a href="/features#ai-matching" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 1 %>
+          <a href="/features#ai-matching" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-magic"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">AI Smart Matching</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Our AI learns your preferences and finds the most compatible Banjara matches for you.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">AI Smart Matching</h4>
+            <p class="bmi-6">Our AI learns your preferences and finds the most compatible Banjara matches for you.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 2 -->
-          <a href="/features#free-forever" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 2 %>
+          <a href="/features#free-forever" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #22c55e, #16a34a); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-gift"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">100% Free Forever</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">No subscriptions. No charges ever. Register, browse, chat and match — all free.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">100% Free Forever</h4>
+            <p class="bmi-6">No subscriptions. No charges ever. Register, browse, chat and match — all free.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 3 -->
-          <a href="/features#verified-profiles" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 3 %>
+          <a href="/features#verified-profiles" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #10b981, #059669); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-shield"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Verified Profiles</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Every profile is manually reviewed. No fakes, no scammers — only genuine Banjara families.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">Verified Profiles</h4>
+            <p class="bmi-6">Every profile is manually reviewed. No fakes, no scammers — only genuine Banjara families.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 4 -->
-          <a href="/features#realtime-chat" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 4 %>
+          <a href="/features#realtime-chat" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #f59e0b, #d97706); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-comments"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Real-Time Chat</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Chat directly with your matches without sharing phone numbers. Free, unlimited messaging.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">Real-Time Chat</h4>
+            <p class="bmi-6">Chat directly with your matches without sharing phone numbers. Free, unlimited messaging.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 5 -->
-          <a href="/features#nearby-matches" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 5 %>
+          <a href="/features#nearby-matches" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #ef4444, #dc2626); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-map-marker"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Nearby Matches</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">GPS-based search finds real Banjara profiles near you — accurate to actual distance.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">Nearby Matches</h4>
+            <p class="bmi-6">GPS-based search finds real Banjara profiles near you — accurate to actual distance.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 6 -->
-          <a href="/features#advanced-search" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 6 %>
+          <a href="/features#advanced-search" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #3b82f6, #1d4ed8); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-search"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Banjara-Specific Search</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Filter by sub-community, gotra, state, occupation and more. Designed for Banjara families.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">Banjara-Specific Search</h4>
+            <p class="bmi-6">Filter by sub-community, gotra, state, occupation and more. Designed for Banjara families.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 7 -->
-          <a href="/features#icebreaker-game" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 7 %>
+          <a href="/features#icebreaker-game" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #f97316, #ea580c); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-gamepad"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Ice Breaker Game</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Anonymous Q&A game with your match — identities revealed only when both connect.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">Ice Breaker Game</h4>
+            <p class="bmi-6">Anonymous Q&A game with your match — identities revealed only when both connect.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 8 -->
-          <a href="/features#privacy-controls" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 8 %>
+          <a href="/features#privacy-controls" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #6366f1, #4f46e5); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-lock"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Privacy Controls</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Show photos only to accepted interests. Block instantly. Your data stays protected.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">Privacy Controls</h4>
+            <p class="bmi-6">Show photos only to accepted interests. Block instantly. Your data stays protected.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 9 -->
-          <a href="/features#mobile-app" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 9 %>
+          <a href="/features#mobile-app" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #f6af04, #ff8c00); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-mobile"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Free Android App</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Full-featured Banjara matrimony app. Lightweight, works on slow connections, completely free.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">Free Android App</h4>
+            <p class="bmi-6">Full-featured Banjara matrimony app. Lightweight, works on slow connections, completely free.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-          <!-- Card 10 -->
-          <a href="/features#match-radar" class="bmx-feat-card" style="min-width: 230px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 28px 22px; text-decoration: none; transition: transform 0.3s, background 0.3s; flex-shrink: 0;">
+          <%# Card 10 %>
+          <a href="/features#match-radar" class="bmx-feat-card bmi-1">
             <div style="width: 54px; height: 54px; border-radius: 14px; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 24px; color: #fff; margin-bottom: 16px;"><i class="fa fa-wifi"></i></div>
-            <h4 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">AI Match Radar</h4>
-            <p style="color: rgba(255,255,255,0.65); font-size: 13px; line-height: 1.6; margin: 0;">Instant alert when a 85%+ compatible match comes online within 50 km of you.</p>
-            <span style="display: inline-block; margin-top: 14px; color: #f6af04; font-size: 12px; font-weight: 700;">Explore <i class="fa fa-arrow-right"></i></span>
+            <h4 class="bmi-7">AI Match Radar</h4>
+            <p class="bmi-6">Instant alert when a 85%+ compatible match comes online within 50 km of you.</p>
+            <span class="bmi-4">Explore <i class="fa fa-arrow-right"></i></span>
           </a>
 
-        </div><!-- /bmx-feat-track -->
-      </div><!-- /bmx-feat-track-wrap -->
+        </div><%# /bmx-feat-track %>
+      </div><%# /bmx-feat-track-wrap %>
 
-    </div><!-- /carousel wrap -->
+    </div><%# /carousel wrap %>
 
     <div style="text-align: center; margin-top: 40px;">
       <a href="/features" style="display: inline-flex; align-items: center; gap: 10px; background: #f6af04; color: #1a1a2e; padding: 14px 40px; border-radius: 30px; font-weight: 700; font-size: 16px; text-decoration: none; box-shadow: 0 8px 25px rgba(246,175,4,0.35);">
@@ -569,10 +557,10 @@
         });
   </script>
 </section>
-<!-- END AI FEATURES CAROUSEL -->
+<%# END AI FEATURES CAROUSEL %>
 
 
-<!-- BANJARA COMMUNITY INFO SECTION -->
+<%# BANJARA COMMUNITY INFO SECTION %>
 <section style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 80px 0; position: relative; z-index: 1;">
     <div class="container">
         <div class="row">
@@ -642,7 +630,7 @@
 
 
 
-<!-- BANJARA BY ANY NAME — thin contextual strip -->
+<%# BANJARA BY ANY NAME — thin contextual strip %>
 <section style="background:#fdfaf5;border-top:1px solid #f0e8d0;border-bottom:1px solid #f0e8d0;padding:28px 0;position:relative;z-index:1;">
   <div class="container">
     <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px 24px;">
@@ -669,7 +657,7 @@
   </div>
 </section>
 
-<!-- REGIONAL LINKS: every state page with its city pages (D3.26) -->
+<%# REGIONAL LINKS: every state page with its city pages (D3.26) %>
 <% if (typeof regionalIndex !== 'undefined' && regionalIndex && regionalIndex.length) { %>
 <section class="home-regional-links">
   <div class="container">
@@ -682,7 +670,7 @@
 
 
 
-<!-- BANNER -->
+<%# BANNER %>
 <section style="position: relative; z-index: 1;">
     <div class="str">
         <div class="ban-inn ban-home">
@@ -701,7 +689,7 @@
     </div>
 </section>
 
-<!-- WHY CHOOSE US START -->
+<%# WHY CHOOSE US START %>
 <section style="position: relative; z-index: 1;">
     <div class="ab-sec2">
         <div class="container">
@@ -709,14 +697,14 @@
                 <ul>
                     <li>
                         <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.1">
-                            <img src="/images/icon/prize.png" alt="100% Free Verified Matrimony Profiles" loading="lazy">
+                            <img src="/images/icon/prize.png" alt="100% Free Verified Matrimony Profiles" loading="lazy" decoding="async" width="128" height="128">
                             <h4>100% Free & Verified Profiles</h4>
-                            <p>Every profile is manually verified to ensure genuine Banjara community users with valid details - no hidden costs, completely free forever.</p>
+                            <p>No hidden costs, completely free forever.</p>
                         </div>
                     </li>
                     <li>
                         <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.3">
-                            <img src="/images/icon/trust.png" alt="India's First Free Banjara Matrimony" loading="lazy">
+                            <img src="/images/icon/trust.png" alt="India's First Free Banjara Matrimony" loading="lazy" decoding="async" width="128" height="128">
                             <h4>India's First Free Banjara Matrimony</h4>
                             <p>The pioneering platform exclusively for the Banjara community, built for secure and meaningful matchmaking at no cost.</p>
                         </div>
@@ -727,7 +715,7 @@
     </div>
 </section>
 
-<!-- ABOUT US SECTION -->
+<%# ABOUT US SECTION %>
 <section style="position: relative; z-index: 1; padding-top: 80px;">
     <div class="ab-wel">
         <div class="container">
@@ -742,17 +730,17 @@
                 </div>
             </div>
             <div class="row">
-                <!-- Left Side Images -->
+                <%# Left Side Images %>
                 <div class="col-lg-6">
                     <div class="ab-wel-lhs">
                         <span class="ab-wel-3"></span>
-                        <img src="/images/about/1.jpg" alt="Banjara couple holding hands - traditional wedding journey" loading="lazy" class="ab-wel-1">
-                        <img src="/images/couples/20.jpg" alt="Happy Banjara married couple from BanjaraMatch free service" loading="lazy" class="ab-wel-2">
+                        <img src="/images/about/1.jpg" alt="Banjara couple holding hands - traditional wedding journey" loading="lazy" decoding="async" width="640" height="958" class="ab-wel-1">
+                        <%- img('/images/couples/20.jpg', { alt: 'Happy Banjara married couple from BanjaraMatch free service', width: 1024, height: 739, className: 'ab-wel-2', sizes: '(max-width: 992px) 80vw, 480px' }) %>
                         <span class="ab-wel-4"></span>
                     </div>
                 </div>
 
-                <!-- Right Side Content -->
+                <%# Right Side Content %>
                 <div class="col-lg-6">
                     <div class="ab-wel-rhs">
                         <div class="ab-wel-tit">
@@ -769,13 +757,13 @@
                                 <li>
                                     <div>
                                         <i class="fa fa-envelope-o" aria-hidden="true"></i>
-                                        <h4>Free Support <em>support@banjaramatch.com</em></h4>
+                                        <h4>Free Support <em><%= site.supportEmail %></em></h4>
                                     </div>
                                 </li>
                             </ul>
                         </div>
-                    </div> <!-- ab-wel-rhs -->
-                </div> <!-- col-lg-6 -->
+                    </div> <%# ab-wel-rhs %>
+                </div> <%# col-lg-6 %>
             </div>
         </div>
     </div>
@@ -795,7 +783,7 @@
 
 
 
-<!-- SERVICE HIGHLIGHT SECTION -->
+<%# SERVICE HIGHLIGHT SECTION %>
 <section style="background: linear-gradient(135deg, #e8e8e8 0%, #bebebe 100%); padding: 60px 0; color: white; position: relative; z-index: 1;">
     <div class="container">
         <div class="row">
@@ -841,7 +829,7 @@
 
 
 
-<!-- BANJARA SUBCASTES SECTION -->
+<%# BANJARA SUBCASTES SECTION %>
 <section style="background: #f8f9fa; padding: 80px 0; position: relative; z-index: 1;">
     <div class="container">
         <div class="row">
@@ -857,47 +845,47 @@
                     <div class="row">
                         <div class="col-lg-4 col-md-6 mb-4">
                             <div class="subcaste-card" style="background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease;">
-                                <i class="fa fa-users" style="font-size: 48px; color: #f6af04; margin-bottom: 20px;"></i>
+                                <i class="fa fa-users bmi-23"></i>
                                 <h4 style="margin-bottom: 15px; color: #2c3e50;">Lambani / Lambadi</h4>
                                 <p style="color: #666; font-size: 14px;">The largest sub-community of Banjara people, primarily found in Karnataka, Andhra Pradesh, and Telangana.</p>
                             </div>
                         </div>
                         
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="subcaste-card" style="background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                                <i class="fa fa-home" style="font-size: 48px; color: #f6af04; margin-bottom: 20px;"></i>
+                            <div class="subcaste-card bmi-11">
+                                <i class="fa fa-home bmi-23"></i>
                                 <h4 style="margin-bottom: 15px; color: #2c3e50;">Gormati</h4>
                                 <p style="color: #666; font-size: 14px;">Traditional nomadic traders known for their business acumen and cultural preservation.</p>
                             </div>
                         </div>
                         
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="subcaste-card" style="background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                                <i class="fa fa-star" style="font-size: 48px; color: #f6af04; margin-bottom: 20px;"></i>
+                            <div class="subcaste-card bmi-11">
+                                <i class="fa fa-star bmi-23"></i>
                                 <h4 style="margin-bottom: 15px; color: #2c3e50;">Sugali</h4>
                                 <p style="color: #666; font-size: 14px;">Prominent in Maharashtra and northern regions, known for their rich cultural traditions.</p>
                             </div>
                         </div>
                         
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="subcaste-card" style="background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                                <i class="fa fa-sun-o" style="font-size: 48px; color: #f6af04; margin-bottom: 20px;"></i>
+                            <div class="subcaste-card bmi-11">
+                                <i class="fa fa-sun-o bmi-23"></i>
                                 <h4 style="margin-bottom: 15px; color: #2c3e50;">Banjara</h4>
                                 <p style="color: #666; font-size: 14px;">The broader community encompassing various regional variations and dialects.</p>
                             </div>
                         </div>
                         
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="subcaste-card" style="background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                                <i class="fa fa-heart" style="font-size: 48px; color: #f6af04; margin-bottom: 20px;"></i>
+                            <div class="subcaste-card bmi-11">
+                                <i class="fa fa-heart bmi-23"></i>
                                 <h4 style="margin-bottom: 15px; color: #2c3e50;">Vanjari</h4>
                                 <p style="color: #666; font-size: 14px;">A sub-group with strong cultural identity, primarily in Maharashtra and surrounding areas.</p>
                             </div>
                         </div>
                         
                         <div class="col-lg-4 col-md-6 mb-4">
-                            <div class="subcaste-card" style="background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
-                                <i class="fa fa-globe" style="font-size: 48px; color: #f6af04; margin-bottom: 20px;"></i>
+                            <div class="subcaste-card bmi-11">
+                                <i class="fa fa-globe bmi-23"></i>
                                 <h4 style="margin-bottom: 15px; color: #2c3e50;">All Sub-Communities</h4>
                                 <p style="color: #666; font-size: 14px;">We welcome all Banjara sub-communities and regional variations across India.</p>
                                 <span style="background: #28a745; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px;">100% Free</span>
@@ -916,9 +904,9 @@
 
 
 
-<!-- PLATFORM COMPARISON SECTION -->
+<%# PLATFORM COMPARISON SECTION %>
 <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 80px 0; position: relative; overflow: hidden; z-index: 1;" aria-labelledby="comparison-heading">
-    <!-- Decorative elements -->
+    <%# Decorative elements %>
     <div style="position: absolute; top: -50px; right: -50px; width: 300px; height: 300px; background: rgba(255,255,255,0.1); border-radius: 50%;" aria-hidden="true"></div>
     <div style="position: absolute; bottom: -100px; left: -100px; width: 400px; height: 400px; background: rgba(255,255,255,0.05); border-radius: 50%;" aria-hidden="true"></div>
     
@@ -935,16 +923,16 @@
                     <span class="tit-ani-"></span>
                 </div>
                 
-                <!-- Responsive Comparison Table -->
+                <%# Responsive Comparison Table %>
                 <div class="comparison-table-wrapper" style="overflow-x: auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); -webkit-overflow-scrolling: touch;">
                     <table class="table table-hover comparison-table" style="margin-bottom: 0; min-width: 800px;">
                         <thead style="background: linear-gradient(135deg, #f6af04 0%, #ff8c00 100%);">
                             <tr>
                                 <th style="padding: 25px 20px; color: white; font-size: 16px; font-weight: 600; border: none; border-right: 2px solid rgba(255,255,255,0.2); white-space: nowrap;">
-                                    <i class="fa fa-star" style="margin-right: 8px;"></i><span class="feature-text">Features</span>
+                                    <i class="fa fa-star bmi-12"></i><span class="feature-text">Features</span>
                                 </th>
                                 <th style="padding: 25px 20px; color: white; font-size: 18px; font-weight: 700; text-align: center; border: none; border-right: 2px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.15); white-space: nowrap;">
-                                    <i class="fa fa-heart" style="margin-right: 8px;"></i><span class="platform-text">BanjaraMatch</span>
+                                    <i class="fa fa-heart bmi-12"></i><span class="platform-text">BanjaraMatch</span>
                                 </th>
                                 <th style="padding: 25px 20px; color: white; font-size: 16px; font-weight: 600; text-align: center; border: none; opacity: 0.9; white-space: nowrap;">
                                     <span class="platform-text">Other Platforms</span>
@@ -952,194 +940,165 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Registration Cost -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <th scope="row" style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-user-plus" style="color: #f6af04; margin-right: 10px;" aria-hidden="true"></i><span class="feature-text">Registration Cost</span>
+                            <%# Registration Cost %>
+                            <tr class="bmi-22">
+                                <th class="bmi-3" scope="row">
+                                    <i class="fa fa-user-plus bmi-10" aria-hidden="true"></i><span class="feature-text">Registration Cost</span>
                                 </th>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
+                                <td class="bmi-5">
                                     <span style="color: #22c55e; font-weight: 700; font-size: 16px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;" aria-hidden="true"></i><span class="value-text">No Charge</span>
+                                        <i class="fa fa-check-circle bmi-18" aria-hidden="true"></i><span class="value-text">No Charge</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fef2f2;">
-                                    <span style="color: #ef4444; font-weight: 600; font-size: 14px; white-space: nowrap;">₹500 - ₹2,000</span>
+                                <td class="bmi-16">
+                                    <span class="bmi-20">₹500 - ₹2,000</span>
                                 </td>
                             </tr>
                             
-                            <!-- Profile Verification -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <td style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-shield" style="color: #f6af04; margin-right: 10px;"></i><span class="feature-text">Profile Verification</span>
+                            <%# Profile Verification %>
+                            <tr class="bmi-22">
+                                <td class="bmi-3">
+                                    <i class="fa fa-shield bmi-10"></i><span class="feature-text">Profile Verification</span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;"></i><span class="value-text">Manual Verification</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18"></i><span class="value-text">Manual Verification</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fffbeb;">
-                                    <span style="color: #f59e0b; font-weight: 600; font-size: 14px; white-space: nowrap;">Auto/Limited</span>
+                                <td class="bmi-17">
+                                    <span class="bmi-21">Auto/Limited</span>
                                 </td>
                             </tr>
                             
-                            <!-- Browse Profiles -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <th scope="row" style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-search" style="color: #f6af04; margin-right: 10px;" aria-hidden="true"></i><span class="feature-text">Browse Profiles</span>
+                            <%# Browse Profiles %>
+                            <tr class="bmi-22">
+                                <th class="bmi-3" scope="row">
+                                    <i class="fa fa-search bmi-10" aria-hidden="true"></i><span class="feature-text">Browse Profiles</span>
                                 </th>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;" aria-hidden="true"></i><span class="value-text">Unlimited Access</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18" aria-hidden="true"></i><span class="value-text">Unlimited Access</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fef2f2;">
-                                    <span style="color: #ef4444; font-weight: 600; font-size: 14px; white-space: nowrap;">₹1,500 - ₹5,000</span>
+                                <td class="bmi-16">
+                                    <span class="bmi-20">₹1,500 - ₹5,000</span>
                                 </td>
                             </tr>
                             
-                            <!-- Send Interests -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <th scope="row" style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-heart" style="color: #f6af04; margin-right: 10px;" aria-hidden="true"></i><span class="feature-text">Send Interests</span>
+                            <%# Send Interests %>
+                            <tr class="bmi-22">
+                                <th class="bmi-3" scope="row">
+                                    <i class="fa fa-heart bmi-10" aria-hidden="true"></i><span class="feature-text">Send Interests</span>
                                 </th>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;" aria-hidden="true"></i><span class="value-text">Unlimited</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18" aria-hidden="true"></i><span class="value-text">Unlimited</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fef2f2;">
-                                    <span style="color: #ef4444; font-weight: 600; font-size: 14px; white-space: nowrap;">Limited/Paid</span>
+                                <td class="bmi-16">
+                                    <span class="bmi-20">Limited/Paid</span>
                                 </td>
                             </tr>
                             
-                            <!-- Chat & Communication -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <th scope="row" style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-comments" style="color: #f6af04; margin-right: 10px;" aria-hidden="true"></i><span class="feature-text">Chat & Communication</span>
+                            <%# Chat & Communication %>
+                            <tr class="bmi-22">
+                                <th class="bmi-3" scope="row">
+                                    <i class="fa fa-comments bmi-10" aria-hidden="true"></i><span class="feature-text">Chat & Communication</span>
                                 </th>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;" aria-hidden="true"></i><span class="value-text">Unlimited</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18" aria-hidden="true"></i><span class="value-text">Unlimited</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fef2f2;">
-                                    <span style="color: #ef4444; font-weight: 600; font-size: 14px; white-space: nowrap;">₹2,000 - ₹10,000</span>
+                                <td class="bmi-16">
+                                    <span class="bmi-20">₹2,000 - ₹10,000</span>
                                 </td>
                             </tr>
                             
-                            <!-- Contact Details
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <th scope="row" style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-phone" style="color: #f6af04; margin-right: 10px;" aria-hidden="true"></i><span class="feature-text">View Contact Details</span>
-                                </th>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;" aria-hidden="true"></i><span class="value-text">Full Access</span>
-                                    </span>
-                                </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fef2f2;">
-                                    <span style="color: #ef4444; font-weight: 600; font-size: 14px; white-space: nowrap;">₹3,000 - ₹15,000</span>
-                                </td>
-                            </tr> -->
                             
-                            <!-- Community Focus -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <td style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-users" style="color: #f6af04; margin-right: 10px;"></i><span class="feature-text">Banjara Community Focus</span>
+                            <%# Community Focus %>
+                            <tr class="bmi-22">
+                                <td class="bmi-3">
+                                    <i class="fa fa-users bmi-10"></i><span class="feature-text">Banjara Community Focus</span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;"></i><span class="value-text">Dedicated Platform</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18"></i><span class="value-text">Dedicated Platform</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fef2f2;">
-                                    <span style="color: #ef4444; font-weight: 600; font-size: 14px; white-space: nowrap;">
+                                <td class="bmi-16">
+                                    <span class="bmi-20">
                                         <i class="fa fa-times-circle" style="margin-right: 5px;"></i><span class="value-text">Mixed Community</span>
                                     </span>
                                 </td>
                             </tr>
                             
-                            <!-- Mobile App -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <th scope="row" style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-mobile" style="color: #f6af04; margin-right: 10px;" aria-hidden="true"></i><span class="feature-text">Mobile App</span>
+                            <%# Mobile App %>
+                            <tr class="bmi-22">
+                                <th class="bmi-3" scope="row">
+                                    <i class="fa fa-mobile bmi-10" aria-hidden="true"></i><span class="feature-text">Mobile App</span>
                                 </th>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;" aria-hidden="true"></i><span class="value-text">Available</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18" aria-hidden="true"></i><span class="value-text">Available</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fffbeb;">
-                                    <span style="color: #f59e0b; font-weight: 600; font-size: 14px; white-space: nowrap;">Available</span>
+                                <td class="bmi-17">
+                                    <span class="bmi-21">Available</span>
                                 </td>
                             </tr>
                             
-                            <!-- API Integration -->
-                            <!-- <tr style="border-bottom: 1px solid #e9ecef;">
-                                <td style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-code" style="color: #f6af04; margin-right: 10px;"></i><span class="feature-text">API Integration</span>
-                                </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;"></i><span class="value-text">Available</span>
-                                    </span>
-                                </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fef2f2;">
-                                    <span style="color: #ef4444; font-weight: 600; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-times-circle" style="margin-right: 5px;"></i><span class="value-text">Not Available</span>
-                                    </span>
-                                </td>
-                            </tr> -->
+                            <%# API Integration %>
                             
-                            <!-- Advanced Matching -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <td style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-magic" style="color: #f6af04; margin-right: 10px;"></i><span class="feature-text">AI-Powered Matching</span>
+                            <%# Advanced Matching %>
+                            <tr class="bmi-22">
+                                <td class="bmi-3">
+                                    <i class="fa fa-magic bmi-10"></i><span class="feature-text">AI-Powered Matching</span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;"></i><span class="value-text">Smart Algorithm</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18"></i><span class="value-text">Smart Algorithm</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fffbeb;">
-                                    <span style="color: #f59e0b; font-weight: 600; font-size: 14px; white-space: nowrap;">Basic Filters</span>
+                                <td class="bmi-17">
+                                    <span class="bmi-21">Basic Filters</span>
                                 </td>
                             </tr>
                             
-                            <!-- Privacy & Security -->
-                            <tr style="border-bottom: 1px solid #e9ecef;">
-                                <td style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-lock" style="color: #f6af04; margin-right: 10px;"></i><span class="feature-text">Privacy & Security</span>
+                            <%# Privacy & Security %>
+                            <tr class="bmi-22">
+                                <td class="bmi-3">
+                                    <i class="fa fa-lock bmi-10"></i><span class="feature-text">Privacy & Security</span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;"></i><span class="value-text">Advanced Protection</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18"></i><span class="value-text">Advanced Protection</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fffbeb;">
-                                    <span style="color: #f59e0b; font-weight: 600; font-size: 14px; white-space: nowrap;">Standard</span>
+                                <td class="bmi-17">
+                                    <span class="bmi-21">Standard</span>
                                 </td>
                             </tr>
                             
-                            <!-- Customer Support -->
+                            <%# Customer Support %>
                             <tr>
-                                <th scope="row" style="padding: 20px 15px; font-weight: 600; color: #2c3e50; vertical-align: middle; white-space: nowrap;">
-                                    <i class="fa fa-headphones" style="color: #f6af04; margin-right: 10px;" aria-hidden="true"></i><span class="feature-text">Customer Support</span>
+                                <th class="bmi-3" scope="row">
+                                    <i class="fa fa-headphones bmi-10" aria-hidden="true"></i><span class="feature-text">Customer Support</span>
                                 </th>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #f0fff4;">
-                                    <span style="color: #22c55e; font-weight: 700; font-size: 14px; white-space: nowrap;">
-                                        <i class="fa fa-check-circle" style="font-size: 18px; margin-right: 5px;" aria-hidden="true"></i><span class="value-text">24/7 Support</span>
+                                <td class="bmi-5">
+                                    <span class="bmi-9">
+                                        <i class="fa fa-check-circle bmi-18" aria-hidden="true"></i><span class="value-text">24/7 Support</span>
                                     </span>
                                 </td>
-                                <td style="padding: 20px 15px; text-align: center; vertical-align: middle; background: #fffbeb;">
-                                    <span style="color: #f59e0b; font-weight: 600; font-size: 14px; white-space: nowrap;">Business Hours</span>
+                                <td class="bmi-17">
+                                    <span class="bmi-21">Business Hours</span>
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
                 
-                <!-- CTA Section -->
+                <%# CTA Section %>
                 <div class="text-center" style="margin-top: 40px;">
                     <div class="comparison-cta" style="background: rgba(255,255,255,0.15); padding: 30px; border-radius: 15px; backdrop-filter: blur(10px); max-width: 700px; margin: 0 auto;">
                         <h3 style="color: white; margin-bottom: 15px; font-weight: 700;">
@@ -1171,7 +1130,7 @@
         </div>
     </div>
     
-    <!-- Responsive Styles for Comparison Section -->
+    <%# Responsive Styles for Comparison Section %>
     <style>
         /* Mobile Responsiveness */
         @media screen and (max-width: 768px) {
@@ -1321,10 +1280,10 @@
         }
     </style>
 </section>
-<!-- END PLATFORM COMPARISON -->
+<%# END PLATFORM COMPARISON %>
 
 
-<!-- MOMENTS SECTION | BANJARA MATRIMONY PROCESS -->
+<%# MOMENTS SECTION | BANJARA MATRIMONY PROCESS %>
 <section style="position: relative; z-index: 1;">
     <div class="wedd-tline">
         <div class="container">
@@ -1341,7 +1300,7 @@
                         <li itemprop="step" itemscope itemtype="https://schema.org/HowToStep">
                             <div class="tline-inn">
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="/images/icon/rings.png" alt="Register on Banjara Matrimony" loading="lazy">
+                                    <img src="/images/icon/rings.png" alt="Register on Banjara Matrimony" loading="lazy" decoding="async" width="512" height="512">
                                 </div>
                                 <div class="tline-con animate animate__fadeInUp">
                                     <h5 itemprop="name">Register</h5>
@@ -1356,14 +1315,14 @@
                                     <p itemprop="text">Explore 100% verified Banjara profiles based on community, location, and lifestyle choices.</p>
                                 </div>
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="/images/icon/wedding-2.png" alt="Find Banjara Match" loading="lazy">
+                                    <img src="/images/icon/wedding-2.png" alt="Find Banjara Match" loading="lazy" decoding="async" width="128" height="128">
                                 </div>
                             </div>
                         </li>
                         <li itemprop="step" itemscope itemtype="https://schema.org/HowToStep">
                             <div class="tline-inn">
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="/images/icon/love-birds.png" alt="Send Interest to Banjara Profiles" loading="lazy">
+                                    <img src="/images/icon/love-birds.png" alt="Send Interest to Banjara Profiles" loading="lazy" decoding="async" width="128" height="128">
                                 </div>
                                 <div class="tline-con animate animate__fadeInUp">
                                     <h5 itemprop="name">Send Interest</h5>
@@ -1378,14 +1337,14 @@
                                     <p itemprop="text">Access detailed family background, education, and profession of your matches for better decisions.</p>
                                 </div>
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="/images/icon/network.png" alt="Profile Information Banjara Matrimony" loading="lazy">
+                                    <img src="/images/icon/network.png" alt="Profile Information Banjara Matrimony" loading="lazy" decoding="async" width="128" height="128">
                                 </div>
                             </div>
                         </li>
                         <li itemprop="step" itemscope itemtype="https://schema.org/HowToStep">
                             <div class="tline-inn">
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="/images/icon/chat.png" alt="Start Meetups for Marriage Discussion" loading="lazy">
+                                    <img src="/images/icon/chat.png" alt="Start Meetups for Marriage Discussion" loading="lazy" decoding="async" width="128" height="128">
                                 </div>
                                 <div class="tline-con animate animate__fadeInUp">
                                     <h5 itemprop="name">Start Meetups</h5>
@@ -1400,7 +1359,7 @@
                                     <p itemprop="text">Celebrate your Banjara wedding with your perfect match found through our platform.</p>
                                 </div>
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="/images/icon/wedding-couple.png" alt="Get Married through BanjaraMatch" loading="lazy">
+                                    <img src="/images/icon/wedding-couple.png" alt="Get Married through BanjaraMatch" loading="lazy" decoding="async" width="128" height="128">
                                 </div>
                             </div>
                         </li>
@@ -1410,7 +1369,7 @@
         </div>
     </div>
 </section>
-<!-- MOMENTS SECTION END -->
+<%# MOMENTS SECTION END %>
 
 
 
@@ -1418,7 +1377,7 @@
 
 
 
-    <!-- BLOG POSTS START -->
+    <%# BLOG POSTS START %>
     <section style="position: relative; z-index: 1;">
         <div class="hom-blog">
             <div class="container">
@@ -1481,7 +1440,7 @@
             </div>
         </div>
     </section>
-    <!-- END -->
+    <%# END %>
 
 
     <style>
@@ -1495,9 +1454,9 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.4) !important;
         }
     </style>
-    <!-- END MOBILE APP SECTION -->
+    <%# END MOBILE APP SECTION %>
 
-<!-- FAQ SECTION -->
+<%# FAQ SECTION %>
 <section id="faq-section" style="background: #fff; padding: 80px 0; position: relative; z-index: 1;">
     <div class="container">
         <div class="row">
@@ -1511,73 +1470,73 @@
 
                 <div style="max-width: 860px; margin: 50px auto 0;">
 
-                    <div class="faq-item" style="background: #f8f9fa; border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; border-left: 4px solid #f6af04;">
-                        <h3 style="font-size: 18px; color: #2c3e50; margin-bottom: 12px; font-weight: 600;">
-                            <i class="fa fa-question-circle" style="color: #f6af04; margin-right: 10px;"></i>
+                    <div class="faq-item bmi-8">
+                        <h3 class="bmi-13">
+                            <i class="fa fa-question-circle bmi-10"></i>
                             What is Banjara Matrimony?
                         </h3>
                         <div>
-                            <p style="color: #555; line-height: 1.7; margin: 0;">
+                            <p class="bmi-24">
                                 <strong>Banjara Matrimony</strong> is the process of finding a life partner within the Banjara community (also known as <strong>Lambani</strong>, <strong>Lambadi</strong>, <strong>Gormati</strong>, or <strong>Sugali</strong>). <a href="/" style="color: #667eea;">BanjaraMatch.com</a> is India's dedicated free Banjara matrimony platform with verified profiles across all states.
                             </p>
                         </div>
                     </div>
 
-                    <div class="faq-item" style="background: #f8f9fa; border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; border-left: 4px solid #f6af04;">
-                        <h3 style="font-size: 18px; color: #2c3e50; margin-bottom: 12px; font-weight: 600;">
-                            <i class="fa fa-question-circle" style="color: #f6af04; margin-right: 10px;"></i>
+                    <div class="faq-item bmi-8">
+                        <h3 class="bmi-13">
+                            <i class="fa fa-question-circle bmi-10"></i>
                             Is BanjaraMatch a free Banjara matrimony site?
                         </h3>
                         <div>
-                            <p style="color: #555; line-height: 1.7; margin: 0;">
+                            <p class="bmi-24">
                                 Yes! <strong>BanjaraMatch.com is 100% free</strong> for all Banjara community members. Registration, browsing profiles, sending interests, and chatting are completely free — no hidden charges, no subscription fees. Unlike other paid matrimony sites, we believe every Banjara family deserves access to a quality matrimony service at no cost.
                             </p>
                         </div>
                     </div>
 
-                    <div class="faq-item" style="background: #f8f9fa; border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; border-left: 4px solid #f6af04;">
-                        <h3 style="font-size: 18px; color: #2c3e50; margin-bottom: 12px; font-weight: 600;">
-                            <i class="fa fa-question-circle" style="color: #f6af04; margin-right: 10px;"></i>
+                    <div class="faq-item bmi-8">
+                        <h3 class="bmi-13">
+                            <i class="fa fa-question-circle bmi-10"></i>
                             How to find Banjara brides and grooms on BanjaraMatch?
                         </h3>
                         <div>
-                            <p style="color: #555; line-height: 1.7; margin: 0;">
+                            <p class="bmi-24">
                                 Register free on BanjaraMatch.com, complete your profile, and browse verified <strong>Banjara matrimony profiles</strong>. Use smart filters like age, state, sub-community (Lambani, Gormati, Sugali, Gor Banjara), education, and profession to find your ideal <a href="/all-profiles" style="color: #667eea;">Banjara bride or groom</a>.
                             </p>
                         </div>
                     </div>
 
-                    <div class="faq-item" style="background: #f8f9fa; border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; border-left: 4px solid #f6af04;">
-                        <h3 style="font-size: 18px; color: #2c3e50; margin-bottom: 12px; font-weight: 600;">
-                            <i class="fa fa-question-circle" style="color: #f6af04; margin-right: 10px;"></i>
+                    <div class="faq-item bmi-8">
+                        <h3 class="bmi-13">
+                            <i class="fa fa-question-circle bmi-10"></i>
                             What is Lambani / Lambadi Matrimony?
                         </h3>
                         <div>
-                            <p style="color: #555; line-height: 1.7; margin: 0;">
+                            <p class="bmi-24">
                                 <strong>Lambani (Lambadi) Matrimony</strong> is matrimonial matchmaking for the Lambani sub-group of the Banjara community, primarily found in Karnataka, Andhra Pradesh, and Telangana. BanjaraMatch has verified Lambani matrimony profiles, making it the most comprehensive platform for Lambani brides and grooms in India.
                             </p>
                         </div>
                     </div>
 
-                    <div class="faq-item" style="background: #f8f9fa; border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; border-left: 4px solid #f6af04;">
-                        <h3 style="font-size: 18px; color: #2c3e50; margin-bottom: 12px; font-weight: 600;">
-                            <i class="fa fa-question-circle" style="color: #f6af04; margin-right: 10px;"></i>
+                    <div class="faq-item bmi-8">
+                        <h3 class="bmi-13">
+                            <i class="fa fa-question-circle bmi-10"></i>
                             Is there a Banjara Matrimony app available?
                         </h3>
                         <div>
-                            <p style="color: #555; line-height: 1.7; margin: 0;">
-                                Yes! The BanjaraMatch <a href="/banjara-matrimony-app" style="color: #667eea;"><strong>Banjara Matrimony App</strong></a> is available for Android with AI-powered matching, instant notifications, profile management, and secure chat. Download it free from our website. iOS version is coming soon.
+                            <p class="bmi-24">
+                                Yes! The BanjaraMatch <a href="/banjara-matrimony-app" style="color: #667eea;"><strong>Banjara Matrimony App</strong></a> is available for Android with AI-powered matching, instant notifications, profile management, and secure chat. Download it free from our website.
                             </p>
                         </div>
                     </div>
 
-                    <div class="faq-item" style="background: #f8f9fa; border-radius: 12px; padding: 28px 32px; margin-bottom: 20px; border-left: 4px solid #f6af04;">
-                        <h3 style="font-size: 18px; color: #2c3e50; margin-bottom: 12px; font-weight: 600;">
-                            <i class="fa fa-question-circle" style="color: #f6af04; margin-right: 10px;"></i>
+                    <div class="faq-item bmi-8">
+                        <h3 class="bmi-13">
+                            <i class="fa fa-question-circle bmi-10"></i>
                             What is Gor Banjara Matrimony?
                         </h3>
                         <div>
-                            <p style="color: #555; line-height: 1.7; margin: 0;">
+                            <p class="bmi-24">
                                 <strong>Gor Banjara Matrimony</strong> is the matrimonial service specifically for the Gor Banjara sub-community. BanjaraMatch.com serves all Banjara sub-communities including Gor Banjara, Lambani, Gormati, Sugali, and Vanjari matrimony under one free platform.
                             </p>
                         </div>
@@ -1593,10 +1552,10 @@
         </div>
     </div>
 </section>
-<!-- END FAQ SECTION -->
+<%# END FAQ SECTION %>
 
 
-<!-- BANJARA MATRIMONY KEYWORD-RICH CONTENT SECTION -->
+<%# BANJARA MATRIMONY KEYWORD-RICH CONTENT SECTION %>
 <section style="background: linear-gradient(135deg, #2c3e50 0%, #1a252f 100%); padding: 80px 0; color: #fff; position: relative; z-index: 1;">
     <div class="container">
         <div class="row">
@@ -1615,20 +1574,20 @@
                 </p>
                 <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                     <a href="/register" style="background: #f6af04; color: #1a252f; padding: 14px 35px; border-radius: 30px; font-weight: 700; text-decoration: none; font-size: 16px;">
-                        <i class="fa fa-user-plus" style="margin-right: 8px;"></i> Register Free
+                        <i class="fa fa-user-plus bmi-12"></i> Register Free
                     </a>
                     <a href="/all-profiles" style="background: transparent; color: #fff; padding: 14px 35px; border-radius: 30px; font-weight: 600; text-decoration: none; font-size: 16px; border: 2px solid rgba(255,255,255,0.5);">
-                        <i class="fa fa-search" style="margin-right: 8px;"></i> Browse Banjara Profiles
+                        <i class="fa fa-search bmi-12"></i> Browse Banjara Profiles
                     </a>
                 </div>
             </div>
         </div>
     </div>
 </section>
-<!-- END BANJARA MATRIMONY CONTENT SECTION -->
+<%# END BANJARA MATRIMONY CONTENT SECTION %>
 
 
-    <!-- FIND YOUR MATCH BANNER -->
+    <%# FIND YOUR MATCH BANNER %>
             <div class="container">
                 <div class="row">
                     <div class="fot-ban-inn">
@@ -1643,9 +1602,9 @@
             </div>
         </div>
     </section>
-    <!-- END -->
+    <%# END %>
 
-  <!-- CONTEXTUAL INTERNAL LINKS (SEO) -->
+  <%# CONTEXTUAL INTERNAL LINKS (SEO) %>
   <section style="background: #f8f9fa; padding: 60px 0; border-top: 1px solid #e9ecef; position: relative; z-index: 1;">
     <div class="container">
       <div class="row">
@@ -1660,34 +1619,34 @@
       </div>
       
       <div class="row">
-        <!-- Category 1: Getting Started -->
+        <%# Category 1: Getting Started %>
         <div class="col-lg-3 col-md-6 mb-4">
-          <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: 100%;">
-            <h4 style="color: #f6af04; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #f6af04; padding-bottom: 10px;">
+          <div class="bmi-14">
+            <h4 class="bmi-15">
               <i class="fa fa-rocket"></i> Getting Started
             </h4>
             <ul style="list-style: none; padding: 0; margin: 0;">
-              <li style="margin-bottom: 12px;">
-                <a href="/register" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/register">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Create Free Profile
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/all-profiles" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/all-profiles">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Browse Verified Profiles
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/about" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/about">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Why BanjaraMatch?
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/blogs/tips" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/blogs/tips">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Matrimony Tips
                 </a>
               </li>
@@ -1695,28 +1654,28 @@
           </div>
         </div>
 
-        <!-- Category 2: Community Resources -->
+        <%# Category 2: Community Resources %>
         <div class="col-lg-3 col-md-6 mb-4">
-          <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: 100%;">
-            <h4 style="color: #f6af04; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #f6af04; padding-bottom: 10px;">
+          <div class="bmi-14">
+            <h4 class="bmi-15">
               <i class="fa fa-book"></i> Resources
             </h4>
             <ul style="list-style: none; padding: 0; margin: 0;">
-              <li style="margin-bottom: 12px;">
-                <a href="/blogs/culture" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/blogs/culture">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Banjara Culture & Traditions
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/blogs/stories" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/blogs/stories">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Success Stories
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/blogs/wedding" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/blogs/wedding">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Wedding Planning Guide
                 </a>
               </li>
@@ -1724,34 +1683,34 @@
           </div>
         </div>
 
-        <!-- Category 3: Support & Help -->
+        <%# Category 3: Support & Help %>
         <div class="col-lg-3 col-md-6 mb-4">
-          <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: 100%;">
-            <h4 style="color: #f6af04; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #f6af04; padding-bottom: 10px;">
+          <div class="bmi-14">
+            <h4 class="bmi-15">
               <i class="fa fa-question-circle"></i> Support & Help
             </h4>
             <ul style="list-style: none; padding: 0; margin: 0;">
-              <li style="margin-bottom: 12px;">
-                <a href="/contact" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/contact">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Contact Support
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/faq" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/faq">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Frequently Asked Questions
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/privacy-policy" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/privacy-policy">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Privacy Policy
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/terms-conditions" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/terms-conditions">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   Terms & Conditions
                 </a>
               </li>
@@ -1759,34 +1718,34 @@
           </div>
         </div>
 
-        <!-- Category 4: Quick Navigation -->
+        <%# Category 4: Quick Navigation %>
         <div class="col-lg-3 col-md-6 mb-4">
-          <div style="background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); height: 100%;">
-            <h4 style="color: #f6af04; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #f6af04; padding-bottom: 10px;">
+          <div class="bmi-14">
+            <h4 class="bmi-15">
               <i class="fa fa-link"></i> Quick Access
             </h4>
             <ul style="list-style: none; padding: 0; margin: 0;">
-              <li style="margin-bottom: 12px;">
-                <a href="/dashboard" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/dashboard">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   My Dashboard
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/user-interests" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/user-interests">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   View Interests
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
-                <a href="/dashboard" style="color: #667eea; text-decoration: none; display: flex; align-items: center; font-size: 14px;">
-                  <i class="fa fa-angle-right" style="margin-right: 8px;"></i>
+              <li class="bmi-19">
+                <a class="bmi-2" href="/dashboard">
+                  <i class="fa fa-angle-right bmi-12"></i>
                   My Matches
                 </a>
               </li>
-              <li style="margin-bottom: 12px;">
+              <li class="bmi-19">
                 <a href="/sitemap" style="color: #f6af04; text-decoration: none; display: flex; align-items: center; font-size: 14px; font-weight: 600;">
-                  <i class="fa fa-sitemap" style="margin-right: 8px;"></i>
+                  <i class="fa fa-sitemap bmi-12"></i>
                   Complete Site Map
                 </a>
               </li>
@@ -1800,16 +1759,16 @@
 
     </div>
   </section>
-  <!-- END CONTEXTUAL LINKS -->
+  <%# END CONTEXTUAL LINKS %>
 
   <%- include('../partials/footer') %>
 
 
 
-    <!-- Optional JavaScript - Optimized Loading -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <%# Optional JavaScript - Optimized Loading %>
+    <%# jQuery first, then Popper.js, then Bootstrap JS %>
     
-    <!-- Preconnect Optimization -->
+    <%# Preconnect Optimization %>
     <%- include('../partials/scripts') %>
 <script>
       // Guests: the hero search goes to /register?next=<encoded /all-profiles?...> (D5.41).
@@ -1851,7 +1810,7 @@
       }
     </script>
 
-    <!-- Dynamic City Loading for Better User Engagement -->
+    <%# Dynamic City Loading for Better User Engagement %>
         <script>
 // Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
 document.addEventListener('DOMContentLoaded', function () {

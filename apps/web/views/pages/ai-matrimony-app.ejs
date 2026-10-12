@@ -335,9 +335,7 @@
           <div style="position: relative; display: inline-block; z-index: 10;">
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150%; height: 150%; background: radial-gradient(circle, rgba(251,191,36,0.25) 0%, rgba(168,85,247,0.15) 40%, transparent 70%); animation: pulse-glow 4s ease-in-out infinite; z-index: 1;"></div>
             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 120%; height: 120%; background: radial-gradient(circle, rgba(251,191,36,0.3) 0%, transparent 60%); animation: pulse-glow 3s ease-in-out infinite; animation-delay: 0.5s; z-index: 2;"></div>
-            <img src="/images/ai-app-hero.png" alt="BanjaraMatch AI Matrimony App Interface" 
-                 onerror="this.src='/images/app-mockup.png'" 
-                 style="max-width: 100%; height: auto; max-height: 600px; position: relative; z-index: 10; filter: drop-shadow(0 40px 80px rgba(0,0,0,0.5)); animation: float-image 6s ease-in-out infinite;">
+            <%- img('/images/app-mockup.png', { alt: 'BanjaraMatch AI Matrimony App Interface', width: 1004, height: 1278, priority: true, sizes: '(max-width: 600px) 90vw, 480px', style: 'max-width: 100%; height: auto; max-height: 600px; position: relative; z-index: 10; filter: drop-shadow(0 40px 80px rgba(0,0,0,0.5)); animation: float-image 6s ease-in-out infinite;' }) %>
           </div>
         </div>
       </div>
@@ -598,9 +596,7 @@
         </div>
         
         <div class="col-lg-6 text-center">
-          <img src="/images/ai-technology.png" alt="AI Matchmaking Technology" 
-               onerror="this.src='/images/app-mockup.png'"
-               style="max-width: 100%; height: auto; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.2));">
+          <%- img('/images/app-mockup.png', { alt: 'AI Matchmaking Technology', width: 1004, height: 1278, sizes: '(max-width: 992px) 90vw, 540px', style: 'max-width: 100%; height: auto; filter: drop-shadow(0 20px 60px rgba(0,0,0,0.2));' }) %>
         </div>
       </div>
     </div>
@@ -859,7 +855,6 @@
 
   <!-- DOWNLOAD CTA SECTION -->
   <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 80px 0; position: relative; overflow: hidden;">
-    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url('/images/pattern-overlay.png') repeat; opacity: 0.1;"></div>
     
     <div class="container" style="position: relative; z-index: 10;">
       <div class="row">

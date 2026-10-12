@@ -6,7 +6,7 @@
 import { api } from '../core/api.js';
 import { html, el } from '../core/dom.js';
 import { fmtDate, timeAgo } from '../core/format.js';
-import { imageUrl, bindImageFallbacks } from '../core/imageUrl.js';
+import { imageUrl } from '../core/imageUrl.js';
 import { createTable } from '../core/table.js';
 import { bindFilters } from '../core/filters.js';
 
@@ -45,7 +45,6 @@ const table = createTable({
   ],
   fetchPage: async (params) => {
     const resp = await api('/admin/users', { query: params });
-    queueMicrotask(() => bindImageFallbacks(mount));
     return { rows: resp.data || [], pagination: resp.pagination };
   },
 });

@@ -23,6 +23,11 @@
 </head>
 
 <body>
+<%
+  // The API stores image paths without a leading slash ("images/blog/x.jpg"); on /blogs/<category>
+  // a relative src resolved to /blogs/images/... and 404ed. Always root-absolute.
+  const _abs = (p) => (!p ? '' : /^(https?:)?\/\//.test(p) ? p : '/' + String(p).replace(/^\/+/, ''));
+%>
 <%- include('../partials/header') %>
 <%- include('../partials/breadcrumb') %>
 
@@ -62,11 +67,11 @@
                         </div>
                         
                         <% if (posts && posts.length > 0) { %>
-                            <% posts.forEach(blog => { %>
+                            <% posts.forEach((blog, _bi) => { %>
                                 <!--BIG POST START-->
                                 <div class="blog-home-box">
                                     <div class="im">
-                                        <img src="<%= blog.featuredImage || '/images/couples/9.jpg' %>" alt="<%= blog.title %>" loading="lazy">
+                                        <img src="<%= _abs(blog.featuredImage) || '/images/couples/9.jpg' %>" alt="<%= blog.title %>" width="800" height="400" <%- /* raw-ok: literal attributes */ _bi === 0 ? 'loading="eager" fetchpriority="high"' : 'loading="lazy"' %> decoding="async">
                                         <span class="blog-date"><%= new Date(blog.publishedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) %></span>
                                         <div class="shar-1">
                                             <i class="fa fa-share-alt" aria-hidden="true"></i>
@@ -91,7 +96,7 @@
                                         <p><%= blog.description %></p>
                                         <div class="blog-info">
                                             <div class="blog-pro-info">
-                                                <img src="<%= blog.author.image || '/images/user/2.jpg' %>" alt="<%= blog.author.name %>" loading="lazy">
+                                                <img src="<%= _abs(blog.author.image) || '/images/user/2.jpg' %>" alt="<%= blog.author.name %>" width="40" height="40" loading="lazy" decoding="async">
                                                 <h5><%= blog.author.name %> <span><%= blog.author.role %></span></h5>
                                             </div>
                                         </div>
@@ -192,7 +197,7 @@
                                         <% trending.forEach(blog => { %>
                                             <li>
                                                 <div class="hot-page2-hom-pre-1">
-                                                    <img src="<%= blog.featuredImage || '/images/couples/8.jpg' %>" alt="<%= blog.title %>" loading="lazy">
+                                                    <img src="<%= _abs(blog.featuredImage) || '/images/couples/8.jpg' %>" alt="<%= blog.title %>" width="100" height="80" loading="lazy" decoding="async">
                                                 </div>
                                                 <div class="hot-page2-hom-pre-2">
                                                     <h5><%= blog.title %></h5>
@@ -203,7 +208,7 @@
                                     <% } else { %>
                                         <li>
                                             <div class="hot-page2-hom-pre-1">
-                                                <img src="/images/couples/8.jpg" alt="Banjara wedding couple" loading="lazy">
+                                                <%- img('/images/couples/8.jpg', { alt: 'Banjara wedding couple', width: 100, height: 80, sizes: '100px' }) %>
                                             </div>
                                             <div class="hot-page2-hom-pre-2">
                                                 <h5>No trending posts yet</h5>
@@ -217,7 +222,7 @@
                             <!-- SUBSCRIBE START-->
                             <div class="blog-subsc">
                                 <div class="ud-rhs-poin1">
-                                    <img src="https://cdn-icons-png.flaticon.com/512/6349/6349282.png" alt="Love and marriage icon" loading="lazy">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/6349/6349282.png" alt="Love and marriage icon" width="512" height="512" loading="lazy" decoding="async">
                                     <h5>Subscribe <b>Newsletter</b></h5>
                                 </div>
                                 <form name="news_newsletter_subscribe_form" id="news_newsletter_subscribe_form">

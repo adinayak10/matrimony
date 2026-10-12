@@ -1,0 +1,64 @@
+<div class="page-apk">
+  <div class="grid grid--2">
+    <section class="card" aria-labelledby="apk-current-title">
+      <div class="card__header">
+        <h2 class="card__title" id="apk-current-title">Current APK</h2>
+        <div class="card__actions" data-current-actions hidden>
+          <button type="button" class="btn btn--secondary btn--sm" data-action="edit-info">Edit info</button>
+          <button type="button" class="btn btn--danger btn--sm" data-action="delete-apk">Delete APK</button>
+        </div>
+      </div>
+      <div class="card__body" data-current aria-busy="true">
+        <div class="skeleton skeleton--row"></div><div class="skeleton skeleton--row"></div><div class="skeleton skeleton--row"></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="apk-mandatory-title">
+      <div class="card__header"><h2 class="card__title" id="apk-mandatory-title">Mandatory update</h2></div>
+      <div class="card__body">
+        <label class="switch switch--danger" for="apk-mandatory">
+          <input type="checkbox" role="switch" id="apk-mandatory" data-action="mandatory" aria-describedby="apk-mandatory-help" disabled>
+          <span class="switch__track" aria-hidden="true"></span>
+          <span data-mandatory-label>Mandatory update is off</span>
+        </label>
+        <p class="form-help" id="apk-mandatory-help" data-mandatory-help>When this is on, the app refuses to open on any version older than the current APK and sends the member to the download. Upload and test the new build first.</p>
+      </div>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="apk-upload-title">
+    <div class="card__header"><h2 class="card__title" id="apk-upload-title">Upload a new APK</h2></div>
+    <form id="apk-upload-form" novalidate>
+      <div class="card__body">
+        <div class="form-group">
+          <label class="form-label" for="apk-file">APK file <span class="text-danger" aria-hidden="true">*</span></label>
+          <input class="form-control" type="file" id="apk-file" name="apkFile" accept=".apk,application/vnd.android.package-archive" required aria-describedby="apk-file-help">
+          <p class="form-help" id="apk-file-help">A real .apk, up to 150 MB. Uploading replaces the current file and resets the download count.</p>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="apk-version-name">Version name <span class="text-danger" aria-hidden="true">*</span></label>
+            <input class="form-control" type="text" id="apk-version-name" name="versionName" placeholder="1.4.2" maxlength="40" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="apk-version-code">Version code <span class="text-danger" aria-hidden="true">*</span></label>
+            <input class="form-control" type="number" id="apk-version-code" name="versionCode" min="1" step="1" required aria-describedby="apk-version-code-help">
+            <p class="form-help" id="apk-version-code-help">The integer versionCode of this build. It must be higher than the current one for phones to see an update.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="apk-release-notes">Release notes</label>
+          <textarea class="form-control" id="apk-release-notes" name="releaseNotes" rows="4" maxlength="2000"></textarea>
+        </div>
+        <p class="form-help">A new upload is never mandatory. Switch on the mandatory update above once this build is confirmed to install and run.</p>
+        <div data-upload-progress hidden>
+          <label class="form-label" for="apk-progress">Uploading <span data-upload-pct>0%</span></label>
+          <progress class="progress" id="apk-progress" max="100" value="0"></progress>
+        </div>
+      </div>
+      <div class="card__footer">
+        <button type="submit" class="btn btn--primary" data-upload>Upload APK</button>
+      </div>
+    </form>
+  </section>
+</div>

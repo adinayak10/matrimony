@@ -252,4 +252,51 @@ exports.updateFeedbackStatus = async (req, res) => {
     }
 };
 
+/**
+ * "Ramesh Kumar Naik" -> "Ramesh N." — enough to thank a contributor in public
+ * without printing a full name next to what they wrote.
+ */
+function publicDisplayName(name) {
+    const parts = String(sanitizeText(name, 100) || '').split(/\s+/).filter(Boolean);
+    if (!parts.length) return 'Community member';
+    const first = parts[0].slice(0, 30);
+    const last = parts.length > 1 ? parts[parts.length - 1] : '';
+    return last ? `${first} ${last.charAt(0).toUpperCase()}.` : first;
+}
+
+/**
+ * GET /api/community-feedback/contributors?limit=100   (PUBLIC, rate limited)
+ *
+ * The website's "contributors" list. Only suggestions an admin has marked
+ * `completed` (implemented), never the child_safety category, and only four
+ * safe fields: displayName, category, subject, createdAt. No email, phone,
+ * message, admin notes, priority, IP or document id ever leaves this handler.
+ */
+exports.getPublicContributors = async (req, res) => {
+    try {
+        const limit = Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 100));
+        const filter = { status: 'completed', category: { $ne: 'child_safety' } };
+        const [rows, total] = await Promise.all([
+            CommunityFeedback.find(filter)
+                .select('name category subject createdAt implementedAt')
+                .sort({ implementedAt: -1, createdAt: -1 })
+                .limit(limit)
+                .lean(),
+            CommunityFeedback.countDocuments(filter),
+        ]);
+        const data = rows.map((r) => ({
+            displayName: publicDisplayName(r.name),
+            category: r.category,
+            subject: sanitizeText(r.subject, 200) || '',
+            createdAt: r.createdAt,
+        }));
+        res.set('Cache-Control', 'public, max-age=300');
+        return res.status(200).json({ status: true, data, total });
+    } catch (error) {
+        console.error('Error fetching public contributors:', error.message);
+        return res.status(500).json({ status: false, message: 'Failed to fetch contributors' });
+    }
+};
+exports.publicDisplayName = publicDisplayName;
+
 module.exports = exports;

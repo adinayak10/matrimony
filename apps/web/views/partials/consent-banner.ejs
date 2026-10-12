@@ -4,7 +4,7 @@
   (1 year, SameSite=Lax) and pushed to Google Consent Mode; head.ejs reads the
   cookie on later page loads before any tag runs. No API calls, no dependencies.
 %>
-<% const _cRequired = /^(1|true|yes)$/i.test(process.env.REQUIRE_COOKIE_CONSENT || ''); %>
+<% const _cSite = (typeof site !== 'undefined' && site) || {}; const _cRequired = Boolean(_cSite.analytics && _cSite.analytics.requireConsent); %>
 <% if (_cRequired) { %>
 <div id="bm-consent" class="bm-consent" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
   <p class="bm-consent__text">

@@ -1,0 +1,30 @@
+<section class="stats-grid" aria-label="Application counts">
+  <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('flask') %></div><div><div class="stat__value" data-stat="total">&ndash;</div><div class="stat__label">Total</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('clock') %></div><div><div class="stat__value" data-stat="pending">&ndash;</div><div class="stat__label">Pending</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--info"><%- icon('check') %></div><div><div class="stat__value" data-stat="approved">&ndash;</div><div class="stat__label">Approved</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('activity') %></div><div><div class="stat__value" data-stat="active">&ndash;</div><div class="stat__label">Active</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--neutral"><%- icon('mail') %></div><div><div class="stat__value" data-stat="unread">&ndash;</div><div class="stat__label">Unread</div></div></div>
+</section>
+
+<section class="card">
+  <div class="card__header card__header--stack">
+    <%- include('../partials/table-toolbar', {
+      id: 'beta-filters',
+      search: false,
+      filters: [
+        { name: 'status', label: 'Status', options: [
+          { value: '', label: 'Any status' }, { value: 'pending', label: 'Pending' }, { value: 'approved', label: 'Approved' }, { value: 'active', label: 'Active' }, { value: 'rejected', label: 'Rejected' }
+        ] },
+        { name: 'isRead', label: 'Read', options: [
+          { value: '', label: 'Read and unread' }, { value: 'false', label: 'Unread only' }, { value: 'true', label: 'Read only' }
+        ] },
+        { name: 'sortOrder', label: 'Sort', options: [
+          { value: 'desc', label: 'Newest first' }, { value: 'asc', label: 'Oldest first' }
+        ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="beta-table" data-table-mount></div>
+  </div>
+</section>

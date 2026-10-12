@@ -142,11 +142,11 @@ async function view(id) {
         <dt>Reported user</dt><dd>${userLink(r.reportedUser, { blocked: true })} ${r.reportedUser && r.reportedUser.email ? html`<span class="muted">(${r.reportedUser.email})</span>` : ''}</dd>
         <dt>Reported by</dt><dd>${userLink(r.reportedBy)} ${r.reportedBy && r.reportedBy.email ? html`<span class="muted">(${r.reportedBy.email})</span>` : ''}</dd>
         <dt>Reason</dt><dd>${r.reason || '—'}</dd>
-        <dt>Description</dt><dd style="white-space:pre-wrap">${r.desc || 'No additional description provided.'}</dd>
+        <dt>Description</dt><dd class="pre-wrap">${r.desc || 'No additional description provided.'}</dd>
         <dt>Status</dt><dd>${badge(r.status)}</dd>
         <dt>Filed</dt><dd>${fmtDateTime(r.createdAt)}</dd>
         ${r.resolvedBy ? html`<dt>Resolved by</dt><dd>${r.resolvedBy.full_name || r.resolvedBy.email || 'Admin'} on ${fmtDateTime(r.resolvedAt)}</dd>` : ''}
-        ${r.resolutionNote ? html`<dt>Resolution note</dt><dd style="white-space:pre-wrap">${r.resolutionNote}</dd>` : ''}
+        ${r.resolutionNote ? html`<dt>Resolution note</dt><dd class="pre-wrap">${r.resolutionNote}</dd>` : ''}
       </dl>`);
     m.setFooter(r.status === 'pending'
       ? html`<button type="button" class="btn btn--secondary" data-do="dismissed">Dismiss</button><button type="button" class="btn btn--primary" data-do="resolved">Mark resolved</button>`

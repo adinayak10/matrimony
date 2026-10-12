@@ -13,11 +13,13 @@
   <p>
     <strong>Developer:</strong> BanjaraMatch (as shown on Google Play Store)
   </p>
-  <h2>How to Request Account Deletion</h2>
+  <h2>How to Delete Your Account</h2>
+  <p><strong>In the Android app:</strong> open Settings and choose Delete Account. The account and its data are removed straight away.</p>
+  <p><strong>By email:</strong></p>
   <ol>
-    <li>Email us at <a href="mailto:support@banjaramatch.com">support@banjaramatch.com</a> from the email address associated with your account.</li>
+    <li>Email us at <a href="mailto:<%= site.supportEmail %>"><%= site.supportEmail %></a> from the email address associated with your account.</li>
     <li>Include your full name and any relevant account details to help us identify your account.</li>
-    <li>We will process your request within 7 business days and confirm via email once your account and associated data have been deleted.</li>
+    <li>We will delete your account and associated data within 30 days and confirm by email once it is done.</li>
   </ol>
   <h2>What Data is Deleted</h2>
   <ul>
@@ -34,6 +36,9 @@
   <p>
     For more details, please refer to our <a href="/privacy-policy">Privacy Policy</a> and <a href="/terms-conditions">Terms & Conditions</a>.
   </p>
+  <h2>Contact</h2>
+  <%- include('../partials/legal-contact', { only: 'contact' }) %>
+  <%- include('../partials/legal-contact', { only: 'grievance' }) %>
 </div>
 
 <%- include('../partials/footer') %>

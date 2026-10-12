@@ -22,7 +22,7 @@ export function confirm({
       ${message ? html`<p>${message}</p>` : ''}
       ${detail ? html`<div class="form-help">${detail}</div>` : ''}
       ${typed ? html`
-        <div class="form-group" style="margin-top:12px">
+        <div class="form-group mt-3">
           <label class="form-label" for="${id}-typed">Type <code>${typed}</code> to confirm</label>
           <input class="form-control" id="${id}-typed" type="text" autocomplete="off" spellcheck="false" data-typed>
         </div>` : ''}

@@ -3,7 +3,7 @@
 // Focus trap, Esc + overlay close, role=dialog aria-modal aria-labelledby,
 // focus returned to the opener, body scroll lock. Modals stack (confirm() on
 // top of an edit modal works).
-import { esc, isRaw } from './dom.js';
+import { esc, isRaw, applyDataStyles } from './dom.js';
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 const stack = [];
@@ -13,11 +13,17 @@ function fill(target, content) {
   if (content == null) { target.innerHTML = ''; return; }
   if (content instanceof Node) { target.innerHTML = ''; target.appendChild(content); return; }
   target.innerHTML = isRaw(content) ? content.s : esc(content);
+  applyDataStyles(target);
 }
 
 export function openModal({ title = '', body = null, footer = null, size = '', onClose = null, closeOnOverlay = true, closeLabel = 'Close' } = {}) {
   const root = document.getElementById('modal-root') || document.body;
   const opener = document.activeElement;
+  // If the opener is re-rendered while the modal is open (a table row after a
+  // reload), focus goes back to its replacement: same data-action + data-id.
+  const openerKey = opener && opener.dataset && opener.dataset.action
+    ? { action: opener.dataset.action, id: opener.dataset.id || '' }
+    : null;
   const id = `modal-${++seq}`;
 
   const el = document.createElement('div');
@@ -68,7 +74,12 @@ export function openModal({ title = '', body = null, footer = null, size = '', o
     if (i >= 0) stack.splice(i, 1);
     if (!stack.length) document.body.classList.remove('has-modal');
     if (typeof onClose === 'function') onClose(result);
-    if (opener && typeof opener.focus === 'function' && document.contains(opener)) opener.focus();
+    if (opener && typeof opener.focus === 'function' && document.contains(opener)) { opener.focus(); return; }
+    const again = openerKey
+      ? Array.from(document.querySelectorAll('[data-action]')).find((n) => n.dataset.action === openerKey.action && (n.dataset.id || '') === openerKey.id)
+      : null;
+    const fallback = again || document.getElementById('main');
+    if (fallback && typeof fallback.focus === 'function') fallback.focus({ preventScroll: true });
   };
 
   const focusables = () => Array.from(dialog.querySelectorAll(FOCUSABLE)).filter((n) => n.offsetParent !== null || n === closeBtn);

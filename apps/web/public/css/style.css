@@ -54,13 +54,10 @@
 45. 404 PAGE
 
 /*-------------------------------------------------------*/
-/* GOOGLE FONT IMPORT
+/* FONTS: self-hosted, no Google Fonts. @font-face lives in css/fonts.css (legacy path)
+   and is generated into the built bundle by build/build.js. Faces: Poppins 300-600 (text),
+   Playfair Display variable (--tit-font, headings). */
 /*-------------------------------------------------------*/
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&amp;display=swap');
-@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&amp;display=swap");
-@import url('https://fonts.googleapis.com/css2?family=Kalam&amp;display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&amp;display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@600&amp;display=swap');
 
 /*-------------------------------------------------------*/
 /* COMMON CSS 
@@ -1170,7 +1167,7 @@ img{
     color: rgb(255, 255, 255);
     background: var(--cta-pink1);
     border: 0px;
-    font-family: 'Josefin Sans', sans-serif;
+    font-family: Poppins, sans-serif;
     /* display: table; */
     /* margin: 0 auto; */
     padding: 7px 12px 5px 12px;
@@ -1585,7 +1582,7 @@ i.fa-instagram:hover {
     transition: all 0.5s ease 0s;
     border-radius: 3px;
     font-weight: 600;
-    font-family: 'Josefin Sans', sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 .ban-search ul li input[type="submit"]:hover {
@@ -1610,7 +1607,7 @@ i.fa-instagram:hover {
 .ban-search .chosen-container-single .chosen-single span {
     font-size: 18px;
     font-weight: 600;
-    font-family: 'Josefin Sans', sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 .ban-search .chosen-container .chosen-results li.active-result {
@@ -1623,7 +1620,7 @@ i.fa-instagram:hover {
     transition: all 0.3s ease 0s;
     background-color: rgb(255, 255, 255);
     background-image: none;
-    font-family: 'Josefin Sans', sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 .ban-search .chosen-container .chosen-results li.highlighted {
@@ -1877,7 +1874,7 @@ i.fa-instagram:hover {
     color: rgb(196, 140, 70);
     text-transform: uppercase;
     letter-spacing: 5px;
-    font-family: 'Cinzel Decorative', cursive;
+    font-family: var(--tit-font);
 }
 
 .home-about .home-tit {
@@ -2736,7 +2733,7 @@ table td{}
     padding-bottom: 25px;
     text-transform: uppercase;
     font-weight: 600;
-    font-family: 'Josefin Sans';
+    font-family: Poppins, sans-serif;
 }
 
 .foot-count p {
@@ -2832,7 +2829,7 @@ table td{}
     font-weight: 500;
     padding-bottom: 0px;
     color: rgb(255, 255, 255);
-    font-family: 'Cinzel Decorative';
+    font-family: var(--tit-font);
 }
 
 .foot-supp h2 span {
@@ -4139,7 +4136,7 @@ span.mail::before {
     width: 100%;
     height: 35px;
     font-weight: 600;
-    font-family: 'Josefin Sans', sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 .chosen-container-single .chosen-drop {
@@ -5513,7 +5510,7 @@ span.mail::before {
     padding-bottom: 10px;
     color: #66451c;
     line-height: 44px;
-    font-family: 'Cinzel Decorative', cursive;
+    font-family: var(--tit-font);
 }
 
 .ab-wel-tit h2 em {
@@ -5522,7 +5519,7 @@ span.mail::before {
     font-weight: 700;
     font-size: 35px;
     font-family: var(--tit-font);
-    font-family: 'Cinzel Decorative', cursive;
+    font-family: var(--tit-font);
     line-height: 78px;
 }
 
@@ -6106,7 +6103,7 @@ span.mail::before {
 .sub-tit h2 span {
     font-weight: 600;
     color: rgb(255, 128, 60);
-    font-family: Playball, cursive;
+    font-family: var(--tit-font);
     font-size: 46px;
     text-transform: capitalize;
 }
@@ -6596,7 +6593,7 @@ span.mail::before {
     font-weight: 600;
     font-size: 18px;
     padding: 15px 0px 0px;
-    font-family: 'Cinzel Decorative', cursive;
+    font-family: var(--tit-font);
 }
 
 .cus-revi-box span {
@@ -6901,7 +6898,7 @@ span.mail::before {
     font-weight: 700;
     font-size: 40px;
     /* color: #00306e; */
-    font-family: 'Cinzel Decorative', cursive;
+    font-family: var(--tit-font);
 }
 
 .ab-cont ul li .ab-cont-po div span {
@@ -8443,7 +8440,7 @@ span.mail::before {
     position: relative;
     font-weight: 500;
     padding-left: 40px;
-    font-family: 'Kalam', cursive;
+    font-family: Poppins, sans-serif;
     display: block;
     line-height: 26px;
 }
@@ -8622,7 +8619,7 @@ span.mail::before {
     position: absolute;
     left: 10px;
     top: 10px;
-    font-family: 'Kalam', cursive;
+    font-family: Poppins, sans-serif;
     border-radius: 3px;
 }
 
@@ -12255,3 +12252,32 @@ h2.db-tit{
 .home-regional-links .regional-links a{color:#a05000}
 /* Chat full-screen on phones (D5.45) */
 @media (max-width:575.98px){.chat-window{right:0;left:0;bottom:0;width:100%;height:100vh;height:100dvh;border-radius:0;border:0}}
+/* Images that carry width/height attributes for layout stability (D4.35) but are sized by
+   CSS width only: keep their height automatic. */
+.logo-brand-only,.home-acces ul li div.hacc .con img,.ab-sec2 ul li div img,.tline-inn img,.login .lhs .im img,.ab-faq-rhs img,.pg-cont .we-cont img,.blog-subsc img{height:auto}
+/* Home page (views/pages/index.ejs): repeated inline style values moved here (D4.39).
+   :not(#_) gives each class the weight an inline style had over ordinary rules. */
+.bmi-1:not(#_){min-width:230px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:18px;padding:28px 22px;text-decoration:none;transition:transform 0.3s,background 0.3s;flex-shrink:0}
+.bmi-2:not(#_){color:#667eea;text-decoration:none;display:flex;align-items:center;font-size:14px}
+.bmi-3:not(#_){padding:20px 15px;font-weight:600;color:#2c3e50;vertical-align:middle;white-space:nowrap}
+.bmi-4:not(#_){display:inline-block;margin-top:14px;color:#f6af04;font-size:12px;font-weight:700}
+.bmi-5:not(#_){padding:20px 15px;text-align:center;vertical-align:middle;background:#f0fff4}
+.bmi-6:not(#_){color:rgba(255,255,255,0.65);font-size:13px;line-height:1.6;margin:0}
+.bmi-7:not(#_){color:#fff;font-size:16px;font-weight:700;margin-bottom:8px}
+.bmi-8:not(#_){background:#f8f9fa;border-radius:12px;padding:28px 32px;margin-bottom:20px;border-left:4px solid #f6af04}
+.bmi-9:not(#_){color:#22c55e;font-weight:700;font-size:14px;white-space:nowrap}
+.bmi-10:not(#_){color:#f6af04;margin-right:10px}
+.bmi-11:not(#_){background:white;padding:30px;border-radius:15px;text-align:center;box-shadow:0 5px 15px rgba(0,0,0,0.1)}
+.bmi-12:not(#_){margin-right:8px}
+.bmi-13:not(#_){font-size:18px;color:#2c3e50;margin-bottom:12px;font-weight:600}
+.bmi-14:not(#_){background:white;padding:25px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.08);height:100%}
+.bmi-15:not(#_){color:#f6af04;margin-bottom:20px;font-size:18px;border-bottom:2px solid #f6af04;padding-bottom:10px}
+.bmi-16:not(#_){padding:20px 15px;text-align:center;vertical-align:middle;background:#fef2f2}
+.bmi-17:not(#_){padding:20px 15px;text-align:center;vertical-align:middle;background:#fffbeb}
+.bmi-18:not(#_){font-size:18px;margin-right:5px}
+.bmi-19:not(#_){margin-bottom:12px}
+.bmi-20:not(#_){color:#ef4444;font-weight:600;font-size:14px;white-space:nowrap}
+.bmi-21:not(#_){color:#f59e0b;font-weight:600;font-size:14px;white-space:nowrap}
+.bmi-22:not(#_){border-bottom:1px solid #e9ecef}
+.bmi-23:not(#_){font-size:48px;color:#f6af04;margin-bottom:20px}
+.bmi-24:not(#_){color:#555;line-height:1.7;margin:0}

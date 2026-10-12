@@ -35,8 +35,8 @@ const ALLOW = [
   /^\/api\/states$/,
   /^\/api\/cities$/,
   /^\/api\/assignMembership$/,
-  // TEMPORARY until Track A ships /api/admin/community-feedback (C4.3 / integrator #15).
-  /^\/api\/auth\/community-feedback(\/|$)/,
+  // Community feedback is /api/admin/community-feedback (C4.3); the temporary
+  // /api/auth/community-feedback entry was removed with the inbox migration.
 ];
 
 // Never through the proxy: the browser must not be able to mint or drop API

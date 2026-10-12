@@ -1,0 +1,60 @@
+<div class="page-regional">
+  <div class="tabs" role="tablist" aria-label="Regional page type" data-tabs>
+    <button class="tab is-active" role="tab" type="button" id="tab-states" aria-selected="true" aria-controls="panel-states" data-tab="states">States</button>
+    <button class="tab" role="tab" type="button" id="tab-cities" aria-selected="false" aria-controls="panel-cities" data-tab="cities" tabindex="-1">Cities</button>
+  </div>
+
+  <div data-list>
+    <section class="card">
+      <div class="card__header card__header--stack">
+        <div class="page-head mb-0">
+          <p class="page-head__text">Every page lives at <span class="mono">/banjara-matrimony-&lt;name&gt;</span> on the website. State pages are always indexed; city pages are indexed at 300 or more unique words.</p>
+          <button type="button" class="btn btn--primary" data-action="create">New page</button>
+        </div>
+        <form class="filters" id="regional-filters" data-filters role="search" autocomplete="off">
+          <div class="filters__search">
+            <label class="sr-only" for="regional-filters-search">Search by state or city name</label>
+            <span class="filters__search-icon" aria-hidden="true"><%- icon('search', { size: 16 }) %></span>
+            <input class="form-control" type="search" id="regional-filters-search" name="search" placeholder="Search by state or city name" maxlength="60">
+          </div>
+          <div class="filters__item" data-city-only hidden>
+            <label class="form-label form-label--sm" for="regional-filters-state">State</label>
+            <select class="form-select" id="regional-filters-state" name="state">
+              <option value="">Any state</option>
+            </select>
+          </div>
+          <div class="filters__item">
+            <label class="form-label form-label--sm" for="regional-filters-published">Published</label>
+            <select class="form-select" id="regional-filters-published" name="isPublished">
+              <option value="">Published and drafts</option>
+              <option value="true">Published</option>
+              <option value="false">Drafts</option>
+            </select>
+          </div>
+          <div class="filters__item">
+            <label class="form-label form-label--sm" for="regional-filters-sort">Sort</label>
+            <select class="form-select" id="regional-filters-sort" name="sort">
+              <option value="createdAt:desc">Newest first</option>
+              <option value="updatedAt:desc">Recently updated</option>
+              <option value="stats.totalMembers:desc">Most members</option>
+              <option value="slug:asc">Slug A–Z</option>
+            </select>
+          </div>
+          <button type="button" class="btn btn--ghost btn--sm filters__clear" data-filter-clear>Clear</button>
+        </form>
+      </div>
+      <div class="card__body card__body--flush">
+        <div id="panel-states" role="tabpanel" aria-labelledby="tab-states" data-panel="states"><div id="states-table" data-table-mount></div></div>
+        <div id="panel-cities" role="tabpanel" aria-labelledby="tab-cities" data-panel="cities" hidden><div id="cities-table" data-table-mount></div></div>
+      </div>
+    </section>
+  </div>
+
+  <section data-editor hidden aria-labelledby="editor-title">
+    <div class="page-head">
+      <h2 class="card__title" id="editor-title" tabindex="-1" data-editor-title>Edit page</h2>
+      <button type="button" class="btn btn--secondary btn--sm" data-action="back">Back to the list</button>
+    </div>
+    <div data-editor-body></div>
+  </section>
+</div>

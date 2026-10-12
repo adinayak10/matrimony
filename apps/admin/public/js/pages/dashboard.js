@@ -61,7 +61,7 @@ function renderBars(mount, rows) {
     const pct = Math.round((v / max) * 100);
     return html`<div class="bar-row">
       <span class="bar-row__label">${r.label}</span>
-      <div class="bar-row__track" role="img" aria-label="${r.label}: ${fmtNumber(v, '0')}"><div class="bar-row__fill ${r.cls || ''}" style="width:${pct}%"></div></div>
+      <div class="bar-row__track" role="img" aria-label="${r.label}: ${fmtNumber(v, '0')}"><div class="bar-row__fill ${r.cls || ''}" data-style-width="${pct}%"></div></div>
       <span class="bar-row__value">${fmtNumber(v, '0')}</span>
     </div>`;
   })}`);
@@ -174,8 +174,8 @@ async function loadEngagement() {
       { label: 'Members who ever messaged', value: fmtNumber(e.totalActiveMessagers, '0') },
       { label: 'Avg messages per sender', value: fmtNumber(Math.round((Number(e.averageMessagesPerUser) || 0) * 10) / 10, '0') },
     ];
-    setHtml(plot, html`<div class="stats-grid" style="grid-template-columns:repeat(2,minmax(0,1fr));margin:0">
-      ${tiles.map((t) => html`<div class="stat" style="padding:12px 14px"><div><div class="stat__value" style="font-size:22px">${t.value}</div><div class="stat__label">${t.label}</div></div></div>`)}
+    setHtml(plot, html`<div class="stats-grid stats-grid--pairs">
+      ${tiles.map((t) => html`<div class="stat stat--sm"><div><div class="stat__value">${t.value}</div><div class="stat__label">${t.label}</div></div></div>`)}
     </div>`);
   } catch (err) {
     empty.textContent = errorMessage(err, 'Failed to load engagement data.');

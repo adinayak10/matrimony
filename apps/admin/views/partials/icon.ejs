@@ -1,5 +1,6 @@
 <%
-// <%- include('../partials/icon', { name: 'users', size: 18, cls: '', label: '' }) %>
+// Usage: include('../partials/icon', { name: 'users', size: 18, cls: '', label: '' }) in a raw-output tag.
+// (No EJS delimiters in this comment: a closing delimiter here would end the scriptlet early.)
 // Same markup as lib/render.js icon(); kept as a partial for templates that
 // prefer include() over the helper. `name` is restricted to [a-z0-9-].
 var iName = /^[a-z0-9-]+$/.test(String(typeof name === 'string' ? name : '')) ? name : 'circle';

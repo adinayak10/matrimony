@@ -55,6 +55,9 @@ const env = Object.freeze({
   HOST: process.env.HOST || '127.0.0.1',
   API_INTERNAL_URL: url('API_INTERNAL_URL', '', { required: true }),
   API_PUBLIC_URL: url('API_PUBLIC_URL', 'https://api.banjaramatch.com'),
+  // The public website: blog images live there (apps/web/public/images/blog) and
+  // the admin links to live blog / regional pages. Also a CSP img-src source.
+  WEB_PUBLIC_URL: url('WEB_PUBLIC_URL', 'https://www.banjaramatch.com'),
   SESSION_TTL_HOURS,
   SESSION_TTL_MS: SESSION_TTL_HOURS * 3600 * 1000,
   RELEASE_SHA,

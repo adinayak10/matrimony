@@ -1,0 +1,32 @@
+<section class="stats-grid" aria-label="Feedback counts">
+  <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('clock') %></div><div><div class="stat__value" data-stat="pending">&ndash;</div><div class="stat__label">Pending</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--info"><%- icon('eye') %></div><div><div class="stat__value" data-stat="reviewed">&ndash;</div><div class="stat__label">Reviewed</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('activity') %></div><div><div class="stat__value" data-stat="in_progress">&ndash;</div><div class="stat__label">In progress</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('check-circle') %></div><div><div class="stat__value" data-stat="completed">&ndash;</div><div class="stat__label">Completed</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--neutral"><%- icon('x-circle') %></div><div><div class="stat__value" data-stat="rejected">&ndash;</div><div class="stat__label">Rejected</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--danger"><%- icon('shield') %></div><div><div class="stat__value" data-stat="childSafety">&ndash;</div><div class="stat__label">Open child-safety reports</div></div></div>
+</section>
+
+<section class="card">
+  <div class="card__header card__header--stack">
+    <%- include('../partials/table-toolbar', {
+      id: 'feedback-filters',
+      search: { name: 'search', placeholder: 'Search name, email or subject' },
+      filters: [
+        { name: 'status', label: 'Status', options: [
+          { value: '', label: 'Any status' }, { value: 'pending', label: 'Pending' }, { value: 'reviewed', label: 'Reviewed' }, { value: 'in_progress', label: 'In progress' }, { value: 'completed', label: 'Completed' }, { value: 'rejected', label: 'Rejected' }
+        ] },
+        { name: 'category', label: 'Category', options: [
+          { value: '', label: 'Any category' }, { value: 'child_safety', label: 'Child safety' }, { value: 'feature_request', label: 'Feature request' }, { value: 'bug_report', label: 'Bug report' }, { value: 'design_ux', label: 'Design / UX' }, { value: 'cultural_concern', label: 'Cultural concern' }, { value: 'general_feedback', label: 'General feedback' }, { value: 'appreciation', label: 'Appreciation' }, { value: 'other', label: 'Other' }
+        ] },
+        { name: 'priority', label: 'Priority', options: [
+          { value: '', label: 'Any priority' }, { value: 'critical', label: 'Critical' }, { value: 'high', label: 'High' }, { value: 'medium', label: 'Medium' }, { value: 'low', label: 'Low' }
+        ] }
+      ]
+    }) %>
+    <p class="form-help mb-0">Child-safety reports always sort first. Suggestions marked Completed appear (name, category and subject only) on the public contributors list.</p>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="feedback-table" data-table-mount></div>
+  </div>
+</section>

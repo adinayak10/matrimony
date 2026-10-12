@@ -137,8 +137,8 @@
                 </div>
             </div>
 
-            <!-- Community Contributors Section -->
-            <div class="row mt-5 mb-5">
+            <%# Community Contributors: shown only when the public endpoint answers 200 with at least one entry. %>
+            <div class="row mt-5 mb-5" id="contributorsSection" hidden>
                 <div class="col-md-12">
                     <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 50px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">
                         <i class="fa fa-users" style="font-size: 60px; color: #fff; margin-bottom: 20px;"></i>
@@ -190,7 +190,7 @@
                                     <p>Every suggestion is reviewed by our team. We value your input on <a href="/register" title="Registration">features</a>, <a href="/all-profiles" title="Design">design</a>, <a href="/about" title="Experience">experience</a>, or general inquiries.</p>
                                 </div>
                                 <div class="im">
-                                    <img src="/images/login-couple.png" alt="Community Feedback">
+                                    <img src="/images/login-couple.png" alt="Community Feedback" width="512" height="512" decoding="async">
                                 </div>
                                 <div class="log-bg">&nbsp;</div>
                             </div>
@@ -382,7 +382,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 formMessage
                     .removeClass('alert-success')
                     .addClass('alert alert-danger')
-                    .html('<i class="fa fa-exclamation-circle"></i> Sorry, there was an error submitting your feedback. Please try again or email us at support@banjaramatch.com')
+                    .html('<i class="fa fa-exclamation-circle"></i> Sorry, there was an error submitting your feedback. Please try again or email us at ' + <%- safeJson(site.supportEmail) %>)
                     .show();
             } finally {
                 submitBtn.prop('disabled', false).html(originalBtnText);
@@ -401,58 +401,37 @@ document.addEventListener('DOMContentLoaded', function () {
         const INITIAL_LOAD = 50;
         const LOAD_MORE_COUNT = 25;
 
-        // Load contributors function
+        // Load contributors: public endpoint, safe fields only (displayName, category, subject, createdAt).
+        // Any non-200, malformed or empty answer leaves the whole section hidden.
         async function loadContributors() {
+            const section = document.getElementById('contributorsSection');
+            const hide = () => { if (section) section.hidden = true; };
             try {
-                const response = await fetch('/api/auth/community-feedback?status=completed&limit=500');
+                const response = await fetch('/api/community-feedback/contributors?limit=200', { headers: { Accept: 'application/json' } });
+                if (response.status !== 200) return hide();
                 const data = await response.json();
-                
-                if (data.status && data.data && data.data.length > 0) {
-                    const contributors = data.data;
-                    const contributorsGrid = $('#contributorsGrid');
-                    const noContributors = $('#noContributors');
-                    
-                    // Create unique contributors list (by email) with their contributions
-                    const uniqueContributors = [];
-                    const seenEmails = new Set();
-                    
-                    contributors.forEach(contributor => {
-                        if (!seenEmails.has(contributor.email)) {
-                            seenEmails.add(contributor.email);
-                            uniqueContributors.push(contributor);
-                        }
-                    });
-                    
-                    // Store for pagination
-                    allContributorsList = uniqueContributors;
-                    
-                    // Display contributors
-                    if (uniqueContributors.length > 0) {
-                        // Initial display
-                        displayedCount = 0;
-                        contributorsGrid.html('');
-                        displayContributors(INITIAL_LOAD);
-                        
-                        // Show/hide load more button
-                        updateLoadMoreButton();
-                        
-                        noContributors.hide();
-                    } else {
-                        contributorsGrid.hide();
-                        noContributors.show();
-                    }
-                } else {
-                    $('#contributorsGrid').hide();
-                    $('#noContributors').show();
-                }
+                const rows = data && data.status && Array.isArray(data.data) ? data.data : [];
+
+                // One card per contributor (the endpoint returns one row per implemented suggestion).
+                const seen = new Set();
+                const uniqueContributors = [];
+                rows.forEach(row => {
+                    const name = row && typeof row.displayName === 'string' ? row.displayName.trim() : '';
+                    if (!name || seen.has(name)) return;
+                    seen.add(name);
+                    uniqueContributors.push({ name: name, category: typeof row.category === 'string' ? row.category : 'other' });
+                });
+                if (!uniqueContributors.length) return hide();
+
+                allContributorsList = uniqueContributors;
+                displayedCount = 0;
+                $('#contributorsGrid').html('');
+                $('#noContributors').hide();
+                displayContributors(INITIAL_LOAD);
+                updateLoadMoreButton();
+                if (section) section.hidden = false;
             } catch (error) {
-                console.error('Error loading contributors:', error);
-                $('#contributorsGrid').html(`
-                    <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.7); grid-column: 1 / -1;">
-                        <i class="fa fa-exclamation-circle" style="font-size: 32px;"></i>
-                        <p style="margin-top: 10px;">Unable to load contributors</p>
-                    </div>
-                `);
+                hide();
             }
         }
         // Display contributors - compact design

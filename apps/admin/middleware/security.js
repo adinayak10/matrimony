@@ -1,10 +1,13 @@
 'use strict';
 // Security headers for every admin response (C1.2 step 1).
 //
-// CSP (C1.2): default-src 'self'; img-src 'self' data: <API_PUBLIC_URL>;
-// script-src 'self'; style-src 'self'; connect-src 'self'; frame-ancestors 'none';
-// form-action 'self'. Shipped as Content-Security-Policy-Report-Only until the
-// legacy pages (inline handlers) are gone (C6); flip CSP_ENFORCE=1 to enforce.
+// CSP (C1.2): default-src 'self'; img-src 'self' data: <API_PUBLIC_URL>
+// <WEB_PUBLIC_URL>; script-src 'self'; style-src 'self'; connect-src 'self';
+// frame-ancestors 'none'; form-action 'self'. ENFORCED since C6: every page is
+// an EJS view with external module scripts, no on*= handlers and no style=""
+// attributes (test/routes.test.js scans views/ and public/js for all three).
+// CSP_REPORT_ONLY=1 is the escape hatch back to Report-Only (no redeploy of
+// code needed) if a browser reports a violation in production.
 //
 // Also: X-Robots-Tag noindex (robots.txt alone is not enough for an authed host),
 // Cache-Control: no-store on everything that is not a static asset, and a
@@ -21,10 +24,10 @@ const STATIC_FILE = /^\/(robots\.txt|favicon\.ico|favicon\.svg)$/;
 function buildCsp() {
   return {
     useDefaults: false,
-    reportOnly: process.env.CSP_ENFORCE !== '1',
+    reportOnly: process.env.CSP_REPORT_ONLY === '1',
     directives: {
       'default-src': ["'self'"],
-      'img-src': ["'self'", 'data:', env.API_PUBLIC_URL],
+      'img-src': [...new Set(["'self'", 'data:', env.API_PUBLIC_URL, env.WEB_PUBLIC_URL])],
       'script-src': ["'self'"],
       'style-src': ["'self'"],
       'connect-src': ["'self'"],

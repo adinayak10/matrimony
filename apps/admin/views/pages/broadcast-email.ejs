@@ -1,0 +1,101 @@
+<div class="page-broadcast">
+  <div class="grid grid--2-1">
+    <section class="card" aria-labelledby="bc-compose-title">
+      <div class="card__header"><h2 class="card__title" id="bc-compose-title">Compose</h2></div>
+      <form id="broadcast-form" novalidate>
+        <div class="card__body">
+          <div class="form-group">
+            <label class="form-label" for="bc-subject">Subject <span class="text-danger" aria-hidden="true">*</span><span class="form-count" data-count-for="bc-subject" aria-hidden="true"></span></label>
+            <input class="form-control" type="text" id="bc-subject" name="subject" maxlength="200" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bc-html">Email body (HTML) <span class="text-danger" aria-hidden="true">*</span></label>
+            <textarea class="form-control mono" id="bc-html" name="bodyHtml" rows="12" required aria-describedby="bc-html-help"></textarea>
+            <p class="form-help" id="bc-html-help">Use <span class="mono">{{name}}</span> where the member's name should appear. The HTML is sanitised by the API before sending.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bc-text">Plain-text version</label>
+            <textarea class="form-control" id="bc-text" name="bodyText" rows="5" aria-describedby="bc-text-help"></textarea>
+            <p class="form-help" id="bc-text-help">Optional. Shown by mail apps that do not display HTML. <span class="mono">{{name}}</span> works here too.</p>
+          </div>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset__legend">Send a test first</legend>
+            <div class="form-group typeahead">
+              <label class="form-label" for="bc-test-user">Member to receive the test</label>
+              <input class="form-control" type="search" id="bc-test-user" placeholder="Search by name, email or phone" autocomplete="off" aria-describedby="bc-test-help">
+              <ul class="typeahead__list" data-test-list hidden></ul>
+              <p class="form-help" id="bc-test-help" data-test-picked>No member picked. Pick your own account to see the email exactly as members will.</p>
+            </div>
+            <button type="button" class="btn btn--secondary" data-action="send-test" disabled>Send test email</button>
+          </fieldset>
+        </div>
+        <div class="form-actions">
+          <span class="muted" data-send-note>Preview the audience before sending.</span>
+          <button type="submit" class="btn btn--danger" data-send disabled>Send broadcast</button>
+        </div>
+      </form>
+    </section>
+
+    <div>
+      <section class="card" aria-labelledby="bc-audience-title">
+        <div class="card__header"><h2 class="card__title" id="bc-audience-title">Audience</h2></div>
+        <form class="card__body" id="audience-form" novalidate autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="au-gender">Gender</label>
+            <select class="form-select" id="au-gender" name="gender">
+              <option value="">Any gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Not specified">Not specified</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="au-min-age">Minimum age</label>
+              <input class="form-control" type="number" id="au-min-age" name="minAge" min="18" max="100" step="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="au-max-age">Maximum age</label>
+              <input class="form-control" type="number" id="au-max-age" name="maxAge" min="18" max="100" step="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="au-verified">Verification</label>
+            <select class="form-select" id="au-verified" name="verified">
+              <option value="">Verified and unverified</option><option value="1">Verified only</option><option value="0">Unverified only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="au-blocked">Blocked members</label>
+            <select class="form-select" id="au-blocked" name="blocked">
+              <option value="0" selected>Exclude blocked members</option><option value="">Include everyone</option><option value="1">Blocked members only</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="au-platform">Last login platform</label>
+            <select class="form-select" id="au-platform" name="platform">
+              <option value="">Any platform</option><option value="mobile">Mobile app</option><option value="web">Website</option>
+            </select>
+          </div>
+          <div class="word-counter word-counter--static mb-0" role="status" data-preview>
+            <span class="word-counter__value" data-preview-count>&ndash;</span>
+            <span class="word-counter__hint" data-preview-hint>Counting recipients…</span>
+          </div>
+        </form>
+      </section>
+
+      <section class="card" aria-labelledby="bc-progress-title" data-progress-card hidden>
+        <div class="card__header"><h2 class="card__title" id="bc-progress-title">Sending</h2></div>
+        <div class="card__body" data-progress-body></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="card" aria-labelledby="bc-jobs-title">
+    <div class="card__header">
+      <h2 class="card__title" id="bc-jobs-title">Recent broadcasts</h2>
+      <button type="button" class="btn btn--secondary btn--sm" data-action="reload-jobs">Refresh</button>
+    </div>
+    <div class="card__body card__body--flush">
+      <div id="jobs-table" data-table-mount></div>
+    </div>
+  </section>
+</div>

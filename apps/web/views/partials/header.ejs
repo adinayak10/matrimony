@@ -1,14 +1,14 @@
     <div class="pop-bg"></div>
     
-    <!-- 18+ MATRIMONIAL PURPOSE BANNER -->
+    <%# 18+ MATRIMONIAL PURPOSE BANNER %>
     <div style="background: linear-gradient(135deg, #f6af04 0%, #ff8c00 100%); color: #fff; padding: 8px 0; text-align: center; font-size: 12px; border-bottom: 2px solid #e69500; position: sticky; top: 0; z-index: 9999;">
         <div class="container">
             <i class="fa fa-info-circle"></i> This is strictly a marriage-oriented platform, NOT a dating website. Non-discriminatory, non-exploitative matchmaking for adults seeking committed relationships.
         </div>
     </div>
-    <!-- END BANNER -->
+    <%# END BANNER %>
 
-    <!-- SEARCH -->
+    <%# SEARCH %>
     <div class="pop-search">
         <span class="ser-clo">+</span>
         <div class="inn">
@@ -21,9 +21,9 @@
             </div>
         </div>
     </div>
-    <!-- END SEARCH -->
+    <%# END SEARCH %>
 
-    <!-- HEADER & MENU -->
+    <%# HEADER & MENU %>
     <div class="head-top">
         <div class="container">
             <div class="row">
@@ -42,7 +42,7 @@
                 </div>
                 <div class="rhs">
                     <ul>
-                        <li><a href="mailto:info@banjaramatch.com"><i class="fa fa-envelope-o" aria-hidden="true"></i>&nbsp; info@banjaramatch.com</a></li>
+                        <li><a href="mailto:<%= site.supportEmail %>"><i class="fa fa-envelope-o" aria-hidden="true"></i>&nbsp; <%= site.supportEmail %></a></li>
                         <li><a href="https://facebook.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" aria-label="Visit our Facebook page"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
                         <li><a href="https://instagram.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" aria-label="Visit our Instagram page"><i class="fa fa-instagram" aria-hidden="true"></i></a></li>
                     </ul>
@@ -50,16 +50,16 @@
             </div>
         </div>
     </div>
-    <!-- END HEADER & MENU -->
+    <%# END HEADER & MENU %>
 
-    <!-- HEADER & MENU -->
+    <%# HEADER & MENU %>
     <div class="menu-pop menu-pop1">
         <span class="menu-pop-clo"><i class="fa fa-times" aria-hidden="true"></i></span>
         <div class="inn">
-            <img src="/images/logo-b.png" alt="BanjaraMatch – Banjara Matrimony" loading="lazy" class="logo-brand-only">
+            <%- img('/images/logo-b.png', { alt: 'BanjaraMatch – Banjara Matrimony', width: 2712, height: 457, className: 'logo-brand-only', sizes: '210px' }) %>
             <p><strong>Banjara Matrimony</strong> made free for the Banjara community. Find verified Banjara brides &amp; grooms across India on BanjaraMatch.com.</p>
             <ul class="menu-pop-info">
-                <li><a href="mailto:info@banjaramatch.com"><i class="fa fa-envelope-o" aria-hidden="true"></i>info@banjaramatch.com</a></li>
+                <li><a href="mailto:<%= site.supportEmail %>"><i class="fa fa-envelope-o" aria-hidden="true"></i><%= site.supportEmail %></a></li>
             </ul>
             <div class="menu-pop-help">
                 <h4>Need Help?</h4>
@@ -76,9 +76,9 @@
             </div>
         </div>
     </div>
-    <!-- END HEADER & MENU -->
+    <%# END HEADER & MENU %>
 
-    <!-- HEADER & MENU -->
+    <%# HEADER & MENU %>
     <div class="menu-pop menu-pop2">
         <span class="menu-pop-clo"><i class="fa fa-times" aria-hidden="true"></i></span>
         <div class="inn">
@@ -96,7 +96,7 @@
                 </ul>
             </div>
 
-            <!-- HELP BOX -->
+            <%# HELP BOX %>
             <div class="prof-rhs-help">
                 <div class="inn">
                     <h3>Find Your Banjara Match</h3>
@@ -104,35 +104,34 @@
                     <a href="/register">Register for free</a>
                 </div>
             </div>
-            <!-- END HELP BOX -->
+            <%# END HELP BOX %>
         </div>
     </div>
-    <!-- END HEADER & MENU -->
+    <%# END HEADER & MENU %>
 
-    <!-- HEADER & MENU -->
+    <%# HEADER & MENU %>
     <div class="hom-top">
         <div class="container">
             <div class="row">
                 <div class="hom-nav">
-                    <!-- LOGO -->
+                    <%# LOGO %>
                     <div class="logo">
                         <span class="menu desk-menu">
                             <i></i><i></i><i></i>
                         </span>
-                        <a href="/" class="logo-brand"><img src="/images/logo-b.png" alt="BanjaraMatch – Banjara Matrimony" loading="lazy"
-                                class="ic-logo" width="200" height="60"></a>
+                        <a href="/" class="logo-brand"><%- img('/images/logo-b.png', { alt: 'BanjaraMatch – Banjara Matrimony', width: 200, height: 60, className: 'ic-logo', eager: true, sizes: '230px' }) %></a>
                     </div>
 
-                    <!-- TOP MENU -->
+                    <%# TOP MENU %>
                     <div class="bl">
                         <ul>
-                            <!-- Google Ads Sitelinks - Primary Navigation -->
+                            <%# Google Ads Sitelinks - Primary Navigation %>
                             <% if (typeof user !== 'undefined' && user) { %>
-                                <!-- Logged In User Navigation -->
+                                <%# Logged In User Navigation %>
                                 <li><a href="/dashboard">My Dashboard</a></li>
                                 <li><a href="/all-profiles">Browse Profiles</a></li>
                             <% } else { %>
-                                <!-- Public Navigation -->
+                                <%# Public Navigation %>
                                 <li><a href="/login">Sign In</a></li>
                                 <li><a href="/all-profiles">Browse Profiles</a></li>
                             <% } %>
@@ -143,15 +142,15 @@
                         </ul>
                     </div>
 
-                    <!-- USER PROFILE -->
+                    <%# USER PROFILE %>
                     <div class="al">
                         <div class="head-pro">
                             <% if (typeof user !== 'undefined' && user) { %>
-                                <img src="<%= photoUrl(user.profile) %>" alt="My Profile" loading="lazy">
+                                <img src="<%= photoUrl(user.profile) %>" alt="My Profile" width="36" height="36" loading="lazy" decoding="async">
                                 <b>My Account</b><br>
                                 <h4><%= user.full_name || 'My Profile' %></h4>
                             <% } else { %>
-                                <img src="/images/profiles/1.jpg" alt="Join BanjaraMatch" loading="lazy">
+                                <img src="/images/profiles/1.jpg" alt="Join BanjaraMatch" width="36" height="36" loading="lazy" decoding="async">
                                 <b>Free Banjara Matrimony</b><br>
                                 <h4>Register / Login</h4>
                             <% } %>
@@ -159,38 +158,38 @@
                         </div>
                     </div>
 
-                    <!--MOBILE MENU-->
+                    <%#MOBILE MENU %>
                     <div class="mob-menu">
                         <div class="mob-me-ic">
                             <span class="ser-open mobile-ser">
-                                <img src="/images/icon/search.svg" alt="Profile image">
+                                <img src="/images/icon/search.svg" alt="" width="36" height="36">
                             </span>
                             <span class="mobile-exprt" data-mob="dashbord">
-                                <img src="/images/icon/users.svg" alt="Profile image">
+                                <img src="/images/icon/users.svg" alt="" width="36" height="36">
                             </span>
                             <span class="mobile-menu" data-mob="mobile">
-                                <img src="/images/icon/menu.svg" alt="Profile image">
+                                <img src="/images/icon/menu.svg" alt="" width="36" height="36">
                             </span>
                         </div>
                     </div>
-                    <!--END MOBILE MENU-->
+                    <%#END MOBILE MENU %>
                 </div>
             </div>
         </div>
     </div>
-    <!-- END HEADER & MENU -->
+    <%# END HEADER & MENU %>
 
-    <!-- MOBILE MENU POPUP -->
+    <%# MOBILE MENU POPUP %>
     <div class="mob-me-all mobile_menu">
-        <div class="mob-me-clo"><img src="/images/icon/close.svg" alt="Profile image"></div>
+        <div class="mob-me-clo"><img src="/images/icon/close.svg" alt="Close menu" width="36" height="36" loading="lazy"></div>
         <div class="mv-bus">
             <h4><i class="fa fa-globe" aria-hidden="true"></i> Quick Links</h4>
             <ul>
                 <% if (typeof user !== 'undefined' && user) { %>
-                    <!-- Logged In User - Mobile -->
+                    <%# Logged In User - Mobile %>
                     <li><a href="/dashboard">My Dashboard</a></li>
                 <% } else { %>
-                    <!-- Public - Mobile -->
+                    <%# Public - Mobile %>
                     <li><a href="/login">Sign In</a></li>
                 <% } %>
                 <li><a href="/all-profiles">Browse Profiles</a></li>
@@ -233,15 +232,15 @@
             </div>
         </div>
     </div>
-    <!-- END MOBILE MENU POPUP -->
+    <%# END MOBILE MENU POPUP %>
 
-    <!-- MOBILE USER PROFILE MENU POPUP -->
+    <%# MOBILE USER PROFILE MENU POPUP %>
     <div class="mob-me-all dashbord_menu">
-        <div class="mob-me-clo"><img src="/images/icon/close.svg" alt="Close menu"></div>
+        <div class="mob-me-clo"><img src="/images/icon/close.svg" alt="Close menu" width="36" height="36" loading="lazy"></div>
         <div class="mv-bus">
             <% if (typeof user !== 'undefined' && user) { %>
             <div class="head-pro">
-                <img src="<%= photoUrl(user.profile) %>" alt="My Profile" loading="lazy">
+                <img src="<%= photoUrl(user.profile) %>" alt="My Profile" width="36" height="36" loading="lazy" decoding="async">
                 <b>My Account</b><br>
                 <h4><%= user.full_name || 'My Profile' %></h4>
             </div>
@@ -264,4 +263,4 @@
             <% } %>
         </div>
     </div>
-    <!-- END USER PROFILE MENU POPUP -->
+    <%# END USER PROFILE MENU POPUP %>

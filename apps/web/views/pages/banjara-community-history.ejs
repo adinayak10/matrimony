@@ -4,7 +4,7 @@
 <%- include('../partials/head') %>
 <style>
     .bh-hero { background:linear-gradient(135deg,#0a0500,#2a0e00,#5a2000); padding:75px 0 60px; position:relative; overflow:hidden; }
-    .bh-hero::before { content:''; position:absolute; inset:0; background:url('/images/ban-bg.jpg') center/cover no-repeat; opacity:.08; }
+    .bh-hero::before { content:''; position:absolute; inset:0; background:url('<%= img.cssUrl('/images/ban-bg.jpg') %>') center/cover no-repeat; opacity:.08; }
     .bh-hero .container { position:relative; z-index:2; }
     .bh-hero h1 { color:#fff; font-size:38px; font-weight:800; line-height:1.3; margin-bottom:18px; }
     .bh-hero h1 span { color:#f6af04; }

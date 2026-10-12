@@ -1,0 +1,45 @@
+<%
+var targetTypes = [
+  ['user', 'Member'], ['report', 'Report'], ['photo', 'Photo'], ['communityFeedback', 'Community feedback'],
+  ['blog', 'Blog post'], ['banner', 'Banner'], ['statePage', 'State page'], ['cityPage', 'City page'],
+  ['settings', 'Settings'], ['apk', 'APK'], ['broadcast', 'Broadcast'],
+  ['Caste', 'Caste'], ['Gotra', 'Gotra'], ['Clan', 'Clan'], ['SurnameTitle', 'Surname title'], ['Profession', 'Profession'],
+  ['Qualification', 'Qualification'], ['IncomeRange', 'Income range'], ['Interest', 'Interest'], ['ReportReason', 'Report reason'], ['AboutOption', 'About option']
+];
+%>
+<section class="card">
+  <div class="card__header card__header--stack">
+    <p class="page-head__text">Every change an admin makes through this panel is recorded here with who made it, when and from where. Entries cannot be edited or deleted.</p>
+    <form class="filters" id="audit-filters" data-filters role="search" autocomplete="off">
+      <div class="filters__item">
+        <label class="form-label form-label--sm" for="audit-action">Action</label>
+        <select class="form-select" id="audit-action" name="action">
+          <option value="">Any action</option>
+        </select>
+      </div>
+      <div class="filters__item">
+        <label class="form-label form-label--sm" for="audit-target-type">Target</label>
+        <select class="form-select" id="audit-target-type" name="targetType">
+          <option value="">Any target</option>
+          <% targetTypes.forEach(function (t) { %><option value="<%= t[0] %>"><%= t[1] %></option><% }); %>
+        </select>
+      </div>
+      <div class="filters__item">
+        <label class="form-label form-label--sm" for="audit-target-id">Target id</label>
+        <input class="form-control" type="text" id="audit-target-id" name="targetId" maxlength="80" placeholder="24-character id" spellcheck="false">
+      </div>
+      <div class="filters__item">
+        <label class="form-label form-label--sm" for="audit-from">From</label>
+        <input class="form-control" type="date" id="audit-from" name="from">
+      </div>
+      <div class="filters__item">
+        <label class="form-label form-label--sm" for="audit-to">To</label>
+        <input class="form-control" type="date" id="audit-to" name="to">
+      </div>
+      <button type="button" class="btn btn--ghost btn--sm filters__clear" data-filter-clear>Clear</button>
+    </form>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="audit-table" data-table-mount></div>
+  </div>
+</section>

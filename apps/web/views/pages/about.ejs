@@ -99,8 +99,8 @@
       <div class="col-lg-6">
         <div class="ab-wel-lhs">
           <span class="ab-wel-3"></span>
-          <img src="/images/about/1.jpg" alt="Banjara couple during wedding ceremony" class="ab-wel-1" loading="lazy">
-          <img src="/images/about/2.jpg" alt="Traditional Banjara rituals being performed" class="ab-wel-2" loading="lazy">
+          <img src="/images/about/1.jpg" alt="Banjara couple during wedding ceremony" class="ab-wel-1" loading="lazy" width="640" height="958" decoding="async">
+          <%- img('/images/about/2.jpg', { alt: 'Traditional Banjara rituals being performed', width: 640, height: 960, className: 'ab-wel-2', sizes: '(max-width: 992px) 80vw, 480px' }) %>
           <span class="ab-wel-4"></span>
         </div>
       </div>
@@ -140,7 +140,7 @@
               <li>
                 <div>
                   <i class="fa fa-envelope-o" aria-hidden="true"></i>
-                  <h4>Get Support <em><a href="mailto:info@banjaramatch.com">info@banjaramatch.com</a></em></h4>
+                  <h4>Get Support <em><a href="mailto:<%= site.supportEmail %>"><%= site.supportEmail %></a></em></h4>
                 </div>
               </li>
             </ul>
@@ -260,7 +260,7 @@
         <!-- IMAGE RIGHT -->
         <div class="col-lg-6">
           <div class="ab-faq-rhs">
-            <img src="/images/about/3.jpg" alt="banjara faq">
+            <%- img('/images/about/3.jpg', { alt: 'banjara faq', width: 1280, height: 1900, sizes: '(max-width: 992px) 100vw, 560px' }) %>
           </div>
         </div>
       </div>

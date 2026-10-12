@@ -1105,6 +1105,8 @@ function regionalMeta(page, pageType, slug) {
     robots,
     ogImage: banner || site.defaultImage,
     pageCategory: 'regional',
+    // Hero preload (partials/head.ejs): the CSS background on phones; the default slider image on desktop unless the CMS supplies banners.
+    hints: [{ hero: '/images/ban-bg.jpg', mobileOnly: Boolean(banner) }],
     jsonLd: faqs.length ? [{
       '@context': 'https://schema.org',
       '@type': 'FAQPage',

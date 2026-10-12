@@ -1,0 +1,126 @@
+<%
+var isEdit = !!blogId;
+var categories = ['Wedding', 'Relationship', 'Culture', 'Tradition', 'Tips', 'Events', 'Decoration', 'Stories', 'Community', 'General'];
+%>
+<div class="page-blog-form" data-blog-id="<%= blogId %>">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/blogs">Blogs</a><span aria-hidden="true">/</span><span data-blog-crumb><%= isEdit ? 'Edit post' : 'New post' %></span>
+  </nav>
+
+  <div class="alert alert--error alert--flush" role="alert" data-form-error hidden>
+    <span data-form-error-text></span>
+    <button type="button" class="btn btn--secondary btn--sm alert__retry" data-retry hidden>Retry</button>
+  </div>
+
+  <form class="card" id="blog-form" novalidate<% if (isEdit) { %> aria-busy="true"<% } %>>
+    <div class="card__body">
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Post</legend>
+        <div class="form-group">
+          <label class="form-label" for="blog-title">Title <span class="text-danger" aria-hidden="true">*</span><span class="form-count" data-count-for="blog-title" aria-hidden="true"></span></label>
+          <input class="form-control" type="text" id="blog-title" name="title" maxlength="200" required autocomplete="off">
+        </div>
+        <% if (isEdit) { %>
+        <div class="form-group">
+          <label class="form-label" for="blog-slug">URL slug</label>
+          <input class="form-control mono" type="text" id="blog-slug" name="slug" readonly aria-describedby="blog-slug-help">
+          <p class="form-help" id="blog-slug-help">The URL is frozen to protect indexed links. Changing the title does not change it. <a href="#" data-live-link target="_blank" rel="noopener noreferrer" hidden>Open the live page</a></p>
+        </div>
+        <% } else { %>
+        <p class="form-help" id="blog-slug-help">The URL slug is generated from the title when the post is created and is frozen from then on, so choose the title with care.</p>
+        <% } %>
+        <div class="form-group">
+          <label class="form-label" for="blog-description">Description <span class="text-danger" aria-hidden="true">*</span><span class="form-count" data-count-for="blog-description" aria-hidden="true"></span></label>
+          <textarea class="form-control" id="blog-description" name="description" rows="3" maxlength="500" required></textarea>
+          <p class="form-help">Shown on listing cards. Up to 500 characters.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="blog-content">Content <span class="text-danger" aria-hidden="true">*</span></label>
+          <textarea class="form-control mono" id="blog-content" name="content" rows="18" required aria-describedby="blog-content-help"></textarea>
+          <p class="form-help" id="blog-content-help">HTML is allowed (headings, paragraphs, lists, links, images) and is sanitised by the API when saved. <span data-content-words></span></p>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="blog-category">Category</label>
+            <select class="form-select" id="blog-category" name="category" aria-describedby="blog-category-help">
+              <% categories.forEach(function (c) { %><option value="<%= c %>"<%= c === 'General' ? ' selected' : '' %>><%= c %></option><% }); %>
+            </select>
+            <p class="form-help" id="blog-category-help">The category is part of the public URL. Changing it on a published post moves the page.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="blog-status">Status</label>
+            <select class="form-select" id="blog-status" name="status">
+              <option value="draft" selected>Draft</option>
+              <option value="published">Published</option>
+              <option value="archived">Archived</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="blog-tags">Tags</label>
+          <input class="form-control" type="text" id="blog-tags" name="tags" autocomplete="off" aria-describedby="blog-tags-help">
+          <p class="form-help" id="blog-tags-help">Comma separated, up to 30.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-check" for="blog-featured"><input type="checkbox" id="blog-featured" name="isFeatured"><span>Featured on the blog home</span></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Author</legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="blog-author-name">Author name <span class="text-danger" aria-hidden="true">*</span></label>
+            <input class="form-control" type="text" id="blog-author-name" name="authorName" maxlength="80" required autocomplete="off" aria-describedby="blog-author-help">
+            <p class="form-help" id="blog-author-help">The real person who wrote the post. A team name is not accepted.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="blog-author-role">Author role</label>
+            <input class="form-control" type="text" id="blog-author-role" name="authorRole" maxlength="80" autocomplete="off" placeholder="Author">
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Search appearance</legend>
+        <div class="form-group">
+          <label class="form-label" for="blog-meta-title">Meta title<span class="form-count" data-count-for="blog-meta-title" aria-hidden="true"></span></label>
+          <input class="form-control" type="text" id="blog-meta-title" name="metaTitle" maxlength="60" autocomplete="off" aria-describedby="blog-meta-title-help">
+          <p class="form-help" id="blog-meta-title-help">Up to 60 characters. Left empty, the first 60 characters of the title are used.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="blog-meta-description">Meta description<span class="form-count" data-count-for="blog-meta-description" aria-hidden="true"></span></label>
+          <textarea class="form-control" id="blog-meta-description" name="metaDescription" rows="2" maxlength="160" aria-describedby="blog-meta-description-help"></textarea>
+          <p class="form-help" id="blog-meta-description-help">Up to 160 characters. Left empty, the start of the description is used.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="blog-meta-keywords">Meta keywords</label>
+          <input class="form-control" type="text" id="blog-meta-keywords" name="metaKeywords" autocomplete="off" aria-describedby="blog-meta-keywords-help">
+          <p class="form-help" id="blog-meta-keywords-help">Comma separated.</p>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Featured image</legend>
+        <div class="form-group">
+          <img class="thumb thumb--lg" data-image-preview alt="" hidden>
+          <p class="form-help" data-image-current hidden><span data-image-path></span> <a href="#" data-image-link target="_blank" rel="noopener noreferrer">Open the image</a></p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="blog-image"><%= isEdit ? 'Replace image' : 'Image' %></label>
+          <input class="form-control" type="file" id="blog-image" name="featuredImage" accept="image/jpeg,image/png,image/gif,image/webp" aria-describedby="blog-image-help">
+          <p class="form-help" id="blog-image-help">JPG, PNG, GIF or WebP, up to 5 MB.<%= isEdit ? ' Uploading a new image deletes the old file.' : '' %></p>
+        </div>
+      </fieldset>
+
+      <div data-upload-progress hidden>
+        <label class="form-label" for="blog-progress">Saving</label>
+        <progress class="progress" id="blog-progress" max="100" value="0"></progress>
+      </div>
+    </div>
+    <div class="form-actions">
+      <a class="btn btn--secondary" href="/blogs">Cancel</a>
+      <button type="submit" class="btn btn--primary" data-save><%= isEdit ? 'Save changes' : 'Create post' %></button>
+    </div>
+  </form>
+</div>

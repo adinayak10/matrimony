@@ -7,6 +7,7 @@
  *   formLimiter         5 / h per IP             contact/beta-tester/community-feedback POST
  *   interestLimiter    60 / h per user           /api/sendInterestRequest (after authenticate)
  *   reportLimiter      10 / day per user         /api/reportUser (after authenticate)
+ *   publicListLimiter  60 / 15 min per IP        GET /api/community-feedback/contributors
  *   globalLimiter     600 / 15 min per IP        app-wide
  *
  * Requires `app.set('trust proxy', 'loopback')` BEFORE these are mounted so
@@ -94,6 +95,13 @@ const broadcastLimiter = make({
   keyGenerator: userKey,
 });
 
+// Public read-only lists the website renders (community-feedback contributors)
+const publicListLimiter = make({
+  windowMs: 15 * 60 * 1000,
+  limit: 60,
+  keyGenerator: ipKey,
+});
+
 const globalLimiter = make({
   windowMs: 15 * 60 * 1000,
   limit: 600,
@@ -108,6 +116,7 @@ module.exports = {
   reportLimiter,
   blogLikeLimiter,
   broadcastLimiter,
+  publicListLimiter,
   globalLimiter,
   make,
 };

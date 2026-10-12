@@ -1,331 +1,53 @@
-<!-- Google Analytics 4 (GA4) -->
-<!-- 
-  IMPORTANT: Replace 'G-XXXXXXXXXX' with your actual GA4 Measurement ID
-  Get your ID from: https://analytics.google.com/
-  Format: G-XXXXXXXXXX (for GA4) or UA-XXXXXXXX-X (for Universal Analytics - legacy)
--->
-
-<%
-// Configuration - UPDATE THESE VALUES
-const GA4_MEASUREMENT_ID = process.env.GA4_MEASUREMENT_ID || 'G-XXXXXXXXXX'; // TODO: Replace with actual ID
-const ENABLE_ANALYTICS = process.env.NODE_ENV === 'production' || process.env.ENABLE_ANALYTICS === 'true';
-const DEBUG_MODE = process.env.NODE_ENV !== 'production';
+<%#
+  Google Analytics 4 + Google Ads conversion tag (config/site.js -> site.analytics).
+  Loaded async, after the Consent Mode defaults that partials/head.ejs sets
+  (denied until accepted when REQUIRE_COOKIE_CONSENT=1). Rendered only in
+  production (or ENABLE_ANALYTICS=true) with a real GA4_MEASUREMENT_ID;
+  ENABLE_ANALYTICS=false switches it off everywhere.
+  The privacy policy (section "Analytics and advertising") describes exactly
+  what this file sends: keep the two in step.
 %>
-
-<% if (ENABLE_ANALYTICS && GA4_MEASUREMENT_ID !== 'G-XXXXXXXXXX') { %>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=<%= GA4_MEASUREMENT_ID %>"></script>
+<%
+  const _an = ((typeof site !== 'undefined' && site) || {}).analytics || {};
+  const _debug = process.env.NODE_ENV !== 'production';
+%>
+<% if (_an.enabled) { %>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<%= _an.ga4Id %>"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
-
-  // Configure GA4
-  gtag('config', '<%= GA4_MEASUREMENT_ID %>', {
-    'anonymize_ip': true, // GDPR compliance - anonymize IP addresses
-    'cookie_flags': 'SameSite=None;Secure', // Cookie security
-    'send_page_view': true, // Automatic page view tracking
-    'linker': {
-      'domains': ['www.banjaramatch.com', 'banjaramatch.com', 'api.banjaramatch.com']
-    },
-    <% if (DEBUG_MODE) { %>
-    'debug_mode': true, // Enable debug mode in development
-    <% } %>
-    // Custom dimensions (optional)
-    'custom_map': {
-      'dimension1': 'user_type', // Logged in vs Guest
-      'dimension2': 'page_category' // Blog, Profile, Regional, etc.
-    }
+  gtag('config', <%- safeJson(_an.ga4Id) %>, {
+    'anonymize_ip': true,
+    'cookie_flags': 'SameSite=None;Secure',
+    'send_page_view': true,
+    'linker': { 'domains': ['www.banjaramatch.com', 'banjaramatch.com', 'api.banjaramatch.com'] },
+    <% if (_debug) { %>'debug_mode': true,<% } %>
+    'custom_map': { 'dimension1': 'user_type', 'dimension2': 'page_category' }
   });
-
-  // Configure Google Ads
-  gtag('config', 'AW-357336842', {
-    'allow_enhanced_conversions': true
-  });
-
-  // Track user type (logged in or guest)
+  <% if (_an.adsId) { %>
+  gtag('config', <%- safeJson(_an.adsId) %>, { 'allow_enhanced_conversions': true });
+  <% } %>
   <% if (typeof user !== 'undefined' && user) { %>
-    gtag('set', 'user_properties', {
-      'user_type': 'logged_in',
-      'user_id': '<%= user._id %>' // User ID for cross-device tracking
-    });
+  gtag('set', 'user_properties', { 'user_type': 'logged_in', 'user_id': <%- safeJson(String(user._id || '')) %> });
   <% } else { %>
-    gtag('set', 'user_properties', {
-      'user_type': 'guest'
-    });
+  gtag('set', 'user_properties', { 'user_type': 'guest' });
   <% } %>
-
-  // Track page category for better segmentation
-  <% if (typeof locals.pageCategory !== 'undefined') { %>
-    gtag('event', 'page_view', {
-      'page_category': '<%= locals.pageCategory %>'
-    });
+  <% if (typeof locals.pageCategory !== 'undefined' && locals.pageCategory) { %>
+  gtag('event', 'page_view', { 'page_category': <%- safeJson(String(locals.pageCategory)) %> });
   <% } %>
-
-  // Google Ads Conversion Tracking Function
-  window.gtag_report_conversion = function(url) {
-    var callback = function () {
-      if (typeof(url) != 'undefined') {
-        window.location = url;
-      }
-    };
-    gtag('event', 'conversion', {
-        'send_to': 'AW-357336842/3N9aCIbm68obEIqOsqoB',
-        'event_callback': callback
-    });
-    return false;
-  };
-
-  // Helper function to track registration conversion
-  window.trackRegistrationConversion = function() {
-    // Send to Google Ads - First conversion action (Other conversion)
-    gtag('event', 'conversion', {
-      'send_to': 'AW-357336842/3N9aCIbm68obEIqOsqoB'
-    });
-    
-    // Send to Google Ads - Form submission conversion action
-    gtag('event', 'conversion', {
-      'send_to': 'AW-357336842/q-YJCIvsq8obEIqOsqoB'
-    });
-    
-    // Send to GA4 as form submission event
-    gtag('event', 'generate_lead', {
-      'event_category': 'form',
-      'event_label': 'registration',
-      'value': 1,
-      'currency': 'INR'
-    });
-    
-    // Also send as sign-up event for GA4
-    gtag('event', 'sign_up', {
-      'method': 'email'
-    });
-    
-    console.log('✅ Registration conversion tracked (2 Google Ads + 2 GA4 events)');
-  };
-  
-  // Custom event tracking functions (for use throughout the site)
-  window.trackEvent = function(eventName, eventParams) {
-    if (typeof gtag !== 'undefined') {
-      gtag('event', eventName, eventParams || {});
-      <% if (DEBUG_MODE) { %>
-      console.log('GA Event:', eventName, eventParams);
-      <% } %>
-    }
-  };
-
-  // Track CTA clicks (Call-to-Action)
-  window.trackCTA = function(ctaName, ctaLocation) {
-    window.trackEvent('cta_click', {
-      'event_category': 'engagement',
-      'event_label': ctaName,
-      'cta_location': ctaLocation
-    });
-  };
-
-  // Track profile views
-  window.trackProfileView = function(profileId, profileGender) {
-    window.trackEvent('profile_view', {
-      'event_category': 'profiles',
-      'profile_id': profileId,
-      'profile_gender': profileGender
-    });
-  };
-
-  // Track interest/request sent
-  window.trackInterestSent = function(profileId) {
-    window.trackEvent('interest_sent', {
-      'event_category': 'conversion',
-      'profile_id': profileId,
-      'value': 1 // Value for conversion tracking
-    });
-  };
-
-  // Track social shares (already integrated in social-share.ejs)
+  window.trackEvent = function(eventName, eventParams) { gtag('event', eventName, eventParams || {}); };
   window.trackShare = function(platform, url) {
-    window.trackEvent('share', {
-      'event_category': 'social',
-      'method': platform,
-      'content_type': 'page',
-      'item_id': url || window.location.href
-    });
-  };
-
-  // Track search queries
-  window.trackSearch = function(searchTerm, searchCategory) {
-    window.trackEvent('search', {
-      'event_category': 'engagement',
-      'search_term': searchTerm,
-      'search_category': searchCategory || 'general'
-    });
-  };
-
-  // Track form submissions
-  window.trackFormSubmit = function(formName, formSuccess) {
-    window.trackEvent('form_submit', {
-      'event_category': 'forms',
-      'form_name': formName,
-      'success': formSuccess
-    });
-  };
-
-  // Track outbound links (external sites)
-  window.trackOutboundLink = function(url, linkText) {
-    window.trackEvent('click', {
-      'event_category': 'outbound',
-      'event_label': linkText,
-      'transport_type': 'beacon',
-      'target_url': url
-    });
-  };
-
-  // Track downloads (PDFs, images, etc.)
-  window.trackDownload = function(fileName, fileType) {
-    window.trackEvent('file_download', {
-      'event_category': 'downloads',
-      'file_name': fileName,
-      'file_type': fileType
-    });
-  };
-
-  // Track errors (404, 500, etc.)
-  window.trackError = function(errorType, errorMessage) {
-    window.trackEvent('exception', {
-      'description': errorMessage,
-      'error_type': errorType,
-      'fatal': false
-    });
-  };
-
-  // Track video plays (if you add video content)
-  window.trackVideoPlay = function(videoTitle, videoUrl) {
-    window.trackEvent('video_play', {
-      'event_category': 'engagement',
-      'video_title': videoTitle,
-      'video_url': videoUrl
-    });
-  };
-
-  // Enhanced eCommerce tracking (for premium plans - future use)
-  window.trackProductView = function(productId, productName, productPrice) {
-    window.trackEvent('view_item', {
-      'event_category': 'ecommerce',
-      'items': [{
-        'item_id': productId,
-        'item_name': productName,
-        'price': productPrice,
-        'currency': 'INR'
-      }]
-    });
-  };
-
-  window.trackPurchase = function(transactionId, value, items) {
-    window.trackEvent('purchase', {
-      'event_category': 'ecommerce',
-      'transaction_id': transactionId,
-      'value': value,
-      'currency': 'INR',
-      'items': items
-    });
-  };
-
-  <% if (DEBUG_MODE) { %>
-  console.log('✅ Google Analytics initialized:', '<%= GA4_MEASUREMENT_ID %>');
-  console.log('User Type:', '<%= typeof user !== "undefined" && user ? "Logged In" : "Guest" %>');
-  <% } %>
-</script>
-
-<!-- Google Tag Manager (Optional - for advanced tracking) -->
-<!-- Uncomment below if you're using GTM
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
--->
-
-<% } else { %>
-<!-- Google Analytics NOT Enabled -->
-<!-- 
-  Reasons:
-  1. Not in production environment (NODE_ENV !== 'production')
-  2. GA4_MEASUREMENT_ID not configured (still set to placeholder)
-  
-  To enable:
-  1. Set environment variable: GA4_MEASUREMENT_ID=G-YOUR-ACTUAL-ID
-  2. Or set: ENABLE_ANALYTICS=true (for testing)
-  3. Deploy to production
--->
-<% if (DEBUG_MODE) { %>
-<script>
-  console.warn('⚠️ Google Analytics disabled');
-  console.warn('Set GA4_MEASUREMENT_ID environment variable to enable');
-  
-  // Mock tracking functions for development
-  window.trackEvent = function(eventName, eventParams) {
-    console.log('[DEV] Track Event:', eventName, eventParams);
-  };
-  window.trackCTA = function(ctaName, ctaLocation) {
-    console.log('[DEV] Track CTA:', ctaName, ctaLocation);
-  };
-  window.trackProfileView = function(profileId, profileGender) {
-    console.log('[DEV] Track Profile View:', profileId, profileGender);
-  };
-  window.trackInterestSent = function(profileId) {
-    console.log('[DEV] Track Interest:', profileId);
-  };
-  window.trackShare = function(platform, url) {
-    console.log('[DEV] Track Share:', platform, url);
-  };
-  window.trackSearch = function(searchTerm, searchCategory) {
-    console.log('[DEV] Track Search:', searchTerm, searchCategory);
-  };
-  window.trackFormSubmit = function(formName, formSuccess) {
-    console.log('[DEV] Track Form:', formName, formSuccess);
-  };
-  window.trackOutboundLink = function(url, linkText) {
-    console.log('[DEV] Track Outbound:', url, linkText);
-  };
-  window.trackDownload = function(fileName, fileType) {
-    console.log('[DEV] Track Download:', fileName, fileType);
+    window.trackEvent('share', { 'event_category': 'social', 'method': platform, 'content_type': 'page', 'item_id': url || window.location.href });
   };
   window.trackError = function(errorType, errorMessage) {
-    console.log('[DEV] Track Error:', errorType, errorMessage);
-  };
-  window.trackVideoPlay = function(videoTitle, videoUrl) {
-    console.log('[DEV] Track Video:', videoTitle, videoUrl);
-  };
-  window.trackProductView = function(productId, productName, productPrice) {
-    console.log('[DEV] Track Product View:', productId, productName, productPrice);
-  };
-  window.trackPurchase = function(transactionId, value, items) {
-    console.log('[DEV] Track Purchase:', transactionId, value, items);
+    window.trackEvent('exception', { 'description': errorMessage, 'error_type': errorType, 'fatal': false });
   };
 </script>
-<% } %>
-<% } %>
-
-<!-- Hotjar Heatmaps & Session Recording (Optional - Uncomment to enable) -->
-<!-- 
+<% } else if (_debug) { %>
 <script>
-  (function(h,o,t,j,a,r){
-    h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
-    h._hjSettings={hjid:YOUR_HOTJAR_ID,hjsv:6};
-    a=o.getElementsByTagName('head')[0];
-    r=o.createElement('script');r.async=1;
-    r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
-    a.appendChild(r);
-  })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+  window.trackEvent = function(n, p) { console.log('[DEV] Track Event:', n, p); };
+  window.trackShare = function(platform, url) { console.log('[DEV] Track Share:', platform, url); };
+  window.trackError = function(t, m) { console.log('[DEV] Track Error:', t, m); };
 </script>
--->
-
-<!-- Microsoft Clarity (Optional - Free heatmaps & recordings) -->
-<!-- 
-<script type="text/javascript">
-  (function(c,l,a,r,i,t,y){
-    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-  })(window, document, "clarity", "script", "YOUR_CLARITY_ID");
-</script>
--->
+<% } %>

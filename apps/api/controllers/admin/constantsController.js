@@ -36,6 +36,24 @@ const triggerSitemapRegeneration = (reason) => {
 };
 
 /**
+ * A unique-index clash or a schema validation failure is the admin's input,
+ * not a server fault: answer 409 / 400 with a message the panel can show.
+ * Returns true when it handled the error.
+ */
+function sendWriteError(res, error, Model) {
+  if (error && error.code === 11000) {
+    res.status(409).json({ status: false, code: 'DUPLICATE', message: `A ${Model.modelName} with that name already exists` });
+    return true;
+  }
+  if (error && (error.name === 'ValidationError' || error.name === 'CastError')) {
+    const first = error.errors ? Object.values(error.errors)[0] : null;
+    res.status(400).json({ status: false, code: 'INVALID', message: (first && first.message) || 'Invalid value' });
+    return true;
+  }
+  return false;
+}
+
+/**
  * Generic function to get all items (with optional populate)
  */
 const getAllItems = (Model, populateField) => async (req, res) => {
@@ -63,6 +81,7 @@ const createItem = (Model, notifySitemap) => async (req, res) => {
     res.json({ status: true, message: 'Created successfully', data: item });
     if (notifySitemap) triggerSitemapRegeneration(`create ${Model.modelName}`);
   } catch (error) {
+    if (sendWriteError(res, error, Model)) return;
     console.error(`Create ${Model.modelName} error:`, error);
     res.status(500).json({ status: false, message: 'Server error', error: error.message });
   }
@@ -87,6 +106,7 @@ const updateItem = (Model, notifySitemap) => async (req, res) => {
     res.json({ status: true, message: 'Updated successfully', data: item });
     if (notifySitemap) triggerSitemapRegeneration(`update ${Model.modelName}`);
   } catch (error) {
+    if (sendWriteError(res, error, Model)) return;
     console.error(`Update ${Model.modelName} error:`, error);
     res.status(500).json({ status: false, message: 'Server error', error: error.message });
   }

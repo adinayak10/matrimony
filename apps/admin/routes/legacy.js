@@ -1,8 +1,10 @@
 'use strict';
 // Old URLs → new routes, all 301 (C1.7). The old admin served public/*.html
 // directly through nginx try_files; those paths and the old server.js routes
-// map here so bookmarks keep working. Test pages (debug, flow-test, test-auth,
-// test-dashboard) are deleted files and fall through to the .html 404.
+// map here so bookmarks keep working. Every one of the 22 old pages has a
+// target; test pages (debug, flow-test, test-auth, test-dashboard) fall through
+// to the .html 404. Since C6 no *.html file is served at all, so the redirect
+// can never be shadowed by a file on disk.
 const express = require('express');
 
 const router = express.Router();

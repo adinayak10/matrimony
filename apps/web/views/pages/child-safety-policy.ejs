@@ -168,7 +168,7 @@
                     <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0; text-align: center;">
                         <h5 style="color: #333; margin-bottom: 15px;">Alternative Reporting Methods</h5>
                         <p style="color: #666; margin-bottom: 10px;">
-                            <strong>Email:</strong> <a href="mailto:info@banjaramatch.com">info@banjaramatch.com</a>
+                            <strong>Email:</strong> <a href="mailto:<%= site.supportEmail %>"><%= site.supportEmail %></a>
                         </p>
                         <p style="color: #666; margin-bottom: 10px;">
                             <strong>Emergency:</strong> Contact local law enforcement (India: 1098 Childline, 1930 Cyber Crime)
@@ -222,18 +222,13 @@
                     <h4 style="color: #f6af04;">Registration Requirements</h4>
                     <ul style="font-size: 15px; line-height: 1.8; color: #555;">
                         <li>Minimum age requirement: 18 years (males), 18 years (females) as per Indian law</li>
-                        <li>Date of birth verification during registration</li>
-                        <li>Government ID verification for profile activation</li>
-                        <li>Phone number verification via OTP</li>
-                        <li>Email address verification</li>
+                        <li>Date of birth required during registration; an age under 18 is refused</li>
                     </ul>
                 </div>
                 <div class="col-md-6">
                     <h4 style="color: #f6af04;">Ongoing Monitoring</h4>
                     <ul style="font-size: 15px; line-height: 1.8; color: #555;">
-                        <li>Profile photo verification and moderation</li>
-                        <li>Automated age detection in uploaded photos</li>
-                        <li>Regular audits of user accounts</li>
+                        <li>Profile photo moderation by administrators</li>
                         <li>Community reporting system</li>
                         <li>Immediate suspension of suspicious accounts</li>
                     </ul>
@@ -248,26 +243,13 @@
             </div>
             <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Content Moderation & Detection</h2>
             <p style="font-size: 16px; line-height: 1.8; color: #555; text-align: center; max-width: 900px; margin: 0 auto 30px;">
-                We employ multiple layers of protection to detect and prevent CSAE/CSAM content:
+                How CSAE/CSAM content is found and removed on BanjaraMatch:
             </p>
             <div class="row">
                 <div class="col-md-4 mb-4">
                     <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; height: 100%;">
-                        <h5 style="color: #333; margin-bottom: 15px;"><i class="fa fa-robot" style="color: #f6af04;"></i> Automated Detection</h5>
-                        <ul style="font-size: 14px; line-height: 1.8; color: #555;">
-                            <li>AI-powered image analysis</li>
-                            <li>PhotoDNA hash matching</li>
-                            <li>Text content scanning</li>
-                            <li>Behavioral pattern detection</li>
-                        </ul>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; height: 100%;">
                         <h5 style="color: #333; margin-bottom: 15px;"><i class="fa fa-user-secret" style="color: #f6af04;"></i> Human Review</h5>
                         <ul style="font-size: 14px; line-height: 1.8; color: #555;">
-                            <li>24/7 moderation team</li>
-                            <li>Manual profile verification</li>
                             <li>Reported content review</li>
                             <li>Escalation to authorities</li>
                         </ul>
@@ -278,7 +260,6 @@
                         <h5 style="color: #333; margin-bottom: 15px;"><i class="fa fa-users" style="color: #f6af04;"></i> Community Reports</h5>
                         <ul style="font-size: 14px; line-height: 1.8; color: #555;">
                             <li>Easy reporting tools</li>
-                            <li>Anonymous reporting option</li>
                             <li>Priority handling</li>
                             <li>User feedback loop</li>
                         </ul>
@@ -390,11 +371,9 @@
                     For child safety concerns, CSAM reports, or questions about our policies:
                 </p>
                 <p style="font-size: 18px; margin-bottom: 5px;">
-                    <strong>Email:</strong> <a href="mailto:info@banjaramatch.com">info@banjaramatch.com</a>
+                    <strong>Email:</strong> <a href="mailto:<%= site.supportEmail %>"><%= site.supportEmail %></a>
                 </p>
-                <p style="color: #0c5460; font-size: 14px; margin-top: 15px;">
-                    <i class="fa fa-clock-o"></i> Our child safety team monitors this email 24/7 and responds to urgent reports immediately.
-                </p>
+                <%- include('../partials/legal-contact', { only: 'grievance' }) %>
             </div>
 
             <div class="row mt-4">
@@ -497,7 +476,7 @@ This is an automated child safety report submitted via the Child Safety Policy p
                         submitBtn.prop('disabled', false).html('<i class="fa fa-flag"></i> Submit Report');
                     },
                     error: function(xhr) {
-                        const errorMsg = xhr.responseJSON?.message || 'Failed to submit report. Please try emailing info@banjaramatch.com directly.';
+                        const errorMsg = xhr.responseJSON?.message || 'Failed to submit report. Please try emailing ' + <%- safeJson(site.supportEmail) %> + ' directly.';
                         messageDiv.removeClass('alert-success').addClass('alert-danger')
                             .html('<strong>Error:</strong> ' + errorMsg)
                             .fadeIn();

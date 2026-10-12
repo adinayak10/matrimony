@@ -187,7 +187,8 @@ exports.getAllStatePagesAdmin = async (req, res) => {
 
     const query = {};
     if (search) {
-      const states = await State.find({ name: { $regex: search, $options: 'i' } }).select('_id');
+      // escaped + capped: a raw '(' used to throw a 500 from the admin search box
+      const states = await State.find({ name: { $regex: require('../utils/escapeRegex')(search, 60), $options: 'i' } }).select('_id');
       query.state = { $in: states.map(s => s._id) };
     }
     if (isPublished !== undefined) query.isPublished = isPublished === 'true';

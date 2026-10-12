@@ -264,7 +264,8 @@ exports.getAllCityPagesAdmin = async (req, res) => {
 
     const query = {};
     if (search) {
-      const cities = await City.find({ name: { $regex: search, $options: 'i' } }).select('_id');
+      // escaped + capped: a raw '(' used to throw a 500 from the admin search box
+      const cities = await City.find({ name: { $regex: require('../utils/escapeRegex')(search, 60), $options: 'i' } }).select('_id');
       query.city = { $in: cities.map(c => c._id) };
     }
     if (state) query.state = state;

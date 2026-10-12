@@ -5,8 +5,8 @@
 // (`/users/:id` highlights Users, `/blogs/*` highlights Blogs).
 //
 // `icon` is an id inside public/img/icons.svg (<use href="/img/icons.svg#id">).
-// `pending: true` marks an item whose page ships in a later deploy; the sidebar
-// shows it with a "soon" tag and the route renders a friendly placeholder.
+// `pending: true` would mark an item whose page ships in a later deploy (the
+// sidebar shows a "soon" tag); no item is pending since C6.
 
 const item = (key, label, icon, extra = {}) => ({
   key,
@@ -53,7 +53,7 @@ const NAV = [
       item('settings', 'Settings', 'settings'),
       item('apk-manager', 'APK manager', 'smartphone'),
       item('broadcast-email', 'Broadcast email', 'send'),
-      item('audit-log', 'Audit log', 'history', { pending: true }),
+      item('audit-log', 'Audit log', 'history'),
     ],
   },
 ];

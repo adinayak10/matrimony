@@ -43,7 +43,7 @@ function card(p) {
 async function load() {
   const mine = ++seq;
   grid.setAttribute('aria-busy', 'true');
-  if (!photos.length) setHtml(grid, html`${Array.from({ length: 8 }, () => html`<div class="photo-card"><div class="skeleton" style="aspect-ratio:1"></div><div class="photo-card__body"><div class="skeleton skeleton--text"></div><div class="skeleton skeleton--text" style="width:60%"></div></div></div>`)}`);
+  if (!photos.length) setHtml(grid, html`${Array.from({ length: 8 }, () => html`<div class="photo-card"><div class="skeleton sq"></div><div class="photo-card__body"><div class="skeleton skeleton--text"></div><div class="skeleton skeleton--text w-60"></div></div></div>`)}`);
   try {
     const resp = await api('/admin/photos', { query: { status: params.status, page: params.page, limit: LIMIT } });
     if (mine !== seq) return;
@@ -51,7 +51,7 @@ async function load() {
     const pg = resp.pagination || {};
     grid.setAttribute('aria-busy', 'false');
     if (!photos.length) {
-      setHtml(grid, html`<div class="empty" style="grid-column:1/-1"><div class="empty__title">${params.status === 'pending' ? 'No photos waiting for review' : 'No photos'}</div><div class="empty__hint">${params.status === 'pending' ? 'New uploads land here once the pending default ships. Switch the filter to review approved photos.' : ''}</div></div>`);
+      setHtml(grid, html`<div class="empty span-all"><div class="empty__title">${params.status === 'pending' ? 'No photos waiting for review' : 'No photos'}</div><div class="empty__hint">${params.status === 'pending' ? 'New uploads land here once the pending default ships. Switch the filter to review approved photos.' : ''}</div></div>`);
     } else {
       setHtml(grid, html`${photos.map(card)}`);
       bindImageFallbacks(grid);
@@ -61,7 +61,7 @@ async function load() {
   } catch (err) {
     if (mine !== seq) return;
     grid.setAttribute('aria-busy', 'false');
-    setHtml(grid, html`<div class="alert alert--error" role="alert" style="grid-column:1/-1"><span>${errorMessage(err, 'Failed to load photos.')}</span><button type="button" class="btn btn--secondary btn--sm" data-retry>Retry</button></div>`);
+    setHtml(grid, html`<div class="alert alert--error span-all" role="alert"><span>${errorMessage(err, 'Failed to load photos.')}</span><button type="button" class="btn btn--secondary btn--sm" data-retry>Retry</button></div>`);
     setHtml(pager, '');
   }
 }

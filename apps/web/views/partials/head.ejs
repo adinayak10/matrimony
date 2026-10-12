@@ -3,7 +3,8 @@
 
   A route renders with  meta: { title, description, canonical?, robots?,
   ogType?, ogImage?, keywords?, jsonLd?: object[], prev?, next?, pageCategory?,
-  noAnalytics?, noOrganization?, brandSuffix?: false, styles?: string[], scripts?: string[] }
+  noAnalytics?, noOrganization?, brandSuffix?: false, hints?: object[], styles?: string[],
+  stylesBefore?: string[] (third-party sheets the site stylesheet must override), scripts?: string[] }
   and this partial merges it over res.locals.metaDefaults (middleware/seoDefaults.js).
   Legacy pages that still pass only `title` keep working.
 
@@ -30,7 +31,9 @@
   const _keywords = Array.isArray(_m.keywords) ? _m.keywords.join(', ') : (_m.keywords || '');
   const _assets = (typeof asset === 'function') ? asset : (p) => '/' + String(p).replace(/^\/+/, '');
   const _built = typeof assetsBuilt === 'boolean' ? assetsBuilt : !/^\/css\//.test(_assets('css/site.css'));
-  const _requireConsent = /^(1|true|yes)$/i.test(process.env.REQUIRE_COOKIE_CONSENT || '');
+  const _an = _site.analytics || {};
+  const _requireConsent = Boolean(_an.requireConsent);
+  const _gaOn = Boolean(_an.enabled);
   const _blocks = [];
   if (!_m.noOrganization && _site.organizationJsonLd) _blocks.push(_site.organizationJsonLd);
   for (const b of (Array.isArray(_m.jsonLd) ? _m.jsonLd : [_m.jsonLd])) if (b) _blocks.push(b);
@@ -66,28 +69,38 @@
 <% if (typeof assetFileExists === 'function' && assetFileExists('apple-touch-icon.png')) { %><link rel="apple-touch-icon" href="/apple-touch-icon.png"><% } %>
 <link rel="manifest" href="/site.webmanifest">
 
-<%# Resource hints: only hosts the first paint needs. %>
-<link rel="dns-prefetch" href="https://www.googletagmanager.com">
-<% if (!_built) { %>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<%# Resource hints: only for hosts this page really calls (analytics is the only third party on public pages). %>
+<% if (!_m.noAnalytics && _gaOn) { %><link rel="preconnect" href="https://www.googletagmanager.com"><% } %>
+<%#
+  meta.hints: plain hint objects (partials/_hint.ejs), or { hero: '/images/x.jpg' } for the
+  home/regional hero, which is a CSS background up to 1250px and the first slider <img> above it.
+%>
+<% for (const h of (_m.hints || [])) { %>
+<%   if (h && h.hero && typeof img === 'function' && img.preload) { %>
+<%     if (!h.mobileOnly) { %><%- include('./_hint', { h: Object.assign({}, img.preload(h.hero, '100vw'), { media: '(min-width: 1251px)' }) }) %><% } %>
+<%- include('./_hint', { h: { rel: 'preload', as: 'image', href: _built ? img.cssUrl(h.hero) : h.hero, media: '(max-width: 1250px)', fetchpriority: 'high' } }) %>
+<%   } else if (h && h.href) { %><%- include('./_hint', { h }) %><% } %>
 <% } %>
-<% for (const h of (_m.hints || [])) { %><%- include('./_hint', { h }) %><% } %>
 
-<%# Fonts and the single built stylesheet (build/build.js); legacy files until the build has run. %>
-<% if (_built) { %>
-<%   for (const w of ['400', '600']) { const f = 'fonts/poppins-latin-' + w + '-normal.woff2'; if (typeof assetHas === 'function' ? assetHas(f) : false) { %>
+<%#
+  Fonts and the single built stylesheet (build/build.js). Fonts are self-hosted
+  (no Google Fonts): the two weights every page paints first are preloaded.
+  Until the build has run the legacy files are used, with the same faces from /fonts/.
+%>
+<%   for (const w of ['400', '600']) { const f = 'fonts/poppins-latin-' + w + '-normal.woff2'; %>
 <link rel="preload" as="font" type="font/woff2" href="<%= _assets(f) %>" crossorigin>
-<%   } } %>
+<%   } %>
+<% for (const href of (_m.stylesBefore || [])) { %><link rel="stylesheet" href="<%= href %>"><% } %>
+<% if (_built) { %>
 <link rel="stylesheet" href="<%= _assets('css/site.css') %>">
 <% } else { %>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="/css/fonts.css">
 <link rel="stylesheet" href="/css/bootstrap.css">
 <link rel="stylesheet" href="/css/font-awesome.min.css">
 <link rel="stylesheet" href="/css/animate.min.css">
 <link rel="stylesheet" href="/css/style.min.css">
 <% } %>
-<% for (const href of (_m.styles || [])) { %><link rel="stylesheet" href="<%= href %>"><% } %>
+<% for (const href of (_m.styles || [])) { %><link rel="stylesheet" href="<%= /^(https?:)?\/\//.test(href) ? href : _assets(href) %>"><% } %>
 
 <%# Structured data: the Organization once, then the page's own blocks. jsonLd() escapes (utils/jsonLd.js). %>
 <% for (const block of _blocks) { %>

@@ -40,15 +40,30 @@ export function html(strings, ...values) {
   return new Raw(out);
 }
 
+/**
+ * The CSP is `style-src 'self'`: a style="" attribute in markup is blocked, a
+ * CSSOM write is not. Dynamic sizes are therefore written as data-style-width
+ * ("56px", "40%") and applied here; setHtml/appendHtml call it for you.
+ */
+export function applyDataStyles(root) {
+  if (!root || !root.querySelectorAll) return;
+  root.querySelectorAll('[data-style-width]').forEach((n) => {
+    const v = String(n.dataset.styleWidth || '');
+    if (/^\d+(\.\d+)?(px|%|ch|rem|em)$/.test(v)) n.style.width = v;
+  });
+}
+
 /** Replace an element's content with a Raw (html``) or plain text (escaped). */
 export function setHtml(el, content) {
   if (!el) return;
   el.innerHTML = content instanceof Raw ? content.s : esc(content);
+  applyDataStyles(el);
 }
 
 export function appendHtml(el, content) {
   if (!el) return;
   el.insertAdjacentHTML('beforeend', content instanceof Raw ? content.s : esc(content));
+  applyDataStyles(el);
 }
 
 export function el(selector, root = document) {

@@ -8,6 +8,12 @@ const { record: audit } = require('../../services/auditLog');
 const escapeRegex = require('../../utils/escapeRegex');
 const mongoose = require('mongoose');
 
+// models/Blog.js declares createdBy/updatedBy with ref 'Admin', a model that does
+// not exist (admins are Users with role 'admin'). A bare .populate('createdBy')
+// therefore throws MissingSchemaError as soon as one post has createdBy set,
+// which createBlog now always does. Populate with the model named explicitly.
+const BY = (path) => ({ path, select: 'full_name email', model: 'User' });
+
 const SORT_FIELDS = new Set(['createdAt', 'updatedAt', 'publishedAt', 'views', 'likes', 'title', 'status']);
 const BLOG_CATEGORIES = Blog.schema.path('category').enumValues || [];
 const clampInt = (v, def, min, max) => Math.min(max, Math.max(min, parseInt(v, 10) || def));
@@ -108,8 +114,8 @@ exports.getAllBlogs = async (req, res) => {
         .sort(sort)
         .limit(limitNum)
         .skip(skip)
-        .populate('createdBy', 'full_name email')
-        .populate('updatedBy', 'full_name email')
+        .populate(BY('createdBy'))
+        .populate(BY('updatedBy'))
         .lean(),
       Blog.countDocuments(query),
     ]);
@@ -143,10 +149,10 @@ exports.getBlogById = async (req, res) => {
     const { id } = req.params;
     
     // Try to find by ID first, then by slug (slug is read-only after creation, C4.4)
-    let blog = mongoose.isValidObjectId(id) ? await Blog.findById(id).populate('createdBy updatedBy', 'full_name email') : null;
+    let blog = mongoose.isValidObjectId(id) ? await Blog.findById(id).populate(BY('createdBy')).populate(BY('updatedBy')) : null;
     
     if (!blog) {
-      blog = await Blog.findOne({ slug: String(id).toLowerCase().slice(0, 200) }).populate('createdBy updatedBy', 'full_name email');
+      blog = await Blog.findOne({ slug: String(id).toLowerCase().slice(0, 200) }).populate(BY('createdBy')).populate(BY('updatedBy'));
     }
 
     if (!blog) {

@@ -4,7 +4,7 @@
 <%- include('../partials/head') %>
 <style>
     .gm-hero { background: linear-gradient(135deg, #0e2c1a 0%, #0c5a2d 50%, #138b3f 100%); padding: 70px 0 60px; position: relative; overflow: hidden; }
-    .gm-hero::before { content:''; position:absolute; inset:0; background:url('/images/ban-bg.jpg') center/cover no-repeat; opacity:.1; }
+    .gm-hero::before { content:''; position:absolute; inset:0; background:url('<%= img.cssUrl('/images/ban-bg.jpg') %>') center/cover no-repeat; opacity:.1; }
     .gm-hero .container { position:relative; z-index:2; }
     .gm-hero h1 { color:#fff; font-size:34px; font-weight:800; line-height:1.3; margin-bottom:16px; }
     .gm-hero h1 span { color:#f6af04; }

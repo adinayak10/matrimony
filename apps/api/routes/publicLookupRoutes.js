@@ -11,6 +11,8 @@
  */
 const express = require('express');
 const UserController = require('../controllers/UserController');
+const CommunityFeedbackController = require('../controllers/CommunityFeedbackController');
+const rl = require('../middleware/rateLimits');
 
 const router = express.Router();
 
@@ -35,6 +37,9 @@ router.post('/fetchReportReasons', UserController.fetchReportReasons);
 
 // App boot
 router.post('/fetchBanner', UserController.fetchBanner);
+
+// Website "contributors" list: completed suggestions, safe fields only, no PII.
+router.get('/community-feedback/contributors', rl.publicListLimiter, CommunityFeedbackController.getPublicContributors);
 
 // Ice Breaker Game stats (counts only, no PII)
 router.get('/getIcebreakerStats', (req, res) => {
@@ -71,6 +76,7 @@ router.PUBLIC_PATHS = [
   '/fetchIncomeRange',
   '/fetchReportReasons',
   '/fetchBanner',
+  '/community-feedback/contributors',
   '/getIcebreakerStats',
 ];
 
