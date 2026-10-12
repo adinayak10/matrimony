@@ -416,15 +416,8 @@ router.get('/beta-tester', optionalUser, (req, res) => {
   });
 });
 
-// Biodata Builder Page
-router.get('/biodata-builder', optionalUser, (req, res) => {
-  res.render('pages/biodata-builder', {
-    title: 'Biodata Builder - BanjaraMatch | Create Professional Marriage Biodata',
-    meta: pageMeta('biodataBuilder'),
-    user: req.user || null,
-    breadcrumbs: [{ name: 'Biodata Builder', url: '/biodata-builder' }],
-  });
-});
+// Biodata Builder was removed from the platform; the URL was indexed, so it redirects.
+router.get('/biodata-builder', (req, res) => res.redirect(301, '/'));
 
 router.get('/child-safety-policy', optionalUser, (req, res) => {
   res.render('pages/child-safety-policy', {

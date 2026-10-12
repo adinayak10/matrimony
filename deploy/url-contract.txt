@@ -41,6 +41,7 @@ https://www.banjaramatch.com/user-chat.html 301
 https://www.banjaramatch.com/about-us.html 301
 https://www.banjaramatch.com/anything-else.html 301
 # router 301s
+https://www.banjaramatch.com/biodata-builder 301
 https://www.banjaramatch.com/terms-condition 301
 https://www.banjaramatch.com/plans 301
 https://www.banjaramatch.com/banjara-matrimony-bangalore 301

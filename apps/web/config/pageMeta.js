@@ -199,7 +199,7 @@ const PAGES = {
   },
   faq: {
     title: "FAQ - Frequently Asked Questions | BanjaraMatch",
-    description: "Answers to common questions about BanjaraMatch — gotra matching rules, profile verification, AI matching, safety, biodata, and how the platform works.",
+    description: "Answers to common questions about BanjaraMatch — gotra matching rules, profile verification, AI matching, safety, and how the platform works.",
     keywords: [
       "banjaramatch faq",
       "banjara matrimony questions",
@@ -275,14 +275,6 @@ const PAGES = {
             acceptedAnswer: {
               "@type": "Answer",
               text: "Yes. Data is encrypted, you control who can view your contact details, and profiles are not indexed or exposed publicly outside the platform. See our Privacy Policy and Child Safety Policy for full details."
-            }
-          },
-          {
-            "@type": "Question",
-            name: "How do I create a biodata for BanjaraMatch?",
-            acceptedAnswer: {
-              "@type": "Answer",
-              text: "You can use our free Biodata Builder to create a professional marriage biodata with multiple templates and download it as a PDF, in addition to your BanjaraMatch profile."
             }
           },
           {
@@ -860,24 +852,6 @@ const PAGES = {
     scripts: [
       "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js",
       "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"
-    ]
-  },
-  biodataBuilder: {
-    title: "Biodata Builder - BanjaraMatch | Create Professional Marriage Biodata",
-    description: "Create beautiful marriage biodata with BanjaraMatch's free biodata builder. Choose from multiple templates and download as PDF instantly.",
-    keywords: [
-      "biodata builder",
-      "marriage biodata",
-      "biodata maker",
-      "biodata pdf",
-      "matrimony biodata",
-      "banjara biodata"
-    ],
-    styles: [
-      "/css/biodata-builder.min.css"
-    ],
-    scripts: [
-      "js/biodata-builder.min.js"
     ]
   },
   onboarding: {

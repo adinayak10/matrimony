@@ -39,7 +39,6 @@ const pages = [
   { loc: 'banjara-gotra-list', sourceFile: 'views/pages/banjara-gotra-list.ejs', priority: '0.8', changefreq: 'monthly' },
   { loc: 'banjara-community-history', sourceFile: 'views/pages/banjara-community-history.ejs', priority: '0.8', changefreq: 'monthly' },
   { loc: 'child-safety-policy', sourceFile: 'views/pages/child-safety-policy.ejs', priority: '0.3', changefreq: 'yearly' },
-  { loc: 'biodata-builder', sourceFile: 'views/pages/biodata-builder.ejs', priority: '0.6', changefreq: 'monthly' },
   { loc: 'faq', sourceFile: 'views/pages/faq.ejs', priority: '0.6', changefreq: 'monthly' },
 ];
 

@@ -200,13 +200,13 @@ test('index rule: the API contentWords wins; hero/CTA text is not owner prose', 
   assert.equal(uniqueCmsWords({ pageType: 'city', faqSection: { faqs: [{ question: 'alpha beta', answer: 'beta gamma' }] } }), 3);
 });
 
-test('main sitemap list: account-deletion priority 0.1, biodata-builder is a view, no logged-in pages', () => {
+test('main sitemap list: account-deletion priority 0.1, biodata-builder removed, no logged-in pages', () => {
   const { pages } = require('../utils/generateSitemap');
   const byLoc = Object.fromEntries(pages.map((p) => [p.loc, p]));
   assert.equal(byLoc['account-deletion'].priority, '0.1');
-  assert.equal(byLoc['biodata-builder'].sourceFile, 'views/pages/biodata-builder.ejs');
+  assert.equal(byLoc['biodata-builder'], undefined);
   for (const loc of ['all-profiles', 'dashboard', 'login', 'user-chat']) assert.equal(byLoc[loc], undefined, loc + ' must not be in the sitemap');
-  assert.ok(pages.length >= 20);
+  assert.ok(pages.length >= 19);
 });
 
 test('robots.txt: one * group, private areas blocked, AI policy, single sitemap', () => {

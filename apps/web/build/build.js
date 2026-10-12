@@ -200,8 +200,8 @@ function stripPreloader(js) {
 const SITE_JS = ['js/jquery.min.js', 'js/popper.min.js', 'js/bootstrap.min.js', 'js/select-opt.min.js', 'js/slick.min.js', 'js/custom.js', 'js/esc.js'];
 // Page-specific extras stay separate hashed files, keyed by the real source
 // path so asset('js/Chart.js') falls back to a file that exists before the first build.
-const EXTRA_JS = [['js/Chart.js', 'chart'], ['js/jquery.validate.min.js', 'jquery.validate'], ['js/biodata-builder.min.js', 'biodata-builder']];
-const EXTRA_CSS = [['css/biodata-builder.min.css', 'biodata-builder']];
+const EXTRA_JS = [['js/Chart.js', 'chart'], ['js/jquery.validate.min.js', 'jquery.validate']];
+const EXTRA_CSS = [];
 
 function buildJs(manifest) {
   const UglifyJS = tryRequire('uglify-js');
