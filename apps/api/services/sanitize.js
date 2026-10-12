@@ -107,6 +107,7 @@ function contentWords(page, fields = DEFAULT_CONTENT_FIELDS) {
   const words = new Set();
   for (const s of strings) {
     const text = sanitizeText(s) || '';
+    // eslint-disable-next-line no-misleading-character-class -- whole Devanagari block on purpose
     for (const w of text.toLowerCase().split(/[^a-z0-9\u0900-\u097f]+/iu)) {
       if (w && w.length > 1 && !/^\$\{/.test(w)) words.add(w);
     }
