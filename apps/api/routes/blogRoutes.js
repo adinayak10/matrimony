@@ -37,6 +37,6 @@ router.get('/:slug', blogController.getBlogBySlug);
 // @route   POST /api/blogs/:slug/like
 // @desc    Like a blog post
 // @access  Public
-router.post('/:slug/like', blogController.likeBlog);
+router.post('/:slug/like', require('../middleware/rateLimits').blogLikeLimiter, blogController.likeBlog);
 
 module.exports = router;

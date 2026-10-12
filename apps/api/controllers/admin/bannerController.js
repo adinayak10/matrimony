@@ -1,6 +1,17 @@
 // Admin Banner Management Controller
+const mongoose = require('mongoose');
 const Banner = require('../../models/Banner');
-const upload = require('../../middleware/upload');
+const { record: audit } = require('../../services/auditLog');
+
+const ALLOW = ['title', 'imageUrl', 'link', 'isActive', 'order', 'type'];
+function pick(body) {
+  const out = {};
+  for (const k of ALLOW) if (body && body[k] !== undefined) out[k] = body[k];
+  if (out.order !== undefined) out.order = Number(out.order) || 0;
+  if (out.isActive !== undefined) out.isActive = out.isActive === true || out.isActive === 'true';
+  for (const k of ['title', 'imageUrl', 'link', 'type']) if (typeof out[k] === 'string') out[k] = out[k].trim().slice(0, 500);
+  return out;
+}
 
 /**
  * Get all banners
@@ -59,6 +70,7 @@ exports.createBanner = async (req, res) => {
     });
 
     await banner.save();
+    audit(req, 'banner.create', { type: 'banner', id: banner._id }, { after: pick(req.body) });
 
     res.json({
       status: true,
@@ -77,7 +89,8 @@ exports.createBanner = async (req, res) => {
 exports.updateBanner = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Banner not found' });
+    const updates = pick(req.body);
 
     const banner = await Banner.findByIdAndUpdate(
       id,
@@ -88,6 +101,7 @@ exports.updateBanner = async (req, res) => {
     if (!banner) {
       return res.status(404).json({ status: false, message: 'Banner not found' });
     }
+    audit(req, 'banner.update', { type: 'banner', id }, { after: updates });
 
     res.json({
       status: true,
@@ -107,11 +121,13 @@ exports.deleteBanner = async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Banner not found' });
     const banner = await Banner.findByIdAndDelete(id);
 
     if (!banner) {
       return res.status(404).json({ status: false, message: 'Banner not found' });
     }
+    audit(req, 'banner.delete', { type: 'banner', id }, { before: banner.toObject() });
 
     res.json({
       status: true,
@@ -138,6 +154,7 @@ exports.toggleBannerStatus = async (req, res) => {
 
     banner.isActive = !banner.isActive;
     await banner.save();
+    audit(req, 'banner.toggle', { type: 'banner', id }, { after: { isActive: banner.isActive } });
 
     res.json({
       status: true,

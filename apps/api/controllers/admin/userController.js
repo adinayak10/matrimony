@@ -1,91 +1,92 @@
-// Admin User Management Controller
+'use strict';
+// Admin User Management Controller (C4.1 + A2.4 + A6.12 + C4.12)
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const User = require('../../models/User');
 const UserPhoto = require('../../models/UserPhoto');
 const FriendshipRequest = require('../../models/FriendShipRequest');
 const Message = require('../../models/Message');
 const Notification = require('../../models/Notification');
-const bcrypt = require('bcryptjs');
+const ActivityLog = require('../../models/ActivityLog');
+const Block = require('../../models/Block');
 const admin = require('../../firebase'); // Firebase Admin SDK
 const sendNotification = require('../../util/sendNotification');
 const { sendProfileVerifiedEmail } = require('../../services/emailService');
+const { cascadeDeleteUser } = require('../../services/userCascade');
+const { record: audit } = require('../../services/auditLog');
+const escapeRegex = require('../../utils/escapeRegex');
+const { GENDER_ENUM, MARITAL_STATUS_ENUM } = require('../../enum/enum');
+
+// Never returned to the admin UI (user-detail never renders them)
+const ADMIN_USER_SELECT = '-password -device_token -firebase_uid -coordinates -block_user_ids -blocked -tokenVersion -personalityMap';
+const SORT_WHITELIST = new Set(['-createdAt', 'createdAt', '-lastSeen', 'lastSeen', 'full_name', '-full_name', '-updatedAt']);
+const isId = (v) => mongoose.isValidObjectId(v);
 
 /**
- * Get all users with filtering and pagination
+ * GET /api/admin/users?page&limit&search&gender&platform&verified&blocked&sort
  */
 exports.getAllUsers = async (req, res) => {
   try {
-    const { 
-      page = 1, 
-      limit = 20, 
-      search = '',
-      gender,
-      status,
-      verified,
-      registration_platform,
-      sort = '-createdAt'
-    } = req.query;
+    const { search = '', gender, platform, verified, blocked, status, registration_platform } = req.query;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const sort = SORT_WHITELIST.has(String(req.query.sort)) ? String(req.query.sort) : '-createdAt';
 
-    // Build query
     const query = {};
-    
-    if (search) {
+    const q = escapeRegex(search, 40);
+    if (q) {
       query.$or = [
-        { full_name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } }
+        { full_name: { $regex: q, $options: 'i' } },
+        { email: { $regex: q, $options: 'i' } },
+        { phone: { $regex: q, $options: 'i' } },
       ];
     }
-    
-    if (gender) query.gender = gender;
-    if (registration_platform) query.last_login_platform = registration_platform;
-    if (status === 'blocked') query.is_block = 1;
-    if (status === 'active') query.is_block = 0;
-    if (verified === 'true') query.is_verified = 1;
-    if (verified === 'false') query.is_verified = 0;
+    if (gender && GENDER_ENUM.includes(gender)) query.gender = gender;
+    const plat = platform || registration_platform;
+    if (['mobile', 'web'].includes(plat)) query.last_login_platform = plat;
+    if (verified === '1' || verified === 'true') query.is_verified = 1;
+    if (verified === '0' || verified === 'false') query.is_verified = 0;
+    if (blocked === '1' || status === 'blocked') query.is_block = 1;
+    if (blocked === '0' || status === 'active') query.is_block = 0;
 
-    // Get total count
-    const total = await User.countDocuments(query);
+    const [total, users] = await Promise.all([
+      User.countDocuments(query),
+      User.find(query)
+        .select(ADMIN_USER_SELECT)
+        .populate('qualification profession caste gotra incomeRange interests membershipPlan')
+        .populate('location.country location.state location.city')
+        .sort(sort)
+        .limit(limit)
+        .skip((page - 1) * limit)
+        .lean(),
+    ]);
 
-    // Get users with pagination
-    const users = await User.find(query)
-      .select('-password -device_token')
-      .populate('qualification profession caste gotra incomeRange interests membershipPlan')
-      .populate('location.country location.state location.city')
-      .sort(sort)
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit))
-      .lean();
-
-    // Add platform label for better readability
-    const usersWithPlatform = users.map(user => ({
+    const usersWithPlatform = users.map((user) => ({
       ...user,
-      platform_label: user.last_login_platform === 'mobile' ? '📱 Mobile' : '🌐 Web'
+      platform_label: user.last_login_platform === 'mobile' ? 'Mobile' : 'Web',
     }));
 
     res.json({
       status: true,
       data: usersWithPlatform,
-      pagination: {
-        total,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        pages: Math.ceil(total / parseInt(limit))
-      }
+      pagination: { total, page, limit, pages: Math.ceil(total / limit) },
     });
   } catch (error) {
-    console.error('Get all users error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Get all users error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Get single user by ID with full details
+ * GET /api/admin/users/:id — full details (photos, stats), never the hash
  */
 exports.getUserById = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
 
     const user = await User.findById(id)
+      .select(ADMIN_USER_SELECT)
       .populate('qualification profession caste gotra incomeRange interests membershipPlan')
       .populate('location.country location.state location.city')
       .populate('family.basedOut.country family.basedOut.state family.basedOut.city')
@@ -96,431 +97,304 @@ exports.getUserById = async (req, res) => {
       return res.status(404).json({ status: false, message: 'User not found' });
     }
 
-    // Get user photos
-    const photos = await UserPhoto.find({ user: id });
-
-    // Get user stats
-    const [sentRequests, receivedRequests, sentMessages, receivedMessages] = await Promise.all([
-      FriendshipRequest.countDocuments({ from: id }),
-      FriendshipRequest.countDocuments({ to: id }),
+    const [photos, sentRequests, receivedRequests, sentMessages, receivedMessages] = await Promise.all([
+      UserPhoto.find({ userId: id }).sort({ order: 1, uploadedAt: -1 }).lean(),
+      FriendshipRequest.countDocuments({ requester: id }),
+      FriendshipRequest.countDocuments({ recipient: id }),
       Message.countDocuments({ sender: id }),
-      Message.countDocuments({ receiver: id })
+      Message.countDocuments({ receiver: id }),
     ]);
 
     res.json({
       status: true,
       data: {
         ...user,
-        platform_label: user.registration_platform === 'mobile' ? '📱 Mobile' : '🌐 Web',
+        platform_label: user.last_login_platform === 'mobile' ? 'Mobile' : 'Web',
         photos,
-        stats: {
-          sentRequests,
-          receivedRequests,
-          sentMessages,
-          receivedMessages
-        }
-      }
+        stats: { sentRequests, receivedRequests, sentMessages, receivedMessages },
+      },
     });
   } catch (error) {
-    console.error('Get user by ID error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Get user by ID error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Update user details
+ * PUT /api/admin/users/:id — allowlisted profile fields only (C4.1).
+ * is_verified / is_block / membershipPlan / role / password / firebase_uid /
+ * device_token have their own endpoints or are never settable here.
  */
+const UPDATE_ALLOW = ['full_name', 'email', 'phone', 'gender', 'dob', 'bio', 'maritalStatus', 'height'];
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
+    const body = req.body || {};
 
-    console.log('🔄 Update User Request:', { id, updates });
-
-    // Don't allow password update through this endpoint
-    delete updates.password;
-    delete updates.role; // Protect role changes
-
-    // ✅ Fix: Remove empty phone/email to avoid duplicate key error on sparse unique index
-    // Setting to null causes duplicate key error when multiple users have null phone/email
-    if (updates.phone === '' || updates.phone === null || updates.phone === undefined) {
-      delete updates.phone;
+    const $set = {};
+    const rejected = [];
+    for (const key of Object.keys(body)) {
+      if (!UPDATE_ALLOW.includes(key)) {
+        rejected.push(key);
+        continue;
+      }
+      const v = body[key];
+      if (v === undefined) continue;
+      if (key === 'email' || key === 'phone') {
+        // empty values are dropped (sparse unique index), never set to null
+        if (v === null || String(v).trim() === '') continue;
+        $set[key] = key === 'email' ? String(v).trim().toLowerCase().slice(0, 254) : String(v).replace(/\D/g, '').slice(0, 15);
+      } else if (key === 'gender') {
+        if (!GENDER_ENUM.includes(v)) return res.status(400).json({ status: false, message: 'Invalid gender' });
+        $set.gender = v;
+      } else if (key === 'maritalStatus') {
+        if (v !== null && v !== '' && !MARITAL_STATUS_ENUM.includes(v)) return res.status(400).json({ status: false, message: 'Invalid maritalStatus' });
+        $set.maritalStatus = v || null;
+      } else if (key === 'dob') {
+        const d = v ? new Date(v) : null;
+        if (d && Number.isNaN(d.getTime())) return res.status(400).json({ status: false, message: 'Invalid dob' });
+        $set.dob = d;
+      } else if (key === 'height') {
+        if (v === null || v === '') { $set.height = null; continue; }
+        const n = Number(v);
+        if (!Number.isFinite(n)) return res.status(400).json({ status: false, message: 'Invalid height' });
+        $set.height = n;
+      } else {
+        $set[key] = typeof v === 'string' ? v.replace(/[<>]/g, '').trim().slice(0, key === 'bio' ? 2000 : 100) : v;
+      }
     }
-    if (updates.email === '' || updates.email === null || updates.email === undefined) {
-      delete updates.email;
+    const forbidden = rejected.filter((k) => ['is_verified', 'is_block', 'membershipPlan', 'role', 'password', 'firebase_uid', 'device_token', 'tokenVersion'].includes(k));
+    if (forbidden.length) {
+      return res.status(400).json({ status: false, message: `These fields cannot be changed here: ${forbidden.join(', ')}` });
+    }
+    if (!Object.keys($set).length) {
+      return res.status(400).json({ status: false, message: 'No updatable fields in request' });
     }
 
-    console.log('🔧 Cleaned Update Data:', { id, updates });
+    const before = await User.findById(id).select(UPDATE_ALLOW.join(' ')).lean();
+    if (!before) return res.status(404).json({ status: false, message: 'User not found' });
 
-    const user = await User.findByIdAndUpdate(
-      id,
-      { $set: updates },
-      { new: true, runValidators: true }
-    )
-    .select('-password')
-    .populate('qualification profession caste gotra incomeRange interests membershipPlan')
-    .populate('location.country location.state location.city')
-    .populate('family.basedOut.country family.basedOut.state family.basedOut.city')
-    .populate('preferences.gotra preferences.caste preferences.qualification preferences.profession');
-
-    console.log('✅ Updated User:', user ? { id: user._id, gender: user.gender, full_name: user.full_name } : 'NOT FOUND');
-
-    if (!user) {
-      return res.status(404).json({ status: false, message: 'User not found' });
+    let user;
+    try {
+      user = await User.findByIdAndUpdate(id, { $set }, { new: true, runValidators: true })
+        .select(ADMIN_USER_SELECT)
+        .populate('qualification profession caste gotra incomeRange interests membershipPlan')
+        .populate('location.country location.state location.city')
+        .populate('family.basedOut.country family.basedOut.state family.basedOut.city')
+        .populate('preferences.gotra preferences.caste preferences.qualification preferences.profession');
+    } catch (err) {
+      if (err && err.code === 11000) {
+        return res.status(409).json({ status: false, message: 'Email or phone already belongs to another account' });
+      }
+      if (err && err.name === 'ValidationError') {
+        return res.status(400).json({ status: false, message: err.message });
+      }
+      throw err;
     }
+    if (!user) return res.status(404).json({ status: false, message: 'User not found' });
 
-    res.json({
-      status: true,
-      message: 'User updated successfully',
-      data: user
-    });
+    audit(req, 'user.update', { type: 'user', id }, { before, after: $set });
+    res.json({ status: true, message: 'User updated successfully', data: user });
   } catch (error) {
-    console.error('Update user error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Update user error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Block/Unblock user
+ * POST /api/admin/users/:id/block {block, reason} — A2.4: bumps tokenVersion
+ * so the ban/unban is immediate (next REST call -> 401 ACCOUNT_BLOCKED).
  */
 exports.toggleBlockUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { block, reason } = req.body;
+    const { block, reason } = req.body || {};
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
+    if (String(id) === req.userId) return res.status(400).json({ status: false, message: 'You cannot block your own account' });
 
-    const user = await User.findById(id);
-    
-    if (!user) {
-      return res.status(404).json({ status: false, message: 'User not found' });
-    }
+    const before = await User.findById(id).select('is_block block_reason').lean();
+    if (!before) return res.status(404).json({ status: false, message: 'User not found' });
 
-    user.is_block = block ? 1 : 0;
-    if (block && reason) {
-      user.block_reason = reason;
-    }
-    
-    await user.save();
+    const $set = { is_block: block ? 1 : 0 };
+    if (block && typeof reason === 'string' && reason.trim()) $set.block_reason = reason.trim().slice(0, 500);
+    if (!block) $set.block_reason = null;
 
+    const user = await User.findByIdAndUpdate(id, { $set, $inc: { tokenVersion: 1 } }, { new: true }).select('is_block');
+
+    audit(req, block ? 'user.block' : 'user.unblock', { type: 'user', id }, { before, after: $set });
     res.json({
       status: true,
       message: block ? 'User blocked successfully' : 'User unblocked successfully',
-      data: { is_block: user.is_block }
+      data: { is_block: user.is_block },
     });
   } catch (error) {
-    console.error('Toggle block user error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Toggle block user error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Verify/Unverify user
+ * POST /api/admin/users/:id/verify {verify}
  */
 exports.toggleVerifyUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { verify } = req.body;
+    const { verify } = req.body || {};
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
 
-    console.log('🔔 [VERIFY USER] Request received:', { 
-      userId: id, 
-      action: verify ? 'VERIFY' : 'UNVERIFY' 
-    });
+    const user = await User.findById(id).select('_id full_name email device_token is_verified');
+    if (!user) return res.status(404).json({ status: false, message: 'User not found' });
 
-    const user = await User.findById(id);
-    
-    if (!user) {
-      console.log('❌ [VERIFY USER] User not found:', id);
-      return res.status(404).json({ status: false, message: 'User not found' });
-    }
-
-    console.log('👤 [VERIFY USER] User details:', {
-      id: user._id,
-      name: user.full_name,
-      email: user.email,
-      phone: user.phone,
-      currentStatus: user.is_verified ? 'VERIFIED' : 'UNVERIFIED',
-      hasDeviceToken: !!user.device_token,
-      deviceToken: user.device_token ? `${user.device_token.substring(0, 20)}...` : 'NONE'
-    });
-
+    const before = { is_verified: user.is_verified };
     user.is_verified = verify ? 1 : 0;
     await user.save();
-    
-    console.log('✅ [VERIFY USER] User status updated to:', user.is_verified ? 'VERIFIED' : 'UNVERIFIED');
 
-    // ✅ Send push notification when user is verified
     if (verify) {
-      console.log('📲 [NOTIFICATION] Attempting to send verification notification...');
-      
+      const body = 'Congratulations! Your profile has been verified by our team.';
       if (user.device_token) {
-        const title = '✅ Profile Verified';
-        const body = 'Congratulations! Your profile has been verified by our team.';
-        const notificationData = {
-          type: 'profile_verified',
-          userId: user._id.toString()
-        };
-        
-        console.log('📤 [NOTIFICATION] Notification payload:', {
-          to: user.full_name,
-          deviceToken: `${user.device_token.substring(0, 20)}...`,
-          title,
-          body,
-          data: notificationData
-        });
-        
         try {
-          console.log('⏳ [NOTIFICATION] Sending push notification via Firebase...');
-          await sendNotification(user.device_token, title, body, notificationData);
-          console.log('✅ [NOTIFICATION] Push notification sent successfully!');
-          
-          // Save notification in database
-          console.log('💾 [NOTIFICATION] Saving notification to database...');
-          const savedNotification = await Notification.create({
-            type: 'profile_updated',
-            toUser: user._id,
-            content: body,
-            data: {
-              verified: true,
-              timestamp: new Date()
-            }
-          });
-          console.log('✅ [NOTIFICATION] Database notification saved:', savedNotification._id);
-          
-          console.log(`🎉 [VERIFY USER] Verification complete with notification for ${user.full_name}`);
+          await sendNotification(user.device_token, 'Profile Verified', body, { type: 'profile_verified', userId: user._id.toString() });
+          await Notification.create({ type: 'profile_updated', toUser: user._id, content: body, data: { verified: true, timestamp: new Date() } });
         } catch (notifError) {
-          console.error('❌ [NOTIFICATION] Error sending verification notification:', {
-            error: notifError.message,
-            code: notifError.code,
-            stack: notifError.stack,
-            userId: user._id,
-            userName: user.full_name
-          });
-          // Don't fail the request if notification fails
+          console.error('[verify] push failed:', notifError.message);
         }
-      } else {
-        console.log('⚠️ [NOTIFICATION] Skipped - User has no device token:', {
-          userId: user._id,
-          userName: user.full_name,
-          email: user.email
-        });
       }
-
-      // ✅ Send verification email (runs regardless of device token)
       if (user.email) {
-        try {
-          await sendProfileVerifiedEmail({ full_name: user.full_name, email: user.email });
-          console.log(`📧 [EMAIL] Verification email sent to ${user.email}`);
-        } catch (emailErr) {
-          console.error('❌ [EMAIL] Failed to send verification email:', emailErr.message);
-        }
+        sendProfileVerifiedEmail({ full_name: user.full_name, email: user.email }).catch((e) =>
+          console.error('[verify] email failed:', e.message)
+        );
       }
-    } else {
-      console.log('ℹ️ [VERIFY USER] User unverified - no notification sent');
     }
 
+    audit(req, verify ? 'user.verify' : 'user.unverify', { type: 'user', id }, { before, after: { is_verified: user.is_verified } });
     res.json({
       status: true,
       message: verify ? 'User verified successfully' : 'User unverified',
-      data: { is_verified: user.is_verified }
+      data: { is_verified: user.is_verified },
     });
   } catch (error) {
-    console.error('❌ [VERIFY USER] Error:', {
-      message: error.message,
-      stack: error.stack,
-      userId: req.params.id
-    });
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Verify user error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Delete user permanently
+ * DELETE /api/admin/users/:id — full cascade through services/userCascade
+ * (A6.12), plus the Firebase Auth account.
  */
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
+    if (String(id) === req.userId) return res.status(400).json({ status: false, message: 'You cannot delete your own account' });
 
-    console.log('🗑️ Deleting user:', id);
+    const user = await User.findById(id).select('_id email full_name firebase_uid role').lean();
+    if (!user) return res.status(404).json({ status: false, message: 'User not found' });
+    if (user.role === 'admin') return res.status(400).json({ status: false, message: 'Admin accounts cannot be deleted here' });
 
-    const user = await User.findById(id);
-    
-    if (!user) {
-      return res.status(404).json({ status: false, message: 'User not found' });
-    }
+    const result = await cascadeDeleteUser(id);
 
-    // Import all models that reference User
-    const mongoose = require('mongoose');
-    const Block = require('../../models/Block');
-    const Follow = require('../../models/Follow');
-    const ShortList = require('../../models/ShortList');
-    const ActivityLog = require('../../models/ActivityLog');
-    const Notification = require('../../models/Notification');
-    const SavedNotification = require('../../models/SavedNotification');
-    const UserReport = require('../../models/UserReport');
-    const ReportStatus = require('../../models/ReportStatus');
-    const ProfilePicRequest = require('../../models/ProfilePicRequest');
-    const RecentVisitor = require('../../models/RecentVisitor');
-    const SecondChanceQueue = require('../../models/SecondChanceQueue');
-    const ChatIntentLog = require('../../models/ChatIntentLog');
-    const RoomUser = require('../../models/RoomUser');
-    const ChatRoom = require('../../models/ChatRoom');
-    const RemainingProfileImageView = require('../../models/RemainingProfileImageView');
-    
-
-    console.log('🧹 Cleaning up related data for user:', user.full_name);
-
-    // Delete all related data in parallel with error handling
-    const deletions = [
-      { name: 'UserPhoto', fn: () => UserPhoto.deleteMany({ userId: id }) },
-      { name: 'FriendshipRequest', fn: () => FriendshipRequest.deleteMany({ $or: [{ requester: id }, { recipient: id }] }) },
-      { name: 'Message', fn: () => Message.deleteMany({ $or: [{ sender: id }, { receiver: id }] }) },
-      { name: 'Block', fn: () => Block.deleteMany({ $or: [{ blocker: id }, { blocked: id }] }) },
-      { name: 'Follow', fn: () => Follow.deleteMany({ $or: [{ my_user_id: id }, { user_id: id }] }) },
-      { name: 'ShortList', fn: () => ShortList.deleteMany({ $or: [{ my_user_id: id }, { user_id: id }] }) },
-      { name: 'ActivityLog', fn: () => ActivityLog.deleteMany({ userId: id }) },
-      { name: 'Notification', fn: () => Notification.deleteMany({ $or: [{ sender_id: id }, { receiver_id: id }] }) },
-      { name: 'SavedNotification', fn: () => SavedNotification.deleteMany({ $or: [{ my_user_id: id }, { user_id: id }] }) },
-      { name: 'UserReport', fn: () => UserReport.deleteMany({ $or: [{ reportedBy: id }, { reportedUser: id }] }) },
-      { name: 'ReportStatus', fn: () => ReportStatus.deleteMany({ $or: [{ reportedBy: id }, { reportedUser: id }] }) },
-      { name: 'ProfilePicRequest', fn: () => ProfilePicRequest.deleteMany({ $or: [{ requester: id }, { requestedUser: id }] }) },
-      { name: 'RecentVisitor', fn: () => RecentVisitor.deleteMany({ $or: [{ visitor: id }, { visited: id }] }) },
-      { name: 'SecondChanceQueue', fn: () => SecondChanceQueue.deleteMany({ $or: [{ userId: id }, { profileId: id }] }) },
- 
-      { name: 'ChatIntentLog', fn: () => ChatIntentLog.deleteMany({ $or: [{ userId: id }, { targetUser: id }] }) },
-      { name: 'RoomUser', fn: () => RoomUser.deleteMany({ $or: [{ user_id: id }, { invited_by: id }] }) },
-      { name: 'ChatRoom', fn: () => ChatRoom.deleteMany({ participants: id }) },
-      { name: 'RemainingProfileImageView', fn: () => RemainingProfileImageView.deleteMany({ userId: id }) }
-    ];
-
-    const deleteResults = await Promise.allSettled(deletions.map(d => d.fn()));
-
-    // Log results
-    let successCount = 0;
-    let failCount = 0;
-    deleteResults.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        failCount++;
-        console.error(`❌ Failed to delete ${deletions[index].name}:`, result.reason.message);
-      } else {
-        successCount++;
-        console.log(`✅ Deleted ${deletions[index].name}: ${result.value.deletedCount} records`);
-      }
-    });
-
-    console.log(`📊 Deletion summary: ${successCount} successful, ${failCount} failed`);
-
-    // Delete user from Firebase Authentication if they have a firebase_uid
-    if (user.firebase_uid) {
+    if (user.firebase_uid && process.env.NODE_ENV !== 'test') {
       try {
-        console.log('🔥 Attempting to delete user from Firebase Auth:', user.firebase_uid);
         await admin.auth().deleteUser(user.firebase_uid);
-        console.log('✅ User deleted from Firebase Authentication');
       } catch (firebaseError) {
-        // If user doesn't exist in Firebase, log but continue
-        if (firebaseError.code === 'auth/user-not-found') {
-          console.log('ℹ️ User not found in Firebase (already deleted or never existed)');
-        } else {
-          console.error('⚠️ Firebase deletion failed:', firebaseError.message);
+        if (firebaseError.code !== 'auth/user-not-found') {
+          console.error('[deleteUser] Firebase deletion failed:', firebaseError.message);
         }
-        // Don't fail the entire operation if Firebase deletion fails
       }
-    } else {
-      console.log('ℹ️ User has no firebase_uid, skipping Firebase deletion');
     }
 
-    // Finally delete the user from MongoDB
-    await User.findByIdAndDelete(id);
-
-    console.log('✅ User and all related data deleted successfully');
-
-    res.json({
-      status: true,
-      message: 'User and all related data deleted successfully'
-    });
+    audit(req, 'user.delete', { type: 'user', id }, { before: { email: user.email, full_name: user.full_name }, after: { counts: result.counts, files: result.files } });
+    res.json({ status: true, message: 'User and all related data deleted successfully', data: { counts: result.counts, files: result.files } });
   } catch (error) {
-    console.error('Delete user error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Delete user error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Reset user password
+ * POST /api/admin/users/:id/reset-password {newPassword} — revokes sessions (A2.4)
  */
 exports.resetUserPassword = async (req, res) => {
   try {
     const { id } = req.params;
-    const { newPassword } = req.body;
+    const { newPassword } = req.body || {};
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
 
-    if (!newPassword || newPassword.length < 6) {
-      return res.status(400).json({ 
-        status: false, 
-        message: 'Password must be at least 6 characters long' 
-      });
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return res.status(400).json({ status: false, message: 'Password must be at least 8 characters long' });
     }
 
-    const user = await User.findById(id);
-    
-    if (!user) {
-      return res.status(404).json({ status: false, message: 'User not found' });
-    }
-
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    user.password = hashedPassword;
-    await user.save();
+    const user = await User.findByIdAndUpdate(id, { $set: { password: hashedPassword }, $inc: { tokenVersion: 1 } }, { new: true }).select('_id');
+    if (!user) return res.status(404).json({ status: false, message: 'User not found' });
 
-    res.json({
-      status: true,
-      message: 'Password reset successfully'
-    });
+    audit(req, 'user.resetPassword', { type: 'user', id });
+    res.json({ status: true, message: 'Password reset successfully' });
   } catch (error) {
-    console.error('Reset password error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Reset password error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Get user activity logs
+ * GET /api/admin/users/:id/activity
  */
 exports.getUserActivity = async (req, res) => {
   try {
     const { id } = req.params;
-    const ActivityLog = require('../../models/ActivityLog');
-
-    const activities = await ActivityLog.find({ user: id })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
-
-    res.json({
-      status: true,
-      data: activities
-    });
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
+    const activities = await ActivityLog.find({ userId: id }).sort({ timestamp: -1 }).limit(50).lean();
+    res.json({ status: true, data: activities });
   } catch (error) {
-    console.error('Get user activity error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('Get user activity error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Read-only: list of users this user has blocked (admin visibility only —
- * blocking itself is user-initiated via the app, admins can't create blocks).
+ * GET /api/admin/users/:id/blocks — read-only list of users this user blocked
  */
 exports.getUserBlocks = async (req, res) => {
   try {
     const { id } = req.params;
-    const Block = require('../../models/Block');
-
+    if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
     const blocks = await Block.find({ blocker: id })
       .populate('blocked', 'full_name email profile is_block')
       .sort('-createdAt')
       .lean();
+    res.json({ status: true, data: blocks });
+  } catch (error) {
+    console.error('Get user blocks error:', error.message);
+    res.status(500).json({ status: false, message: 'Server error' });
+  }
+};
 
-    res.json({
+/**
+ * POST / DELETE /api/admin/users/:id/highlight (A4.2)
+ * The only field this can touch is is_highlighted.
+ */
+exports.setHighlight = (value) => async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isId(id)) {
+      return res.status(400).json({ status: false, message: 'Invalid user id' });
+    }
+    const user = await User.findByIdAndUpdate(
+      id,
+      { $set: { is_highlighted: !!value } },
+      { new: true, runValidators: false }
+    ).select('_id full_name is_highlighted');
+    if (!user) return res.status(404).json({ status: false, message: 'User not found' });
+    audit(req, value ? 'user.highlight' : 'user.unhighlight', { type: 'user', id });
+    return res.json({
       status: true,
-      data: blocks
+      message: value ? 'User highlighted' : 'User highlight removed',
+      data: { _id: user._id, is_highlighted: user.is_highlighted },
     });
   } catch (error) {
-    console.error('Get user blocks error:', error);
-    res.status(500).json({ status: false, message: 'Server error', error: error.message });
+    console.error('setHighlight error:', error.message);
+    return res.status(500).json({ status: false, message: 'Server error' });
   }
 };

@@ -1,22 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'My Shortlist - Banjara Match' %></title>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Your shortlisted profiles on Banjara Match">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-
-    <style>
+<%- include('../partials/head') %>
+<style>
     .shortlist-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -134,20 +120,17 @@
 
     <%- include('../partials/footer') %>
 
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
 
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
         const MY_USER_ID = '<%= user._id %>';
-        const API_BASE = 'https://api.banjaramatch.com';
+        const API_BASE = ''; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
 
         async function removeFromShortlist(userId, btn) {
             btn.disabled = true;
             try {
                 const res = await fetch(`${API_BASE}/api/toggleShortlist`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: userId })

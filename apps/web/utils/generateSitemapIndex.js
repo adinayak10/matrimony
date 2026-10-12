@@ -1,46 +1,33 @@
-// utils/generateSitemapIndex.js
+// utils/generateSitemapIndex.js — sitemap.xml index over the three child files (D3.31).
 const fs = require('fs');
-const path = require('path');
-
-const domain = 'https://www.banjaramatch.com';
-const publicDir = path.join(__dirname, '..', 'public');
+const { DOMAIN, sitemapPath, writeSitemap } = require('./sitemapFiles');
 
 const getFileLastmod = (fileName) => {
   try {
-    return fs.statSync(path.join(publicDir, fileName)).mtime.toISOString().split('T')[0];
+    return fs.statSync(sitemapPath(fileName)).mtime.toISOString().split('T')[0];
   } catch (error) {
     return new Date().toISOString().split('T')[0];
   }
 };
 
 const generateSitemapIndex = () => {
-  try {
-    console.log('🔄 Generating sitemap index...');
-
-    const sitemapFiles = [
-      'sitemap-main.xml',
-      'sitemap-blogs.xml',
-      'sitemap-regional.xml'
-    ];
-    
-    // Create sitemap index that references all sitemap files
-    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+  const sitemapFiles = ['sitemap-main.xml', 'sitemap-blogs.xml', 'sitemap-regional.xml']
+    .filter((f) => fs.existsSync(sitemapPath(f)));
+  if (!sitemapFiles.length) {
+    console.warn('⚠️ No child sitemaps exist yet; index not written');
+    return false;
+  }
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${sitemapFiles.map((fileName) => `  <sitemap>
-    <loc>${domain}/${fileName}</loc>
+    <loc>${DOMAIN}/${fileName}</loc>
     <lastmod>${getFileLastmod(fileName)}</lastmod>
   </sitemap>`).join('\n')}
-</sitemapindex>`;
-
-    const filePath = path.join(__dirname, '..', 'public', 'sitemap.xml');
-    fs.writeFileSync(filePath, xml, 'utf8');
-    
-    console.log('✅ Sitemap index generated');
-    console.log(`📍 Location: ${filePath}`);
-  } catch (error) {
-    console.error('❌ Error generating sitemap index:', error.message);
-    throw error;
-  }
+</sitemapindex>
+`;
+  writeSitemap('sitemap.xml', xml);
+  console.log('✅ Sitemap index generated');
+  return true;
 };
 
 module.exports = generateSitemapIndex;

@@ -79,13 +79,13 @@ function defineSuite() {
       .request()
       .post('/api/deleteUserPhoto')
       .set(factory.bearer(tokenA))
-      .send({ user_id: String(B._id), photoId: String(photo._id), photo_id: String(photo._id) });
+      .send({ user_id: String(B._id), image_id: String(photo._id), photoId: String(photo._id), photo_id: String(photo._id) });
     assert.equal(del.status, 404);
     const main = await harness
       .request()
       .post('/api/setMainProfileImage')
       .set(factory.bearer(tokenA))
-      .send({ user_id: String(B._id), photoId: String(photo._id), photo_id: String(photo._id) });
+      .send({ user_id: String(B._id), image_id: String(photo._id), photoId: String(photo._id), photo_id: String(photo._id) });
     assert.equal(main.status, 404);
     const UserPhoto = require('../models/UserPhoto');
     assert.ok(await UserPhoto.exists({ _id: photo._id }), "B's photo still exists");

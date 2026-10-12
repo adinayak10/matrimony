@@ -50,8 +50,12 @@ async function connectDB() {
     await mongoClient.connect();
     console.log('Connected to MongoDB with MongoClient');
 
-    // Also connect Mongoose
-    await mongoose.connect(uri, { dbName });
+    // Also connect Mongoose. Indexes declared on the schemas are built at boot
+    // (A6.11) unless MONGOOSE_AUTO_INDEX=false — used for bridge/boot checks
+    // against the live DB before the Phase 3f cleanup tools have run.
+    const autoIndex = String(process.env.MONGOOSE_AUTO_INDEX || 'true').toLowerCase() !== 'false';
+    if (!autoIndex) console.warn('[db] autoIndex disabled (MONGOOSE_AUTO_INDEX=false): schema indexes are NOT built on this boot');
+    await mongoose.connect(uri, { dbName, autoIndex });
     console.log('Connected to MongoDB with Mongoose');
 
     return mongoClient; // ✅ IMPORTANT: return full client, not db object

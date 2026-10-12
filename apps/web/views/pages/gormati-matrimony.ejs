@@ -1,98 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-  <title>Gormati Matrimony | Find Gormati Brides &amp; Grooms — BanjaraMatch</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-  <meta name="theme-color" content="#f6af04" />
-  <meta name="robots" content="index, follow" />
-  <meta name="description" content="India's first free Gormati matrimony platform. Find verified Gormati brides and grooms from Maharashtra, Karnataka, and across India — 100% free.">
-  <meta name="keywords" content="Gormati matrimony, Gormati brides, Gormati grooms, Gormati marriage, Banjara Gormati matrimony, Gormati shaadi, free Gormati matrimony, Lambani matrimony, Gormati rishta, Gormati Banjara marriage Maharashtra">
-  <meta name="author" content="BanjaraMatch Team" />
-  <meta name="geo.region" content="IN" />
-  <meta name="geo.placename" content="India" />
-  <link rel="canonical" href="https://www.banjaramatch.com/gormati-matrimony">
-
-  <!-- Open Graph -->
-  <meta property="og:title" content="Gormati Matrimony — Find Gormati Brides & Grooms | BanjaraMatch">
-  <meta property="og:description" content="India's first free Gormati matrimony platform. Find Gormati/Lambani/Banjara brides and grooms from Maharashtra, Karnataka, and across India.">
-  <meta property="og:url" content="https://www.banjaramatch.com/gormati-matrimony">
-  <meta property="og:type" content="website">
-  <meta property="og:site_name" content="BanjaraMatch - Banjara Matrimony">
-  <meta property="og:locale" content="en_IN">
-  <meta property="og:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg">
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Gormati Matrimony — Free Gormati Matrimony | BanjaraMatch">
-  <meta name="twitter:description" content="Free Gormati matrimony. Verified profiles from Maharashtra, Karnataka, and all India.">
-  <meta name="twitter:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg">
-
-  <!-- Schema -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebPage",
-    "name": "Gormati Matrimony — Find Gormati Brides & Grooms",
-    "description": "India's first free Gormati matrimony platform. Find verified Gormati/Lambani/Banjara brides and grooms from Maharashtra, Karnataka, and across India.",
-    "url": "https://www.banjaramatch.com/gormati-matrimony",
-    "inLanguage": "en-IN",
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "BanjaraMatch",
-      "url": "https://www.banjaramatch.com"
-    },
-    "breadcrumb": {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.banjaramatch.com/"},
-        {"@type": "ListItem", "position": 2, "name": "Gormati Matrimony", "item": "https://www.banjaramatch.com/gormati-matrimony"}
-      ]
-    }
-  }
-  </script>
-
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is Gormati matrimony?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Gormati matrimony refers to the matchmaking and marriage process within the Gormati community — the name used for the Banjara/Lambani community primarily in Maharashtra and Karnataka. Gormati people are part of the larger Banjara tribal community spread across India. BanjaraMatch is India's first dedicated free matrimony platform for the Gormati/Banjara/Lambani community."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is BanjaraMatch free for Gormati matrimony?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, completely free. BanjaraMatch has no registration fee, no messaging charges, and no subscription plans. Gormati brides and grooms can register, browse profiles, and connect with matches 100% free."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is the difference between Gormati, Banjara, and Lambani?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Gormati, Banjara, and Lambani are regional names for the same nomadic tribal community across India. Gormati is the name used mainly in Maharashtra and parts of Karnataka. Lambani is used in most of Karnataka. Banjara is used in Rajasthan, UP, and North India. Lambadi/Lambada/Sugali are used in Telangana and Andhra Pradesh. BanjaraMatch serves all these communities together."
-        }
-      }
-    ]
-  }
-  </script>
-
-  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon" />
-  <%- include('../partials/analytics') %>
-  <link rel="stylesheet" href="/css/bootstrap.css">
-  <link rel="stylesheet" href="/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/css/animate.min.css">
-  <link rel="stylesheet" href="/css/style.min.css">
-
-  <style>
+<%- include('../partials/head') %>
+<style>
     .gm-hero { background: linear-gradient(135deg, #0e2c1a 0%, #0c5a2d 50%, #138b3f 100%); padding: 70px 0 60px; position: relative; overflow: hidden; }
     .gm-hero::before { content:''; position:absolute; inset:0; background:url('/images/ban-bg.jpg') center/cover no-repeat; opacity:.1; }
     .gm-hero .container { position:relative; z-index:2; }
@@ -158,6 +68,7 @@
 
 <body>
   <%- include('../partials/header') %>
+<%- include('../partials/breadcrumb') %>
 
   <section style="background:#f4f8f5; padding:12px 0;">
     <div class="container">
@@ -333,41 +244,11 @@
     </div>
   </section>
 
-  <% if (featuredBlogs && featuredBlogs.length > 0) { %>
-  <section class="gm-section">
-    <div class="container">
-      <div class="text-center mb-4">
-        <div class="gm-eyebrow">Articles</div>
-        <h2 class="gm-heading" style="text-align:center;">Banjara &amp; Gormati Community Blog</h2>
-      </div>
-      <div class="row">
-        <% featuredBlogs.forEach(blog => { %>
-        <div class="col-md-4 mb-4">
-          <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.08);height:100%;">
-            <% if (blog.image) { %><img src="<%= blog.image %>" alt="<%= blog.title %>" style="width:100%;height:180px;object-fit:cover;" loading="lazy"><% } %>
-            <div style="padding:20px;">
-              <span style="background:#edf8f0;color:#2e8b57;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;"><%= blog.category %></span>
-              <h4 style="font-size:16px;font-weight:700;margin:12px 0 8px;color:#0c3a1a;line-height:1.4;"><%= blog.title %></h4>
-              <p style="font-size:13px;color:#777;line-height:1.6;margin-bottom:14px;"><%= (blog.excerpt || '').substring(0,100) %>...</p>
-              <a href="/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>" style="color:#2e8b57;font-weight:600;font-size:13px;text-decoration:none;">Read More →</a>
-            </div>
-          </div>
-        </div>
-        <% }); %>
-      </div>
-      <div class="text-center mt-2"><a href="/blogs" style="color:#2e8b57;font-weight:600;font-size:15px;text-decoration:none;">View All Articles →</a></div>
-    </div>
-  </section>
-  <% } %>
+  <%- include('../partials/blog-section', { sectionTitle: 'Banjara & Gormati Community Blog', blogs: featuredBlogs || [] }) %>
 
   <%- include('../partials/footer') %>
-  <script defer src="/js/jquery.min.js"></script>
-  <script defer src="/js/popper.min.js"></script>
-  <script defer src="/js/bootstrap.min.js"></script>
-  <script defer src="/js/select-opt.min.js"></script>
-  <script defer src="/js/slick.min.js"></script>
-  <script defer src="/js/custom.min.js"></script>
-  <script>
+  <%- include('../partials/scripts') %>
+<script>
     function gfaq(btn) {
       const item = btn.closest('.gm-faq-item');
       const isOpen = item.classList.contains('open');

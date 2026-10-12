@@ -29,7 +29,9 @@ module.exports = function canonicalUrl(req, res, next) {
   const p = req.path || '/';
   if (shouldSkip(p)) return next();
 
-  const lowered = p.toLowerCase();
+  // Lowercase letters only; percent-escapes (%3C) keep their hex case so an
+  // encoded path is never redirected to an equivalent spelling of itself.
+  const lowered = p.replace(/%[0-9A-Fa-f]{2}|[A-Z]+/g, (m) => (m.charAt(0) === '%' ? m : m.toLowerCase()));
   const stripped = lowered.length > 1 ? lowered.replace(/\/+$/, '') : lowered;
   const target = stripped || '/';
   if (target === p) return next();

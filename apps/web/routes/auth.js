@@ -179,3 +179,5 @@ module.exports.safeRedirect = safeRedirect;
 module.exports.SESSION_COOKIE = SESSION_COOKIE;
 module.exports.WELCOME_COOKIE = WELCOME_COOKIE;
 module.exports.RETURN_TO_COOKIE = RETURN_TO_COOKIE;
+
+module.exports.LEGACY_COOKIE = LEGACY_COOKIE;

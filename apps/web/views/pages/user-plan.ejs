@@ -1,28 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'My Plan - Banjara Match' %></title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="View your Banjara Match membership plan">
-    <meta name="robots" content="noindex, nofollow">
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-
-    <!--== PERFORMANCE: Resource Hints ==-->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-
-    <style>
+<%- include('../partials/head') %>
+<style>
     .plan-card {
         background: #fff;
         border-radius: 8px;
@@ -148,10 +128,6 @@
 
     <%- include('../partials/footer') %>
 
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
+<%- include('../partials/scripts') %>
 </body>
 </html>

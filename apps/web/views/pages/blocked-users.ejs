@@ -1,22 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'Blocked Users - Banjara Match' %></title>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Manage the profiles you've blocked on Banjara Match">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-
-    <style>
+<%- include('../partials/head') %>
+<style>
     .settings-card {
         background: #fff;
         border-radius: 8px;
@@ -96,23 +82,13 @@
 
     <%- include('../partials/footer') %>
 
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
-    <script src="/js/esc.js"></script>
 
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
-        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+        const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
         const MY_USER_ID = '<%= user?._id %>';
 
-        function getAuthToken() {
-            return document.cookie.split('; ')
-                .find(row => row.startsWith('token='))
-                ?.split('=')[1];
-        }
 
         function photoUrl(profile) {
             if (!profile) return '/images/default-user.jpg';
@@ -122,10 +98,10 @@
         async function loadBlockedUsers() {
             try {
                 const response = await fetch(`${API_BASE_URL}/fetchBlockedUserList`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getAuthToken()}`
                     },
                     body: JSON.stringify({ my_user_id: MY_USER_ID, limit: 100 })
                 });
@@ -168,10 +144,10 @@
 
             try {
                 const response = await fetch(`${API_BASE_URL}/UserUnblockedByUser`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getAuthToken()}`
                     },
                     body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: userId })
                 });

@@ -3,6 +3,30 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { triggerSitemapRegeneration } = require('../../services/sitemapService');
+const { sanitizeRich, sanitizeText } = require('../../services/sanitize');
+const { record: audit } = require('../../services/auditLog');
+const escapeRegex = require('../../utils/escapeRegex');
+const mongoose = require('mongoose');
+
+const SORT_FIELDS = new Set(['createdAt', 'updatedAt', 'publishedAt', 'views', 'likes', 'title', 'status']);
+const BLOG_CATEGORIES = Blog.schema.path('category').enumValues || [];
+const clampInt = (v, def, min, max) => Math.min(max, Math.max(min, parseInt(v, 10) || def));
+
+/** Author sub-document from the form (JSON string or object); plain text only. */
+function parseAuthor(author, fallback) {
+  if (!author) return undefined;
+  let a = author;
+  if (typeof a === 'string') {
+    try { a = JSON.parse(a); } catch (_) { a = { name: a }; }
+  }
+  if (!a || typeof a !== 'object') return undefined;
+  return {
+    name: sanitizeText(a.name, 80) || (fallback && fallback.name) || 'BanjaraMatch Team',
+    image: sanitizeText(a.image, 300) || (fallback && fallback.image) || 'images/user/default.jpg',
+    role: sanitizeText(a.role, 80) || (fallback && fallback.role) || 'Author',
+  };
+}
+const toList = (v) => (v ? (Array.isArray(v) ? v : String(v).split(',')).map((t) => sanitizeText(t, 50)).filter(Boolean).slice(0, 30) : []);
 
 // Where blog images are written; DB keeps the URL form 'images/blog/<file>'.
 // Default is monorepo-relative: apps/api/controllers/admin -> apps/web/public/images/blog
@@ -61,36 +85,42 @@ exports.getAllBlogs = async (req, res) => {
 
     const query = {};
 
-    // Filters
-    if (status) query.status = status;
-    if (category) query.category = category;
-    if (search) {
+    // Filters (A7.2: escaped regex, capped length; whitelisted sort)
+    if (['draft', 'published', 'archived'].includes(status)) query.status = status;
+    if (category && BLOG_CATEGORIES.includes(category)) query.category = category;
+    const q = escapeRegex(search, 60);
+    if (q) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } }
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
       ];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+    const pageNum = clampInt(page, 1, 1, 100000);
+    const limitNum = clampInt(limit, 10, 1, 100);
+    const skip = (pageNum - 1) * limitNum;
+    const sortField = SORT_FIELDS.has(String(sortBy)) ? String(sortBy) : 'createdAt';
+    const sort = { [sortField]: sortOrder === 'asc' ? 1 : -1, _id: -1 };
 
-    const blogs = await Blog.find(query)
-      .sort(sort)
-      .limit(parseInt(limit))
-      .skip(skip)
-      .populate('createdBy', 'username email')
-      .populate('updatedBy', 'username email');
-
-    const total = await Blog.countDocuments(query);
+    const [blogs, total] = await Promise.all([
+      Blog.find(query)
+        .select('-content')
+        .sort(sort)
+        .limit(limitNum)
+        .skip(skip)
+        .populate('createdBy', 'full_name email')
+        .populate('updatedBy', 'full_name email')
+        .lean(),
+      Blog.countDocuments(query),
+    ]);
 
     res.status(200).json({
       status: true,
       message: 'Blogs fetched successfully',
       data: blogs,
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
+        currentPage: pageNum,
+        totalPages: Math.ceil(total / limitNum),
         totalBlogs: total,
         hasMore: skip + blogs.length < total
       }
@@ -112,11 +142,11 @@ exports.getBlogById = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Try to find by ID first, then by slug
-    let blog = await Blog.findById(id).populate('createdBy updatedBy', 'username email');
+    // Try to find by ID first, then by slug (slug is read-only after creation, C4.4)
+    let blog = mongoose.isValidObjectId(id) ? await Blog.findById(id).populate('createdBy updatedBy', 'full_name email') : null;
     
     if (!blog) {
-      blog = await Blog.findOne({ slug: id }).populate('createdBy updatedBy', 'username email');
+      blog = await Blog.findOne({ slug: String(id).toLowerCase().slice(0, 200) }).populate('createdBy updatedBy', 'full_name email');
     }
 
     if (!blog) {
@@ -161,18 +191,28 @@ exports.createBlog = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!title || !description || !content) {
+    if (typeof title !== 'string' || typeof description !== 'string' || typeof content !== 'string' || !title.trim() || !description.trim() || !content.trim()) {
       return res.status(400).json({
         status: false,
         message: 'Title, description, and content are required'
       });
     }
+    if (category && !BLOG_CATEGORIES.includes(category)) {
+      return res.status(400).json({ status: false, message: 'Invalid category' });
+    }
+    const authorData = parseAuthor(author);
+    if (!authorData || !authorData.name || authorData.name === 'BanjaraMatch Team') {
+      return res.status(400).json({ status: false, message: 'A real author name is required' });
+    }
 
-    // Generate slug from title
-    const slug = title
+    // Generate slug from title — set ONCE here; updateBlog never changes it (C4.4)
+    const slug = sanitizeText(title, 200)
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '');
+    if (!slug) {
+      return res.status(400).json({ status: false, message: 'Title must contain letters or numbers' });
+    }
 
     // Check if slug already exists
     const existingBlog = await Blog.findOne({ slug });
@@ -183,42 +223,32 @@ exports.createBlog = async (req, res) => {
       });
     }
 
+    // Every text field is sanitised on write (D: sanitize-html on blog content)
     const blogData = {
-      title,
+      title: sanitizeText(title, 200),
       slug,
-      description,
-      content,
+      description: sanitizeText(description, 500),
+      content: sanitizeRich(content),
       category: category || 'General',
-      tags: tags ? (Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim())) : [],
-      status: status || 'draft',
+      tags: toList(tags),
+      status: ['draft', 'published', 'archived'].includes(status) ? status : 'draft',
       isFeatured: isFeatured === 'true' || isFeatured === true,
-      metaTitle: metaTitle || title,
-      metaDescription: metaDescription || description,
-      metaKeywords: metaKeywords ? (Array.isArray(metaKeywords) ? metaKeywords : metaKeywords.split(',').map(k => k.trim())) : [],
-      createdBy: req.admin?._id,
-      updatedBy: req.admin?._id
+      metaTitle: sanitizeText(metaTitle, 200) || sanitizeText(title, 200),
+      metaDescription: sanitizeText(metaDescription, 500) || sanitizeText(description, 500),
+      metaKeywords: toList(metaKeywords),
+      author: authorData,
+      createdBy: req.userId,
+      updatedBy: req.userId
     };
+    if (blogData.status === 'published') blogData.publishedAt = new Date();
 
     // Handle featured image
     if (req.file) {
       blogData.featuredImage = 'images/blog/' + req.file.filename;
     }
 
-    // Handle author data
-    if (author) {
-      try {
-        const authorData = typeof author === 'string' ? JSON.parse(author) : author;
-        blogData.author = authorData;
-      } catch (e) {
-        blogData.author = {
-          name: author.name || 'BanjaraMatch Team',
-          image: author.image || 'images/user/default.jpg',
-          role: author.role || 'Author'
-        };
-      }
-    }
-
     const blog = await Blog.create(blogData);
+    audit(req, 'blog.create', { type: 'blog', id: blog._id }, { after: { title: blog.title, slug: blog.slug, status: blog.status } });
 
     // Trigger sitemap regeneration if blog is published
     if (blog.status === 'published') {
@@ -247,9 +277,8 @@ exports.createBlog = async (req, res) => {
 // @access  Admin
 exports.updateBlog = async (req, res) => {
   try {
-
-    console.log('Updating blog with ID:', req.params.id); 
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Blog not found' });
     const {
       title,
       description,
@@ -273,27 +302,26 @@ exports.updateBlog = async (req, res) => {
       });
     }
 
-    // Update fields
-    if (title) {
-      blog.title = title;
-      // Regenerate slug if title changes
-      blog.slug = title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '');
+    const before = { title: blog.title, status: blog.status, category: blog.category };
+
+    // Update fields — the slug is FROZEN (C4.4): /blogs/<cat>/<slug> is a public URL
+    if (typeof title === 'string' && title.trim()) blog.title = sanitizeText(title, 200);
+    if (typeof description === 'string' && description.trim()) blog.description = sanitizeText(description, 500);
+    if (typeof content === 'string' && content.trim()) blog.content = sanitizeRich(content);
+    if (category) {
+      if (!BLOG_CATEGORIES.includes(category)) return res.status(400).json({ status: false, message: 'Invalid category' });
+      blog.category = category;
     }
-    if (description) blog.description = description;
-    if (content) blog.content = content;
-    if (category) blog.category = category;
-    if (tags) blog.tags = Array.isArray(tags) ? tags : tags.split(',').map(t => t.trim());
-    if (status) blog.status = status;
+    if (tags !== undefined) blog.tags = toList(tags);
+    if (status) {
+      if (!['draft', 'published', 'archived'].includes(status)) return res.status(400).json({ status: false, message: 'Invalid status' });
+      blog.status = status;
+      if (status === 'published' && !blog.publishedAt) blog.publishedAt = new Date();
+    }
     if (isFeatured !== undefined) blog.isFeatured = isFeatured === 'true' || isFeatured === true;
-    if (metaTitle) blog.metaTitle = metaTitle;
-    if (metaDescription) blog.metaDescription = metaDescription;
-    if (metaKeywords) blog.metaKeywords = Array.isArray(metaKeywords) ? metaKeywords : metaKeywords.split(',').map(k => k.trim());
-
-
-console.log('Updating blog with ID:', id);
+    if (typeof metaTitle === 'string' && metaTitle.trim()) blog.metaTitle = sanitizeText(metaTitle, 200);
+    if (typeof metaDescription === 'string' && metaDescription.trim()) blog.metaDescription = sanitizeText(metaDescription, 500);
+    if (metaKeywords !== undefined) blog.metaKeywords = toList(metaKeywords);
 
     // Handle featured image update
     if (req.file) {
@@ -307,24 +335,14 @@ console.log('Updating blog with ID:', id);
       blog.featuredImage = 'images/blog/' + req.file.filename;
     }
 
-    // Handle author update
-    if (author) {
-      try {
-        const authorData = typeof author === 'string' ? JSON.parse(author) : author;
-        blog.author = authorData;
-      } catch (e) {
-        blog.author = {
-          name: author.name || blog.author.name,
-          image: author.image || blog.author.image,
-          role: author.role || blog.author.role
-        };
-      }
-    }
+    // Handle author update (plain text only)
+    const authorData = parseAuthor(author, blog.author);
+    if (authorData) blog.author = authorData;
 
-    blog.updatedBy = req.admin?._id;
+    blog.updatedBy = req.userId; // C4.4: req.admin was never set
 
     await blog.save();
-console.log('Updating blog with ID:', blog._id);
+    audit(req, 'blog.update', { type: 'blog', id }, { before, after: { title: blog.title, status: blog.status, category: blog.category } });
 
     // Trigger sitemap regeneration if blog is published
     if (blog.status === 'published') {
@@ -354,6 +372,7 @@ console.log('Updating blog with ID:', blog._id);
 exports.deleteBlog = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Blog not found' });
 
     const blog = await Blog.findById(id);
 
@@ -373,6 +392,7 @@ exports.deleteBlog = async (req, res) => {
     }
 
     await Blog.findByIdAndDelete(id);
+    audit(req, 'blog.delete', { type: 'blog', id }, { before: { title: blog.title, slug: blog.slug, status: blog.status } });
 
     // Trigger sitemap regeneration
     triggerSitemapRegeneration().catch(err => 
@@ -399,6 +419,7 @@ exports.deleteBlog = async (req, res) => {
 exports.toggleFeatured = async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Blog not found' });
 
     const blog = await Blog.findById(id);
 
@@ -410,8 +431,9 @@ exports.toggleFeatured = async (req, res) => {
     }
 
     blog.isFeatured = !blog.isFeatured;
-    blog.updatedBy = req.admin?._id;
+    blog.updatedBy = req.userId;
     await blog.save();
+    audit(req, 'blog.featured', { type: 'blog', id }, { after: { isFeatured: blog.isFeatured } });
 
     res.status(200).json({
       status: true,
@@ -434,7 +456,7 @@ exports.toggleFeatured = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status } = req.body || {};
 
     if (!['draft', 'published', 'archived'].includes(status)) {
       return res.status(400).json({
@@ -442,6 +464,7 @@ exports.updateStatus = async (req, res) => {
         message: 'Invalid status. Must be draft, published, or archived'
       });
     }
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Blog not found' });
 
     const blog = await Blog.findById(id);
 
@@ -452,8 +475,9 @@ exports.updateStatus = async (req, res) => {
       });
     }
 
+    const before = { status: blog.status };
     blog.status = status;
-    blog.updatedBy = req.admin?._id;
+    blog.updatedBy = req.userId;
     
     // Set publishedAt when publishing
     if (status === 'published' && !blog.publishedAt) {
@@ -461,6 +485,7 @@ exports.updateStatus = async (req, res) => {
     }
 
     await blog.save();
+    audit(req, 'blog.status', { type: 'blog', id }, { before, after: { status } });
 
     // Trigger sitemap regeneration
     triggerSitemapRegeneration().catch(err => 

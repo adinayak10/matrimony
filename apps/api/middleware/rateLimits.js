@@ -87,6 +87,13 @@ const blogLikeLimiter = make({
   keyGenerator: ipKey,
 });
 
+// C4.6: one broadcast send per minute per admin
+const broadcastLimiter = make({
+  windowMs: 60 * 1000,
+  limit: 1,
+  keyGenerator: userKey,
+});
+
 const globalLimiter = make({
   windowMs: 15 * 60 * 1000,
   limit: 600,
@@ -100,6 +107,7 @@ module.exports = {
   interestLimiter,
   reportLimiter,
   blogLikeLimiter,
+  broadcastLimiter,
   globalLimiter,
   make,
 };

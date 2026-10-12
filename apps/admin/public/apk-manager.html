@@ -405,7 +405,7 @@
 
     <script src="js/auth.js"></script>
     <script>
-        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+        const API_BASE_URL = '/api';
         let adminToken;
 
         // File upload handling
@@ -600,7 +600,8 @@
                 });
 
                 xhr.open('POST', `${API_BASE_URL}/admin/apk/upload`);
-                xhr.setRequestHeader('Authorization', `Bearer ${adminToken}`);
+                xhr.setRequestHeader('X-Requested-With', 'admin');
+                xhr.withCredentials = true;
                 xhr.send(formData);
 
             } catch (error) {
@@ -687,14 +688,6 @@
                 deleteBtn.disabled = false;
                 deleteBtn.textContent = '🗑️ Delete Current APK';
             }
-        }
-
-        // Logout
-        function logout() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('token');
-            localStorage.removeItem('adminData');
-            window.location.href = '/login';
         }
 
         // Initialize page with authentication check

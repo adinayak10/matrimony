@@ -421,7 +421,7 @@
     <script src="/js/api.js"></script>
     <script src="/js/notifications.js"></script>
     <script>
-        const API_BASE = 'https://api.banjaramatch.com/api';
+        const API_BASE = '/api';
         let currentPage = 1;
         let selectedNearbyCities = [];
         let cityNamesCache = {};
@@ -896,11 +896,6 @@
             document.getElementById('citySearch').value = '';
         }
 
-        // Logout
-        function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = '/login';
-        }
     </script>
 </body>
 </html>

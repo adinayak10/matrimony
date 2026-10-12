@@ -29,4 +29,9 @@ const notificationSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// A6.11: 180-day TTL + unread-count lookup
+notificationSchema.index({ createdAt: 1 }, { expireAfterSeconds: 180 * 86400 });
+notificationSchema.index({ toUser: 1, isRead: 1 });
+notificationSchema.index({ toUser: 1, createdAt: -1 });
+
 module.exports = mongoose.model('Notification', notificationSchema);

@@ -1,5 +1,10 @@
 const Blog = require('../models/Blog');
 const { triggerSitemapRegeneration } = require('../services/sitemapService');
+const escapeRegex = require('../utils/escapeRegex');
+
+const SORT_FIELDS = new Set(['publishedAt', 'createdAt', 'updatedAt', 'views', 'likes', 'title']);
+const CATEGORIES = Blog.schema.path('category').enumValues || [];
+const clampInt = (v, def, min, max) => Math.min(max, Math.max(min, parseInt(v, 10) || def));
 
 // @desc    Get all published blogs (public)
 // @route   GET /api/blogs
@@ -18,24 +23,34 @@ exports.getPublishedBlogs = async (req, res) => {
 
     const query = { status: 'published' };
 
-    // Filters
-    if (category) query.category = category;
+    // Filters (category must be one of the enum values; the web matches lowercase slugs)
+    if (category) {
+      const match = CATEGORIES.find((c) => c.toLowerCase() === String(category).toLowerCase());
+      if (!match) {
+        return res.status(200).json({ status: true, message: 'Blogs fetched successfully', data: [], pagination: { currentPage: 1, totalPages: 0, totalBlogs: 0, hasMore: false } });
+      }
+      query.category = match;
+    }
     if (featured === 'true') query.isFeatured = true;
-    if (search) {
+    const q = escapeRegex(search, 60);
+    if (q) {
       query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { tags: { $in: [new RegExp(q, 'i')] } }
       ];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-    const sort = { [sortBy]: sortOrder === 'desc' ? -1 : 1 };
+    const pageNum = clampInt(page, 1, 1, 100000);
+    const limitNum = clampInt(limit, 6, 1, 50);
+    const skip = (pageNum - 1) * limitNum;
+    const sortField = SORT_FIELDS.has(String(sortBy)) ? String(sortBy) : 'publishedAt';
+    const sort = { [sortField]: sortOrder === 'asc' ? 1 : -1, _id: -1 };
 
     const blogs = await Blog.find(query)
       .select('-createdBy -updatedBy -__v')
       .sort(sort)
-      .limit(parseInt(limit))
+      .limit(limitNum)
       .skip(skip)
       .lean();
 
@@ -46,8 +61,8 @@ exports.getPublishedBlogs = async (req, res) => {
       message: 'Blogs fetched successfully',
       data: blogs,
       pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(total / limit),
+        currentPage: pageNum,
+        totalPages: Math.ceil(total / limitNum),
         totalBlogs: total,
         hasMore: skip + blogs.length < total
       }
@@ -80,8 +95,8 @@ exports.getBlogBySlug = async (req, res) => {
       });
     }
 
-    // Increment views
-    await Blog.findByIdAndUpdate(blog._id, { $inc: { views: 1 } });
+    // D28: view bump never touches updatedAt (lastmod = content date), fire-and-forget
+    Blog.updateOne({ _id: blog._id }, { $inc: { views: 1 } }, { timestamps: false }).catch(() => {});
 
     // Get related blogs (same category, exclude current)
     const relatedBlogs = await Blog.find({
@@ -117,7 +132,7 @@ exports.getBlogBySlug = async (req, res) => {
 // @access  Public
 exports.getFeaturedBlogs = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 3;
+    const limit = clampInt(req.query.limit, 3, 1, 20);
 
     const blogs = await Blog.find({
       status: 'published',
@@ -148,7 +163,7 @@ exports.getFeaturedBlogs = async (req, res) => {
 // @access  Public
 exports.getTrendingBlogs = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 5;
+    const limit = clampInt(req.query.limit, 5, 1, 20);
 
     const blogs = await Blog.find({ status: 'published' })
       .select('title slug featuredImage category views publishedAt')
@@ -208,7 +223,7 @@ exports.likeBlog = async (req, res) => {
     const blog = await Blog.findOneAndUpdate(
       { slug, status: 'published' },
       { $inc: { likes: 1 } },
-      { new: true }
+      { new: true, timestamps: false }
     ).select('likes');
 
     if (!blog) {

@@ -1,46 +1,8 @@
 <!doctype html>
-<html lang="en">
-
-
+<html lang="<%= site.lang %>">
 <head>
-  <title>Register Free on BanjaraMatch | #1 Banjara Matrimony Website</title>
-
-  <!-- META TAGS FOR SEO -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="theme-color" content="#f6af04">
-  <meta name="description" content="Join the most trusted Banjara matrimony platform – BanjaraMatch.com. Create your free profile today and find your ideal Banjara bride or groom. 100% verified matches. Safe & secure.">
-  <meta name="keywords" content="Banjara Matrimony, BanjaraMatch, Banjara marriage, Banjara brides, Banjara grooms, matrimony site for Banjara, register for marriage, free Banjara matrimonial">
-  <meta name="author" content="Banjaramatch.com">
-  <meta property="og:title" content="Register Free on BanjaraMatch | Trusted Banjara Matrimony">
-  <meta property="og:description" content="Create your free BanjaraMatch profile and start your search for a perfect life partner from the Banjara community.">
-  <meta property="og:url" content="https://www.banjaramatch.com/register">
-  <meta property="og:image" content="https://www.banjaramatch.com/images/social-preview.jpg">
-  <link rel="canonical" href="https://www.banjaramatch.com/register">
-
-  <!-- FAVICON -->
-  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-
-  <!-- Google Analytics (SEO & Traffic Tracking) -->
-  <%- include('../partials/analytics', { pageCategory: 'register' }) %>
-
-  <!-- CSS FILES -->
-  <link rel="stylesheet" href="css/bootstrap.css">
-  <link rel="stylesheet" href="css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/animate.min.css">
-  <link rel="stylesheet" href="css/style.min.css">
-
-  <!-- Firebase SDK for Email/Password Auth -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  
-  <!-- Prevent Firebase auto-initialization -->
-  <script>
-    window.FIREBASE_APPCHECK_DEBUG_TOKEN = false;
-  </script>
-
-  <style>
+<%- include('../partials/head') %>
+<style>
     .password-input-wrapper {
       position: relative;
     }
@@ -78,12 +40,6 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-
-  <!-- SUPPORT FOR OLDER BROWSERS -->
-  <!--[if lt IE 9]>
-    <script src="js/html5shiv.min.js"></script>
-    <script src="js/respond.min.js"></script>
-  <![endif]-->
 </head>
 
 
@@ -105,7 +61,7 @@
             <h2>Create Your <b>Banjara Matrimony Profile</b> – Free, Fast & Secure</h2>
           </div>
           <div class="im">
-            <img src="images/login-couple.png" alt="Join Banjara Matrimony - BanjaraMatch.com">
+            <img src="/images/login-couple.png" alt="Join Banjara Matrimony - BanjaraMatch.com">
           </div>
           <div class="log-bg">&nbsp;</div>
         </div>
@@ -116,23 +72,24 @@
             <div class="form-tit">
               <h4>Start Your Matrimony Journey</h4>
               <h1>Register on BanjaraMatch</h1>
-              <p>Already a member? <a href="login">Sign in here</a></p>
+              <p>Already a member? <a href="/login">Sign in here</a></p>
             </div>
 
             <div class="form-login">
               <form id="registerForm">
+                <div id="registerAlert" class="alert" style="display: none;" role="alert" aria-live="polite"></div>
                 <div class="form-group">
-                  <label class="lb">Full Name:</label>
+                  <label class="lb" for="full_name">Full Name:</label>
                   <input type="text" class="form-control" id="full_name" placeholder="Enter your full name" name="full_name" required>
                 </div>
 
                 <div class="form-group">
-                  <label class="lb">Email:</label>
+                  <label class="lb" for="email">Email:</label>
                   <input type="email" class="form-control" id="email" placeholder="Enter email" name="email" required>
                 </div>
 
                 <div class="form-group">
-                  <label class="lb">Mobile Number:</label>
+                  <label class="lb" for="phone">Mobile Number:</label>
                   <div style="display: flex;">
                     <input type="text" class="form-control" value="+91" readonly style="width: 70px; margin-right: 10px;">
                     <input type="tel" class="form-control" id="phone" placeholder="10-digit mobile number" name="phone" maxlength="10" pattern="[0-9]{10}" required>
@@ -140,7 +97,7 @@
                 </div>
 
                 <div class="form-group">
-                  <label class="lb">Password:</label>
+                  <label class="lb" for="password">Password:</label>
                   <div class="password-input-wrapper">
                     <input type="password" class="form-control" id="password" placeholder="Create a password (min. 6 characters)" name="password" minlength="6" required>
                     <i class="fa fa-eye toggle-password" onclick="togglePassword('password')"></i>
@@ -149,7 +106,7 @@
                 </div>
 
                 <div class="form-group form-check">
-                  <label class="form-check-label">
+                  <label class="form-check-label" for="agree">
                     <input class="form-check-input" type="checkbox" name="agree" id="agree" required>
                     I agree to the 
                     <a href="/terms-conditions" target="_blank">Terms & Conditions</a> and 
@@ -178,14 +135,12 @@
     <!-- END -->
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/select-opt.min.js"></script>
-    <script src="js/custom.min.js"></script>
 
     
+<%- include('../partials/scripts') %>
 <script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
   // Firebase Configuration
   const firebaseConfig = {
     apiKey: "AIzaSyBEQVygTdSOOUczWmUezTt0CyoGm4l5Qe8",
@@ -238,17 +193,17 @@
 
     // Validation
     if (!full_name || !email || !phone || !password) {
-      alert('Please fill in all fields');
+      showAlert('Please fill in all fields', 'danger');
       return;
     }
 
     if (password.length < 6) {
-      alert('Password must be at least 6 characters');
+      showAlert('Password must be at least 6 characters', 'danger');
       return;
     }
 
     if (!document.getElementById('agree').checked) {
-      alert('Please agree to Terms & Conditions');
+      showAlert('Please agree to Terms & Conditions', 'danger');
       return;
     }
 
@@ -274,9 +229,10 @@
       const firebaseToken = await firebaseUser.getIdToken();
       console.log('🎫 Firebase ID Token obtained');
 
-      // Register user in backend
-      console.log('📤 Sending registration request to backend...');
-      const response = await fetch('https://api.banjaramatch.com/api/auth/firebase-email-register', {
+      // Register through the web's own route: the session cookie is set
+      // server-side (httpOnly) and the token never reaches page JS.
+      // Conversion events fire once, on /thank-you.
+      const response = await fetch('/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -286,36 +242,19 @@
           firebaseUid: firebaseUser.uid,
           firebaseToken: firebaseToken
         }),
-        credentials: 'include'
+        credentials: 'same-origin'
       });
 
-      const data = await response.json();
-      console.log('📥 Registration response:', data);
+      const data = await response.json().catch(() => ({}));
 
-      if (data.status && data.token) {
-        // Set token in cookie
-        document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; domain=.banjaramatch.com; SameSite=Lax`;
-
-        // Track Google Ads Conversion
-        if (typeof window.trackRegistrationConversion === 'function') {
-          window.trackRegistrationConversion();
-        }
-        
-        // Track in GA4
-        if (typeof gtag !== 'undefined') {
-          gtag('event', 'sign_up', {
-            'event_category': 'engagement',
-            'method': 'email',
-            'value': 1.00,
-            'currency': 'INR'
-          });
-        }
-        
-        console.log('🎉 Registration successful - redirecting to thank you page');
-        alert('Registration successful! Welcome to BanjaraMatch!');
-        window.location.href = '/thank-you';
+      if (response.ok && data.status) {
+        showAlert('Registration successful! Welcome to BanjaraMatch!', 'success');
+        window.location.href = data.redirect || '/thank-you';
       } else {
-        alert(data.message || 'Registration failed. Please try again.');
+        // The backend refused the account: remove the Firebase user so the
+        // same email can be retried instead of failing with email-already-in-use (D5.42).
+        try { await firebaseUser.delete(); } catch (e) { console.warn('Could not roll back the Firebase account:', e && e.code); }
+        showAlert(data.message || 'Registration failed. Please try again.', 'danger');
         document.getElementById('register-spinner').classList.remove('active');
         document.getElementById('registerBtn').disabled = false;
       }
@@ -341,9 +280,23 @@
         errorMsg += error.message || 'Please try again.';
       }
       
-      alert(errorMsg);
+      showAlert(errorMsg, 'danger');
     }
   });
+
+  // Inline alert instead of alert() (D5.42; same pattern as contact.ejs)
+  function showAlert(message, type) {
+    var box = document.getElementById('registerAlert');
+    if (!box) { window.alert(message); return; }
+    box.className = 'alert alert-' + (type || 'info');
+    box.textContent = message;
+    box.style.display = 'block';
+    box.scrollIntoView({ block: 'nearest' });
+    clearTimeout(box._t);
+    if (type !== 'danger') box._t = setTimeout(function () { box.style.display = 'none'; }, 6000);
+  }
+  window.togglePassword = togglePassword;
+});
 </script>
 
 </body>

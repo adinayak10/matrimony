@@ -1,20 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title>Complete Your Profile - Banjara Match</title>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    
-    <style>
+<%- include('../partials/head') %>
+<style>
     body {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
@@ -353,19 +341,14 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="/js/jquery.min.js"></script>
     <script>
-    const API_BASE_URL = 'https://api.banjaramatch.com/api';
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
+    const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
     const USER_ID = '<%= user?._id %>';
     let currentStep = 1;
     let formData = {};
 
-    // Get auth token
-    function getAuthToken() {
-        return document.cookie.split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-    }
 
     // Convert cm to feet and inches display
     function cmToFeetInches(cm) {
@@ -391,10 +374,10 @@
         try {
             // Load castes
             const casteResponse = await fetch(`${API_BASE_URL}/fetchCasteList`, {
+                credentials: 'same-origin',
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getAuthToken()}`
                 },
                 body: JSON.stringify({})
             });
@@ -409,10 +392,10 @@
 
             // Load gotras
             const gotraResponse = await fetch(`${API_BASE_URL}/fetchGotraList`, {
+                credentials: 'same-origin',
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getAuthToken()}`
                 },
                 body: JSON.stringify({})
             });
@@ -496,9 +479,9 @@
             }
 
             const response = await fetch(`${API_BASE_URL}/editProfile`, {
+                credentials: 'same-origin',
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${getAuthToken()}`
                 },
                 body: formDataToSend
             });
@@ -530,6 +513,17 @@
         maxDate.setFullYear(maxDate.getFullYear() - 18);
         $('#dob').attr('max', maxDate.toISOString().split('T')[0]);
     });
-    </script>
+    
+  window.cmToFeetInches = cmToFeetInches;
+  window.populateHeightDropdown = populateHeightDropdown;
+  window.loadDropdownData = loadDropdownData;
+  window.previewPhoto = previewPhoto;
+  window.nextStep = nextStep;
+  window.prevStep = prevStep;
+  window.updateStep = updateStep;
+  window.finishOnboarding = finishOnboarding;
+});
+</script>
+<%- include('../partials/scripts') %>
 </body>
 </html>

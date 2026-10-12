@@ -1,289 +1,7 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-<title>Banjara Matrimony - Free Matrimonial Site | Find Banjara Brides & Grooms</title>
-
-  <!-- Essential Meta -->
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f6af04" />
-  <meta name="robots" content="index, follow" />
-
-  <!-- SEO Meta -->
-  <meta name="description" content="Banjara Matrimony made free on BanjaraMatch.com. Find Banjara brides & grooms across India. Register free today!" />
-
-  <!-- Keywords -->
-  <meta name="keywords" content="banjara matrimony, banjara matrimonial, banjara marriage, banjara bride, banjara groom, lambani matrimony, lambadi matrimony, gormati matrimony, sugali matrimony, gor banjara matrimony, banjara shaadi, banjara rishta, free banjara matrimony, banjara match, banjara wedding, banjara matrimony site, banjara matrimony login, banjara matrimony app" />
-
-  <!-- Additional SEO Tags -->
-  <meta name="author" content="BanjaraMatch Team" />
-  <meta name="copyright" content="BanjaraMatch.com" />
-  <meta name="language" content="English" />
-  <meta name="geo.region" content="IN" />
-  <meta name="geo.country" content="India" />
-  <meta name="classification" content="Matrimony" />
-
-  <!-- Canonical -->
-  <link rel="canonical" href="https://www.banjaramatch.com/" />
-
-  <!-- Open Graph (Facebook, LinkedIn) -->
-  <meta property="og:title" content="Banjara Matrimony - Free Matrimonial Site | BanjaraMatch" />
-  <meta property="og:description" content="Find your perfect Banjara matrimony match free on BanjaraMatch.com." />
-  <meta property="og:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg" />
-  <meta property="og:url" content="https://www.banjaramatch.com/" />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="BanjaraMatch - Banjara Matrimony" />
-  <meta property="og:locale" content="en_IN" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Banjara Matrimony - Free Matrimonial Site | BanjaraMatch" />
-  <meta name="twitter:description" content="India's free Banjara matrimony platform. Find verified Banjara brides & grooms. Register free on BanjaraMatch.com." />
-  <meta name="twitter:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg" />
-  <meta name="twitter:site" content="@BanjaraMatch" />
-
-  <!-- Favicon -->
-  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon" />
-  
-  <!-- Google Analytics (SEO & Traffic Tracking) -->
-  <%- include('../partials/analytics') %>
-    
-    <!--== PERFORMANCE: Resource Hints ==-->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="https://www.googletagmanager.com">
-    <link rel="preload" href="/images/ban-bg.webp" as="image" type="image/webp" fetchpriority="high">
-    <link rel="preload" href="/images/ban-bg.jpg" as="image" fetchpriority="high">
-    
-    <!--== FONT OPTIMIZATION ==-->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"></noscript>
-    
-    <!--== CSS FILES - Optimized Loading ==-->
-    <!-- Critical CSS inline or preloaded -->
-    <link rel="preload" href="css/bootstrap.css" as="style">
-    <link rel="preload" href="css/style.min.css" as="style">
-    <link rel="stylesheet" href="css/bootstrap.css">
-    <link rel="stylesheet" href="css/style.min.css">
-    <!-- Non-critical CSS deferred -->
-    <link rel="preload" href="css/font-awesome.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <link rel="preload" href="css/animate.min.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-      <link rel="stylesheet" href="css/font-awesome.min.css">
-      <link rel="stylesheet" href="css/animate.min.css">
-    </noscript>
-
-
-
-
-  <!-- Structured Data: Organization -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "BanjaraMatch",
-    "alternateName": "Banjara Matrimony - BanjaraMatch.com",
-    "url": "https://www.banjaramatch.com",
-    "logo": "https://www.banjaramatch.com/images/logo-bf.png",
-    "description": "India's free dedicated Banjara matrimony platform",
-    "contactPoint": {
-      "@type": "ContactPoint",
-      "contactType": "Customer Support",
-      "email": "support@banjaramatch.com",
-      "areaServed": "IN",
-      "availableLanguage": ["English", "Hindi"]
-    },
-    "sameAs": [
-      "https://www.facebook.com/banjaramatch",
-      "https://www.instagram.com/banjaramatch",
-      "https://www.linkedin.com/company/banjaramatch"
-    ],
-    "potentialAction": [
-      {
-        "@type": "RegisterAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://www.banjaramatch.com/register",
-          "actionPlatform": [
-            "http://schema.org/DesktopWebPlatform",
-            "http://schema.org/MobileWebPlatform"
-          ]
-        },
-        "name": "Register Free"
-      },
-      {
-        "@type": "SearchAction",
-        "target": {
-          "@type": "EntryPoint",
-          "urlTemplate": "https://www.banjaramatch.com/all-profiles",
-          "actionPlatform": [
-            "http://schema.org/DesktopWebPlatform",
-            "http://schema.org/MobileWebPlatform"
-          ]
-        },
-        "name": "Browse Profiles"
-      }
-    ]
-  }
-  </script>
-
-
-
-
-  <!-- Structured Data: BreadcrumbList -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://www.banjaramatch.com"
-      }
-    ]
-  }
-  </script>
-
-  <!-- Structured Data: FAQ for Banjara Matrimony rich snippets -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is Banjara Matrimony?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Banjara Matrimony refers to the matrimonial matchmaking service exclusively for the Banjara community (also known as Lambani, Lambadi, Gormati, or Sugali). BanjaraMatch.com is India's free dedicated Banjara matrimony platform."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is BanjaraMatch a free Banjara matrimony site?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, BanjaraMatch.com is 100% free for all Banjara community members. Registration, profile browsing, sending interests, and chatting are all completely free — no hidden charges."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How to find Banjara brides and grooms on BanjaraMatch?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "To find Banjara brides and grooms, register free on BanjaraMatch.com, complete your profile, and browse verified Banjara matrimony profiles. Use filters like age, location, sub-community (Lambani, Gormati, Sugali), and education to find your best match."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is Lambani or Lambadi Matrimony?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Lambani (also called Lambadi) matrimony is matrimonial matchmaking for the Lambani sub-group of the Banjara community, primarily found in Karnataka, Andhra Pradesh, and Telangana. BanjaraMatch has the largest collection of Lambani matrimony profiles in India."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What is Gor Banjara Matrimony?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Gor Banjara Matrimony is the matrimonial service for the Gor Banjara sub-community. BanjaraMatch.com supports all Banjara sub-communities including Gor Banjara, Lambani, Gormati, Sugali, and Vanjari matrimony."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How do I register for Banjara Matrimony on BanjaraMatch?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Registration is free and takes only 2 minutes. Visit www.banjaramatch.com/register, fill in your basic details, add your photo and preferences, and start browsing verified Banjara matrimony profiles immediately."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is there a Banjara Matrimony app available?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes! The BanjaraMatch Banjara Matrimony app is available for Android. Download it from banjaramatch.com/banjara-matrimony-app. It features AI-powered matching, instant notifications, and chat. iOS version coming soon."
-        }
-      }
-    ]
-  }
-  </script>
-
-  <!-- Structured Data: Service for Matrimony -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    "serviceType": "Matrimonial Service",
-    "provider": {
-      "@type": "Organization",
-      "name": "BanjaraMatch",
-      "url": "https://www.banjaramatch.com"
-    },
-    "areaServed": {
-      "@type": "Country",
-      "name": "India"
-    },
-    "audience": {
-      "@type": "Audience",
-      "audienceType": "Banjara Community",
-      "geographicArea": {
-        "@type": "Country",
-        "name": "India"
-      }
-    },
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "INR",
-      "description": "Completely free matrimonial service for Banjara community"
-    },
-    "hasOfferCatalog": {
-      "@type": "OfferCatalog",
-      "name": "Matrimony Services",
-      "itemListElement": [
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Profile Registration",
-            "description": "Create your free matrimony profile"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Profile Browsing",
-            "description": "Browse verified Banjara profiles"
-          }
-        },
-        {
-          "@type": "Offer",
-          "itemOffered": {
-            "@type": "Service",
-            "name": "Match Recommendations",
-            "description": "Get personalized match suggestions"
-          }
-        }
-      ]
-    }
-  }
-  </script>
-
-
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-      <script src="js/respond.min.js"></script>
-      <![endif]-->
+<%- include('../partials/head') %>
 </head>
 
 <body>
@@ -337,7 +55,8 @@
                             <p>Welcome to <strong>BanjaraMatch.com</strong> – India's dedicated free <strong>Banjara matrimony</strong> platform for the Banjara/Lambani/Gormati community. Search verified <strong>Banjara brides and grooms</strong>, connect with families, and find your perfect life partner for marriage – completely free.</p>
                         </div>
                         <div class="ban-search chosenini">
-                            <form action="/all-profiles" method="GET">
+                            <form action="<%= user ? '/all-profiles' : '/register' %>" method="GET" class="hero-search" data-guest="<%= user ? '0' : '1' %>">
+                                <% if (!user) { %><input type="hidden" name="intent" value="search"><% } %>
                                 <ul>
                                     <li class="sr-look">
                                         <div class="form-group">
@@ -380,7 +99,6 @@
                                         <div class="form-group">
                                             <label>City</label>
                                             <select class="chosen-select" name="city">
-                                                <option value="">Location</option>
                                                 <option value="">Any location</option>
                                                 <option value="Mumbai">Mumbai</option>
                                                 <option value="Delhi">Delhi</option>
@@ -463,7 +181,7 @@
                         <li>
                             <div class="wow fadeInUp hacc hacc1" data-wow-delay="0.1s">
                                 <div class="con">
-                                    <img src="images/icon/user.png" alt="Browse Profiles" loading="lazy">
+                                    <img src="/images/icon/user.png" alt="Browse Profiles" loading="lazy">
                                     <h4>Browse Profiles</h4>
                                     <p>Browse profiles</p>
                                     <a href="/all-profiles">View more</a>
@@ -474,7 +192,7 @@
                         <li>
                             <div class="wow fadeInUp hacc hacc3" data-wow-delay="0.3s">
                                 <div class="con">
-                                    <img src="images/icon/couple.png" alt="About Us" loading="lazy">
+                                    <img src="/images/icon/couple.png" alt="About Us" loading="lazy">
                                     <h4>About Us</h4>
                                     <p>Know our mission</p>
                                     <a href="/about">View more</a>
@@ -485,12 +203,12 @@
                             <div class="wow fadeInUp hacc hacc4" data-wow-delay="0.4s">
                                 <div class="con">
                                     <% if (typeof user !== 'undefined' && user) { %>
-                                        <img src="images/icon/hall.png" alt="My Dashboard" loading="lazy">
+                                        <img src="/images/icon/hall.png" alt="My Dashboard" loading="lazy">
                                         <h4>My Dashboard</h4>
                                         <p>Manage profile</p>
                                         <a href="/dashboard">View more</a>
                                     <% } else { %>
-                                        <img src="images/icon/hall.png" alt="Join Now" loading="lazy">
+                                        <img src="/images/icon/hall.png" alt="Join Now" loading="lazy">
                                         <h4>Join Now</h4>
                                         <p>Start for free</p>
                                         <a href="/register">Get started</a>
@@ -502,7 +220,7 @@
                         <li>
                             <div class="wow fadeInUp hacc hacc4" data-wow-delay="0.6s">
                                 <div class="con">
-                                    <img src="images/icon/cake.png" alt="Blog & Articles" loading="lazy">
+                                    <img src="/images/icon/cake.png" alt="Blog & Articles" loading="lazy">
                                     <h4>Blog & Articles</h4>
                                     <p>Tips & stories</p>
                                     <a href="/blogs">Read now</a>
@@ -951,6 +669,15 @@
   </div>
 </section>
 
+<!-- REGIONAL LINKS: every state page with its city pages (D3.26) -->
+<% if (typeof regionalIndex !== 'undefined' && regionalIndex && regionalIndex.length) { %>
+<section class="home-regional-links">
+  <div class="container">
+    <%- include('../partials/regional-links', { heading: 'Banjara Matrimony by State and City' }) %>
+  </div>
+</section>
+<% } %>
+
 
 
 
@@ -982,14 +709,14 @@
                 <ul>
                     <li>
                         <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.1">
-                            <img src="images/icon/prize.png" alt="100% Free Verified Matrimony Profiles" loading="lazy">
+                            <img src="/images/icon/prize.png" alt="100% Free Verified Matrimony Profiles" loading="lazy">
                             <h4>100% Free & Verified Profiles</h4>
                             <p>Every profile is manually verified to ensure genuine Banjara community users with valid details - no hidden costs, completely free forever.</p>
                         </div>
                     </li>
                     <li>
                         <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.3">
-                            <img src="images/icon/trust.png" alt="India's First Free Banjara Matrimony" loading="lazy">
+                            <img src="/images/icon/trust.png" alt="India's First Free Banjara Matrimony" loading="lazy">
                             <h4>India's First Free Banjara Matrimony</h4>
                             <p>The pioneering platform exclusively for the Banjara community, built for secure and meaningful matchmaking at no cost.</p>
                         </div>
@@ -1019,8 +746,8 @@
                 <div class="col-lg-6">
                     <div class="ab-wel-lhs">
                         <span class="ab-wel-3"></span>
-                        <img src="images/about/1.jpg" alt="Banjara couple holding hands - traditional wedding journey" loading="lazy" class="ab-wel-1">
-                        <img src="images/couples/20.jpg" alt="Happy Banjara married couple from BanjaraMatch free service" loading="lazy" class="ab-wel-2">
+                        <img src="/images/about/1.jpg" alt="Banjara couple holding hands - traditional wedding journey" loading="lazy" class="ab-wel-1">
+                        <img src="/images/couples/20.jpg" alt="Happy Banjara married couple from BanjaraMatch free service" loading="lazy" class="ab-wel-2">
                         <span class="ab-wel-4"></span>
                     </div>
                 </div>
@@ -1614,7 +1341,7 @@
                         <li itemprop="step" itemscope itemtype="https://schema.org/HowToStep">
                             <div class="tline-inn">
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="images/icon/rings.png" alt="Register on Banjara Matrimony" loading="lazy">
+                                    <img src="/images/icon/rings.png" alt="Register on Banjara Matrimony" loading="lazy">
                                 </div>
                                 <div class="tline-con animate animate__fadeInUp">
                                     <h5 itemprop="name">Register</h5>
@@ -1629,14 +1356,14 @@
                                     <p itemprop="text">Explore 100% verified Banjara profiles based on community, location, and lifestyle choices.</p>
                                 </div>
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="images/icon/wedding-2.png" alt="Find Banjara Match" loading="lazy">
+                                    <img src="/images/icon/wedding-2.png" alt="Find Banjara Match" loading="lazy">
                                 </div>
                             </div>
                         </li>
                         <li itemprop="step" itemscope itemtype="https://schema.org/HowToStep">
                             <div class="tline-inn">
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="images/icon/love-birds.png" alt="Send Interest to Banjara Profiles" loading="lazy">
+                                    <img src="/images/icon/love-birds.png" alt="Send Interest to Banjara Profiles" loading="lazy">
                                 </div>
                                 <div class="tline-con animate animate__fadeInUp">
                                     <h5 itemprop="name">Send Interest</h5>
@@ -1651,14 +1378,14 @@
                                     <p itemprop="text">Access detailed family background, education, and profession of your matches for better decisions.</p>
                                 </div>
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="images/icon/network.png" alt="Profile Information Banjara Matrimony" loading="lazy">
+                                    <img src="/images/icon/network.png" alt="Profile Information Banjara Matrimony" loading="lazy">
                                 </div>
                             </div>
                         </li>
                         <li itemprop="step" itemscope itemtype="https://schema.org/HowToStep">
                             <div class="tline-inn">
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="images/icon/chat.png" alt="Start Meetups for Marriage Discussion" loading="lazy">
+                                    <img src="/images/icon/chat.png" alt="Start Meetups for Marriage Discussion" loading="lazy">
                                 </div>
                                 <div class="tline-con animate animate__fadeInUp">
                                     <h5 itemprop="name">Start Meetups</h5>
@@ -1673,7 +1400,7 @@
                                     <p itemprop="text">Celebrate your Banjara wedding with your perfect match found through our platform.</p>
                                 </div>
                                 <div class="tline-im animate animate__fadeInUp">
-                                    <img src="images/icon/wedding-couple.png" alt="Get Married through BanjaraMatch" loading="lazy">
+                                    <img src="/images/icon/wedding-couple.png" alt="Get Married through BanjaraMatch" loading="lazy">
                                 </div>
                             </div>
                         </li>
@@ -2081,15 +1808,25 @@
 
     <!-- Optional JavaScript - Optimized Loading -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script defer src="js/jquery.min.js"></script>
-    <script defer src="js/popper.min.js"></script>
-    <script defer src="js/bootstrap.min.js"></script>
-    <script defer src="js/select-opt.min.js"></script>
-    <script defer src="js/slick.min.js"></script>
-    <script defer src="js/custom.min.js"></script>
     
     <!-- Preconnect Optimization -->
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
+      // Guests: the hero search goes to /register?next=<encoded /all-profiles?...> (D5.41).
+      (function () {
+        var form = document.querySelector('form.hero-search[data-guest="1"]');
+        if (!form) return;
+        form.addEventListener('submit', function (e) {
+          var qs = new URLSearchParams();
+          ['gender', 'age', 'maritalStatus', 'city', 'state'].forEach(function (name) {
+            var el = form.elements[name];
+            if (el && el.value) qs.set(name, el.value);
+          });
+          var next = '/all-profiles' + (qs.toString() ? '?' + qs.toString() : '');
+          e.preventDefault();
+          location.href = '/register?next=' + encodeURIComponent(next);
+        });
+      })();
       // Defer non-critical resource loading
       if ('requestIdleCallback' in window) {
         requestIdleCallback(function() {
@@ -2115,8 +1852,9 @@
     </script>
 
     <!-- Dynamic City Loading for Better User Engagement -->
-        <script src="/js/esc.js"></script>
         <script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
             window.addEventListener('load', function() {
                 var loadCities = function() {
         // Fetch cities via same-origin proxy to avoid CORS issues
@@ -2138,7 +1876,6 @@
             if (citySelect) {
               // Keep the default options
               const defaultOptions = `
-                <option value="">Location</option>
                 <option value="">Any location</option>
               `;
               
@@ -2172,6 +1909,7 @@
                     setTimeout(loadCities, 1500);
                 }
       });
-    </script>
+    });
+</script>
 </body>
 </html>

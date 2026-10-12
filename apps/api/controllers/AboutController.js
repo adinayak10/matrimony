@@ -26,10 +26,27 @@ const User = require('../models/User');
 
 exports.generateAbout = async (req, res) => {
   try {
-    const { my_user_id, tone, traits = [], hobbies = [] } = req.body;
+    // Identity comes from the token (A1.2); body my_user_id is ignored.
+    const { resolveCaller } = require('../middleware/identity');
+    const my_user_id = resolveCaller(req);
+    const { tone } = req.body;
+    const traits = Array.isArray(req.body.traits) ? req.body.traits : [];
+    const hobbies = Array.isArray(req.body.hobbies) ? req.body.hobbies : [];
 
-    if (!my_user_id || !tone || traits.length === 0 || hobbies.length === 0) {
+    if (!my_user_id || typeof tone !== 'string' || traits.length === 0 || hobbies.length === 0) {
       return res.status(400).json({ status: false, message: 'Missing required fields' });
+    }
+
+    // tone/traits/hobbies must be values the admin configured (A4.5)
+    const options = await AboutOption.find().lean();
+    const allowed = { tone: new Set(), trait: new Set(), hobby: new Set() };
+    for (const o of options) if (allowed[o.category]) allowed[o.category].add(o.value);
+    const bad =
+      !allowed.tone.has(tone) ||
+      traits.some((t) => typeof t !== 'string' || !allowed.trait.has(t)) ||
+      hobbies.some((h) => typeof h !== 'string' || !allowed.hobby.has(h));
+    if (bad || traits.length > 10 || hobbies.length > 10) {
+      return res.status(400).json({ status: false, message: 'Invalid tone, traits or hobbies' });
     }
 
     const user = await User.findById(my_user_id);

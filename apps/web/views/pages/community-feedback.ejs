@@ -1,107 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title>Community Feedback & Feature Suggestions | BanjaraMatch - Your Voice Matters</title>
-    
-    <!--== META TAGS - SEO Optimized ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    
-    <!-- Primary Keywords & Description -->
-    <meta name="description" content="Share your ideas to improve BanjaraMatch. Help shape the future of Banjara matchmaking with your feedback, feature requests, and concerns.">
-    
-    <!-- Long-tail Keywords -->
-    <meta name="keywords" content="banjara matrimony feedback, banjara match suggestions, matrimony feature requests, banjara community input, improve matrimony platform, banjara matchmaking ideas, community feedback matrimony, suggest matrimony features, banjara matrimonial improvements, user suggestions banjara match, transparent matrimony platform, community driven matrimony, banjara marriage portal feedback, help improve banjara match, matrimony platform concerns, banjara community voice, feature drop suggestions, matrimony transparency, banjara tech matrimony, future of banjara matchmaking">
-    
-    <!-- Short Keywords -->
-    <meta name="keywords" content="feedback, suggestions, community input, feature request, banjara feedback, matrimony ideas, user voice, transparency, community first, improvement ideas">
-    
-    <!-- Open Graph Meta Tags for Social Sharing -->
-    <meta property="og:title" content="Community Feedback & Feature Suggestions | BanjaraMatch">
-    <meta property="og:description" content="Your voice shapes our future. Share your ideas to improve BanjaraMatch for the entire Banjara community.">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://www.banjaramatch.com/community-feedback">
-    <meta property="og:image" content="https://www.banjaramatch.com/images/community-feedback-banner.jpg">
-    <meta property="og:site_name" content="BanjaraMatch">
-    
-    <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Community Feedback & Feature Suggestions | BanjaraMatch">
-    <meta name="twitter:description" content="Help shape the future of Banjara matrimony. Share your ideas and suggestions.">
-    <meta name="twitter:image" content="https://www.banjaramatch.com/images/community-feedback-banner.jpg">
-    
-    <!-- Additional SEO Meta Tags -->
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="author" content="BanjaraMatch Team">
-    <meta name="geo.region" content="IN">
-    <meta name="geo.placename" content="India">
-    <meta name="language" content="English">
-    <meta name="revisit-after" content="7 days">
-    
-    <!-- Canonical URL -->
-    <link rel="canonical" href="https://www.banjaramatch.com/community-feedback">
-    
-    <!--== FAV ICON ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!-- Google Analytics (SEO & Traffic Tracking) -->
-    <%- include('../partials/analytics', { pageCategory: 'community-feedback' }) %>
-    
-    <!--== PERFORMANCE: Resource Hints ==-->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    
-    <!-- Structured Data / JSON-LD for SEO -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "ContactPage",
-        "name": "Community Feedback & Feature Suggestions",
-        "description": "Share your ideas and suggestions to improve BanjaraMatch matrimony platform for the Banjara community",
-        "url": "https://www.banjaramatch.com/community-feedback",
-        "mainEntity": {
-            "@type": "Organization",
-            "name": "BanjaraMatch",
-            "url": "https://www.banjaramatch.com",
-            "logo": "https://www.banjaramatch.com/images/logo-bf.png",
-            "contactPoint": {
-                "@type": "ContactPoint",
-                "contactType": "Customer Feedback",
-                "availableLanguage": ["English", "Hindi"]
-            }
-        }
-    }
-    </script>
-    
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        "itemListElement": [{
-            "@type": "ListItem",
-            "position": 1,
-            "name": "Home",
-            "item": "https://www.banjaramatch.com"
-        }, {
-            "@type": "ListItem",
-            "position": 2,
-            "name": "Community Feedback",
-            "item": "https://www.banjaramatch.com/community-feedback"
-        }]
-    }
-    </script>
+<%- include('../partials/head') %>
 </head>
 
 <body>
     <%- include('../partials/header') %>
+<%- include('../partials/breadcrumb') %>
 
     <!-- BREADCRUMB -->
     <section class="wed-hom-ser">
@@ -109,7 +14,7 @@
             <div class="row">
                 <div class="col-md-12">
                     <div class="wed-hom-ser-1">
-                        <h2>Community Feedback & Suggestions</h2>
+                        <h1>Community Feedback & Suggestions</h1>
                         <p>Your Voice Shapes Our Future - Help Us Build a Better Platform for the Banjara Community</p>
                         <nav aria-label="breadcrumb">
                             <ol class="breadcrumb">
@@ -130,7 +35,7 @@
             <div class="row mb-5">
                 <div class="col-md-12">
                     <div class="about-intro" style="text-align: center; margin-bottom: 40px;">
-                        <h1 style="color: #f6af04; font-size: 36px; margin-bottom: 20px;">We Listen, We Learn, We Evolve</h1>
+                        <h2 style="color: #f6af04; font-size: 36px; margin-bottom: 20px;">We Listen, We Learn, We Evolve</h2>
                         <p style="font-size: 18px; line-height: 1.8; color: #555; max-width: 900px; margin: 0 auto;">
                             At BanjaraMatch, we believe in the power of community. Your experiences, ideas, and concerns are the 
                             foundation of our growth. We're not just building a matrimony platform—we're creating a digital home 
@@ -285,7 +190,7 @@
                                     <p>Every suggestion is reviewed by our team. We value your input on <a href="/register" title="Registration">features</a>, <a href="/all-profiles" title="Design">design</a>, <a href="/about" title="Experience">experience</a>, or general inquiries.</p>
                                 </div>
                                 <div class="im">
-                                    <img src="images/login-couple.png" alt="Community Feedback">
+                                    <img src="/images/login-couple.png" alt="Community Feedback">
                                 </div>
                                 <div class="log-bg">&nbsp;</div>
                             </div>
@@ -298,24 +203,28 @@
                                     <div class="form-login">
                                         <form id="feedbackForm" class="cform">
                                             <div id="formMessage" class="alert" style="display: none;" role="alert"></div>
+<div class="bm-hp" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden;">
+  <label for="feedbackWebsite">Website</label>
+  <input type="text" id="feedbackWebsite" name="website" tabindex="-1" autocomplete="off" value="">
+</div>
                                             
                                             <div class="form-group">
-                                                <label class="lb">Your Name: <span style="color: red;">*</span></label>
+                                                <label class="lb" for="name">Your Name: <span style="color: red;">*</span></label>
                                                 <input type="text" id="name" class="form-control"
                                                     placeholder="Enter your full name" name="name" required>
                                             </div>
                                             <div class="form-group">
-                                                <label class="lb">Email: <span style="color: red;">*</span></label>
+                                                <label class="lb" for="email">Email: <span style="color: red;">*</span></label>
                                                 <input type="email" class="form-control" id="email"
                                                     placeholder="Enter your email" name="email" required>
                                             </div>
                                             <div class="form-group">
-                                                <label class="lb">Phone (Optional):</label>
+                                                <label class="lb" for="phone">Phone (Optional):</label>
                                                 <input type="tel" class="form-control" id="phone"
                                                     placeholder="Enter phone number" name="phone">
                                             </div>
                                             <div class="form-group">
-                                                <label class="lb">Feedback Category: <span style="color: red;">*</span></label>
+                                                <label class="lb" for="category">Feedback Category: <span style="color: red;">*</span></label>
                                                 <select class="form-control" id="category" name="category" required>
                                                     <option value="">Select a category...</option>
                                                     <option value="feature_request">💡 Feature Request / New Idea</option>
@@ -328,17 +237,17 @@
                                                 </select>
                                             </div>
                                             <div class="form-group">
-                                                <label class="lb">Subject / Title: <span style="color: red;">*</span></label>
+                                                <label class="lb" for="subject">Subject / Title: <span style="color: red;">*</span></label>
                                                 <input type="text" class="form-control" id="subject"
                                                     placeholder="Brief summary of your feedback" name="subject" required>
                                             </div>
                                             <div class="form-group">
-                                                <label class="lb">Your Message: <span style="color: red;">*</span></label>
+                                                <label class="lb" for="message">Your Message: <span style="color: red;">*</span></label>
                                                 <textarea name="message" class="form-control" id="message"
                                                     placeholder="Please share your thoughts, ideas, or concerns in detail" rows="6" required></textarea>
                                             </div>
                                             <div class="form-group form-check">
-                                                <label class="form-check-label">
+                                                <label class="form-check-label" for="followUp">
                                                     <input class="form-check-input" type="checkbox" id="followUp" name="followUp">
                                                     I would like to receive updates on the status of my feedback
                                                 </label>
@@ -398,13 +307,11 @@
     <%- include('../partials/footer') %>
 
     <!--== JAVASCRIPT FILES ==-->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/custom.min.js"></script>
-    <script src="/js/esc.js"></script>
     
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
     $(document).ready(function() {
         // Load approved contributors
         loadContributors();
@@ -420,8 +327,17 @@
             submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
             formMessage.hide();
             
+            // Honeypot (D5.42): bots fill the hidden "website" field; show success and send nothing.
+            if ($('#feedbackWebsite').val()) {
+                formMessage.removeClass('alert-danger').addClass('alert alert-success').html('<i class="fa fa-check-circle"></i> Thank you! Your feedback has been submitted successfully.').show();
+                $('#feedbackForm')[0].reset();
+                submitBtn.prop('disabled', false).html(originalBtnText);
+                return;
+            }
+
             try {
                 const formData = {
+                    website: '',
                     name: $('#name').val(),
                     email: $('#email').val(),
                     phone: $('#phone').val(),
@@ -639,6 +555,13 @@
             ).join(' ');
         }
     });
-    </script>
+    
+  window.loadContributors = loadContributors;
+  window.displayContributors = displayContributors;
+  window.loadMoreContributors = loadMoreContributors;
+  window.updateLoadMoreButton = updateLoadMoreButton;
+  window.formatCategory = formatCategory;
+});
+</script>
 </body>
 </html>

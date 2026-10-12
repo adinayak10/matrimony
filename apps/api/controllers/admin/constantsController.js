@@ -10,6 +10,20 @@ const IncomeRange = require('../../models/IncomeRange');
 const Interest = require('../../models/Interest');
 const ReportReason = require('../../models/ReportReason');
 const AboutOption = require('../../models/AboutOption');
+const User = require('../../models/User');
+const mongoose = require('mongoose');
+const { record: audit } = require('../../services/auditLog');
+
+// C4.10: references that must be 0 before a constant may be deleted
+const USAGE_COUNTERS = {
+  Caste: (id) => User.countDocuments({ $or: [{ caste: id }, { 'preferences.caste': id }] }),
+  Gotra: (id) => User.countDocuments({ $or: [{ gotra: id }, { 'family.motherGotra': id }, { 'preferences.gotra': id }] }),
+  Clan: (id) => Gotra.countDocuments({ clan: id }),
+  Profession: (id) => User.countDocuments({ $or: [{ profession: id }, { 'preferences.profession': id }] }),
+  Qualification: (id) => User.countDocuments({ $or: [{ qualification: id }, { 'preferences.qualification': id }] }),
+  IncomeRange: (id) => User.countDocuments({ $or: [{ incomeRange: id }, { 'family.incomeRange': id }] }),
+  Interest: (id) => User.countDocuments({ interests: id }),
+};
 
 // Clan/Gotra/SurnameTitle changes feed the public banjara-gotra-list page,
 // so regenerate the sitemap right away instead of waiting for the 6-hour cron.
@@ -41,8 +55,11 @@ const getAllItems = (Model, populateField) => async (req, res) => {
  */
 const createItem = (Model, notifySitemap) => async (req, res) => {
   try {
-    const item = new Model(req.body);
+    const body = { ...(req.body || {}) };
+    delete body._id;
+    const item = new Model(body);
     await item.save();
+    audit(req, 'constant.create', { type: Model.modelName, id: item._id }, { after: body });
     res.json({ status: true, message: 'Created successfully', data: item });
     if (notifySitemap) triggerSitemapRegeneration(`create ${Model.modelName}`);
   } catch (error) {
@@ -57,12 +74,16 @@ const createItem = (Model, notifySitemap) => async (req, res) => {
 const updateItem = (Model, notifySitemap) => async (req, res) => {
   try {
     const { id } = req.params;
-    const item = await Model.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Item not found' });
+    const body = { ...(req.body || {}) };
+    delete body._id;
+    const item = await Model.findByIdAndUpdate(id, { $set: body }, { new: true, runValidators: true });
 
     if (!item) {
       return res.status(404).json({ status: false, message: 'Item not found' });
     }
 
+    audit(req, 'constant.update', { type: Model.modelName, id }, { after: body });
     res.json({ status: true, message: 'Updated successfully', data: item });
     if (notifySitemap) triggerSitemapRegeneration(`update ${Model.modelName}`);
   } catch (error) {
@@ -77,12 +98,24 @@ const updateItem = (Model, notifySitemap) => async (req, res) => {
 const deleteItem = (Model, notifySitemap) => async (req, res) => {
   try {
     const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(404).json({ status: false, message: 'Item not found' });
+
+    // C4.10: refuse while members still reference it
+    const counter = USAGE_COUNTERS[Model.modelName];
+    if (counter) {
+      const inUse = await counter(id);
+      if (inUse > 0) {
+        return res.status(409).json({ status: false, code: 'IN_USE', inUse, message: `Cannot delete: in use by ${inUse} record(s)` });
+      }
+    }
+
     const item = await Model.findByIdAndDelete(id);
 
     if (!item) {
       return res.status(404).json({ status: false, message: 'Item not found' });
     }
 
+    audit(req, 'constant.delete', { type: Model.modelName, id }, { before: item.toObject ? item.toObject() : item });
     res.json({ status: true, message: 'Deleted successfully' });
     if (notifySitemap) triggerSitemapRegeneration(`delete ${Model.modelName}`);
   } catch (error) {

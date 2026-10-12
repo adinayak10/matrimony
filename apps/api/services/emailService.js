@@ -24,6 +24,9 @@ const FROM_EMAIL = process.env.SMTP_USER || 'noreply@banjaramatch.com';
 
 // ─── Generic send helper ─────────────────────────────────────────────────────
 async function sendMail({ to, subject, html, text }) {
+  // Never send real mail from the test suites (A9); the flows under test
+  // only need sendMail to resolve.
+  if (process.env.NODE_ENV === 'test') return;
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     console.warn('[emailService] SMTP_USER / SMTP_PASS not set – skipping email to:', to);
     return;
@@ -244,7 +247,13 @@ async function sendProfileVerifiedEmail(user) {
  * @param {String} bodyText - plain text fallback
  * @returns {{ sent: number, failed: number, errors: string[] }}
  */
-async function sendBroadcastEmail(users, subject, bodyHtml, bodyText) {
+const SEND_SPACING_MS = 200;
+const UNSUBSCRIBE_URL = process.env.UNSUBSCRIBE_URL || 'https://www.banjaramatch.com/user-setting';
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+}
+
+async function sendBroadcastEmail(users, subject, bodyHtml, bodyText, onProgress) {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
     throw new Error('SMTP credentials not configured. Set SMTP_USER and SMTP_PASS in .env');
   }
@@ -257,8 +266,9 @@ async function sendBroadcastEmail(users, subject, bodyHtml, bodyText) {
   for (const user of users) {
     if (!user.email) { failed++; continue; }
 
-    // Personalise the body per user
-    const personalBody = bodyHtml.replace(/\{\{name\}\}/g, user.full_name || 'there');
+    // Personalise the body per user (C4.6: full_name is HTML-escaped before substitution)
+    const safeName = escapeHtml(user.full_name || 'there');
+    const personalBody = bodyHtml.replace(/\{\{name\}\}/g, safeName);
     const html = baseWrapper(personalBody);
     const text = bodyText ? bodyText.replace(/\{\{name\}\}/g, user.full_name || 'there') : '';
 
@@ -269,12 +279,18 @@ async function sendBroadcastEmail(users, subject, bodyHtml, bodyText) {
         subject,
         html,
         text,
+        headers: {
+          'List-Unsubscribe': `<mailto:${FROM_EMAIL}?subject=unsubscribe>, <${UNSUBSCRIBE_URL}>`,
+        },
       });
       sent++;
+      if (typeof onProgress === 'function') onProgress({ sent, failed });
+      await new Promise((r) => setTimeout(r, SEND_SPACING_MS));
     } catch (err) {
       failed++;
       errors.push(`${user.email}: ${err.message}`);
       console.error(`[emailService] Broadcast failed for ${user.email}:`, err.message);
+      if (typeof onProgress === 'function') onProgress({ sent, failed });
     }
   }
 
@@ -282,8 +298,42 @@ async function sendBroadcastEmail(users, subject, bodyHtml, bodyText) {
   return { sent, failed, errors };
 }
 
+// ─── 7. Child-safety alert (D16 / community-feedback category child_safety) ───
+const SAFETY_ALERT_EMAIL = process.env.SAFETY_ALERT_EMAIL || process.env.SUPPORT_EMAIL || 'info@banjaramatch.com';
+
+/**
+ * Immediate alert to the safety contact. Never throws (the report is already
+ * stored); the caller logs the outcome.
+ */
+async function sendChildSafetyAlert(feedback) {
+  const id = feedback && feedback._id ? String(feedback._id) : 'unknown';
+  const subject = `[URGENT] Child safety report ${id}`;
+  const html = baseWrapper(`
+    <h2 style="color:#b00020;margin:0 0 12px">Child safety report received</h2>
+    <p>A community-feedback submission with category <strong>child_safety</strong> was stored and needs immediate review.</p>
+    <table cellpadding="6" style="border-collapse:collapse">
+      <tr><td><strong>Report ID</strong></td><td>${escapeHtml(id)}</td></tr>
+      <tr><td><strong>Reporter</strong></td><td>${escapeHtml(feedback.name || '')} &lt;${escapeHtml(feedback.email || '')}&gt;</td></tr>
+      <tr><td><strong>Phone</strong></td><td>${escapeHtml(feedback.phone || '-')}</td></tr>
+      <tr><td><strong>Subject</strong></td><td>${escapeHtml(feedback.subject || '')}</td></tr>
+      <tr><td><strong>Received</strong></td><td>${escapeHtml(String(feedback.createdAt || new Date().toISOString()))}</td></tr>
+    </table>
+    <p style="margin-top:12px"><strong>Message</strong></p>
+    <p style="white-space:pre-wrap">${escapeHtml(feedback.message || '')}</p>
+    <p style="margin-top:16px">Open the admin inbox: <a href="https://admin.banjaramatch.com/community-feedback">admin.banjaramatch.com/community-feedback</a></p>
+  `);
+  const text = `Child safety report ${id}\nReporter: ${feedback.name || ''} <${feedback.email || ''}>\nSubject: ${feedback.subject || ''}\n\n${feedback.message || ''}`;
+  try {
+    return await sendMail({ to: SAFETY_ALERT_EMAIL, subject, html, text });
+  } catch (err) {
+    console.error('[emailService] child safety alert failed:', err.message);
+    return false;
+  }
+}
+
 module.exports = {
   sendMail,
+  sendChildSafetyAlert,
   sendInterestRequestEmail,
   sendInterestAcceptedEmail,
   sendProfileViewEmail,

@@ -57,7 +57,10 @@ function defineSuite() {
   });
 
   test('user routes accept a valid token (never 401/403 on identity)', async () => {
-    const routes = routesOf(userRoutes).filter((r) => !r.path.includes(':'));
+    // /deleteUser is self-only (A6.12): calling it with the probe token would
+    // delete the probe user and turn every later route into 401. It is
+    // covered by idor.test.js instead.
+    const routes = routesOf(userRoutes).filter((r) => !r.path.includes(':') && r.path !== '/deleteUser');
     for (const r of routes) {
       const res = await harness.request()[r.method](`/api${r.path}`).set(factory.bearer(token)).send({});
       assert.notEqual(res.status, 401, `${r.method.toUpperCase()} ${r.path} with token -> ${res.status}`);

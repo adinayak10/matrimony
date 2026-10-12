@@ -1,68 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <%
-      const blogPageDescription = category
-        ? `${category} articles, tips and stories for the Banjara community — read the latest ${category.toLowerCase()} posts on BanjaraMatch.`
-        : 'Read the latest articles, tips, and stories about Banjara marriages, relationships, traditions, and community events on BanjaraMatch blog.';
-    %>
-    <title><%= title %></title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="<%= blogPageDescription %>">
-    <meta name="keywords" content="banjara matrimony blog, marriage tips, wedding articles, banjara culture<%= category ? ', ' + category.toLowerCase() : '' %>">
-    <% if (category) { %>
-    <link rel="canonical" href="https://www.banjaramatch.com/blogs/<%= category.toLowerCase() %>">
-    <% } else { %>
-    <link rel="canonical" href="https://www.banjaramatch.com/blogs">
-    <% } %>
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="<%= title %>">
-    <meta property="og:description" content="<%= blogPageDescription %>">
-    <meta property="og:url" content="https://www.banjaramatch.com/blogs<%= category ? '/' + category.toLowerCase() : '' %>">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://www.banjaramatch.com/images/banjaramatch-preview.jpg">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<%= title %>">
-    <meta name="twitter:description" content="<%= blogPageDescription %>">
-    <meta name="twitter:image" content="https://www.banjaramatch.com/images/banjaramatch-preview.jpg">
-    
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!-- Google Analytics (SEO & Traffic Tracking) -->
-    <%- include('../partials/analytics', { pageCategory: 'blog' }) %>
-    
-    <!-- Structured Data: WebPage -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      "name": <%- JSON.stringify(title) %>,
-      "description": <%- JSON.stringify(blogPageDescription) %>,
-      "publisher": {
-        "@type": "Organization",
-        "name": "BanjaraMatch",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://www.banjaramatch.com/images/logo-bf.png"
-        }
-      }
-    }
-    </script>
-    
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    <style>
+<%- include('../partials/head') %>
+<style>
         /* Active category styling */
         .blog-rhs-cate ul li.active a {
             background: #f6af04;
@@ -301,10 +241,7 @@
 
 
 <!-- JavaScript -->
-<script defer src="/js/jquery.min.js"></script>
-<script defer src="/js/popper.min.js"></script>
-<script defer src="/js/bootstrap.min.js"></script>
-<script defer src="/js/custom.min.js"></script>
+<%- include('../partials/scripts') %>
 </body>
 </html>
 

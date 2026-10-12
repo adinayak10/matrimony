@@ -1,23 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'Chat - Banjara Match' %></title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Chat with your connections">
-    <meta name="keyword" content="matrimony, chat, messages">
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    
-    <style>
+<%- include('../partials/head') %>
+<style>
         .chat-window {
             display: none;
             position: fixed;
@@ -30,6 +15,10 @@
             background: #fff;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
             z-index: 1000;
+        }
+        @media (max-width: 575.98px) {
+            /* Full-screen chat on phones (D5.45) */
+            .chat-window { right: 0; left: 0; bottom: 0; width: 100%; height: 100vh; height: 100dvh; border-radius: 0; border: 0; }
         }
         .chat-window.active {
             display: flex;
@@ -367,18 +356,12 @@
     <!-- END -->
 
     <!-- Optional JavaScript -->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
-    <script src="/js/esc.js"></script>
 
-    <script>
-const API_BASE_URL = 'https://api.banjaramatch.com/api';
-const SOCKET_URL = 'https://api.banjaramatch.com';
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
+const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
 const MY_USER_ID = '<%= user?._id %>';
 
 let socket = null;
@@ -386,12 +369,6 @@ let currentChatRoom = null;
 let currentChatUser = null;
 let typingTimeout = null;
 
-// Helper function to get auth token
-function getAuthToken() {
-    return document.cookie.split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1];
-}
 
 // Format time
 function formatTime(dateString) {
@@ -421,8 +398,10 @@ function formatDate(dateString) {
 
 // Initialize Socket.IO
 function initializeSocket() {
-    socket = io(SOCKET_URL, {
-        auth: { token: getAuthToken() },
+    // Same-origin: nginx proxies /socket.io/ to the API so the httpOnly session
+    // cookie rides the handshake (integrator conflict #2).
+    socket = io('/', {
+        path: '/socket.io',
         transports: ['websocket', 'polling']
     });
 
@@ -525,10 +504,10 @@ function initializeSocket() {
 async function loadChatRooms() {
     try {
         const response = await fetch(`${API_BASE_URL}/fetchUserRooms`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID
@@ -636,10 +615,10 @@ async function openChat(roomId, userId) {
         
         // Fetch user details
         const userResponse = await fetch(`${API_BASE_URL}/fetchProfile`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({ user_id: userId })
         });
@@ -649,10 +628,10 @@ async function openChat(roomId, userId) {
         
         // Fetch messages
         const messagesResponse = await fetch(`${API_BASE_URL}/fetchMessages`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 roomId: roomId,
@@ -840,10 +819,10 @@ $(document).ready(function() {
 async function loadOnlineUsers() {
     try {
         const response = await fetch(`${API_BASE_URL}/fetchUsersList`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -1001,8 +980,9 @@ async function joinAgoraChannel() {
     if (!activeCall) return;
     try {
         const res = await fetch(`${API_BASE_URL}/calls/token`, {
+            credentials: 'same-origin',
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: activeCall.otherUser._id, channelName: activeCall.channelName })
         });
         const data = await res.json();
@@ -1085,6 +1065,39 @@ function showEmojiPicker() {
     $('#messageInput').val(currentText + emoji);
     $('#messageInput').focus();
 }
-    </script>
+    
+  window.formatTime = formatTime;
+  window.formatDate = formatDate;
+  window.initializeSocket = initializeSocket;
+  window.loadChatRooms = loadChatRooms;
+  window.renderChatRooms = renderChatRooms;
+  window.updateChatRoomPreview = updateChatRoomPreview;
+  window.openChat = openChat;
+  window.renderMessages = renderMessages;
+  window.appendMessage = appendMessage;
+  window.sendMessage = sendMessage;
+  window.handleMessageKeyPress = handleMessageKeyPress;
+  window.closeChatWindow = closeChatWindow;
+  window.scrollToBottom = scrollToBottom;
+  window.playNotificationSound = playNotificationSound;
+  window.loadOnlineUsers = loadOnlineUsers;
+  window.renderOnlineUsers = renderOnlineUsers;
+  window.isWithinLast24Hours = isWithinLast24Hours;
+  window.viewChatUserProfile = viewChatUserProfile;
+  window.avatarUrl = avatarUrl;
+  window.startCall = startCall;
+  window.startVoiceCall = startVoiceCall;
+  window.startVideoCall = startVideoCall;
+  window.handleIncomingCall = handleIncomingCall;
+  window.acceptIncomingCall = acceptIncomingCall;
+  window.rejectIncomingCall = rejectIncomingCall;
+  window.handleCallAccepted = handleCallAccepted;
+  window.joinAgoraChannel = joinAgoraChannel;
+  window.endCall = endCall;
+  window.endCallCleanup = endCallCleanup;
+  window.resetCallUI = resetCallUI;
+  window.showEmojiPicker = showEmojiPicker;
+});
+</script>
 </body>
 </html>

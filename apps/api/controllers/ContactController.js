@@ -1,14 +1,22 @@
 const Contact = require('../models/Contact');
+const { sanitizeText } = require('../services/sanitize');
+
+const STATUS_OK = 201;
+const HONEY_OK = { success: true, message: 'Thank you! Your enquiry has been submitted successfully. We will contact you soon.', data: {} };
 
 /**
  * Submit contact form
  */
 exports.submitContact = async (req, res) => {
   try {
-    const { name, email, phone, message, source } = req.body;
+    const { name, email, phone, message, source } = req.body || {};
+    // D42 honeypot: bots fill the hidden `website` field; answer 200 and store nothing
+    if (typeof req.body.website === 'string' && req.body.website.trim() !== '') {
+      return res.status(STATUS_OK).json(HONEY_OK);
+    }
 
     // Validation
-    if (!name || !email || !phone || !message) {
+    if (typeof name !== 'string' || typeof email !== 'string' || typeof phone !== 'string' || typeof message !== 'string' || !name || !email || !phone || !message) {
       return res.status(400).json({
         success: false,
         message: 'All fields are required'
@@ -39,11 +47,11 @@ exports.submitContact = async (req, res) => {
 
     // Create contact
     const contact = new Contact({
-      name: name.trim(),
-      email: email.trim().toLowerCase(),
+      name: sanitizeText(name, 100),
+      email: email.trim().toLowerCase().slice(0, 254),
       phone: phone.replace(/\D/g, ''),
-      message: message.trim(),
-      source: source || 'website',
+      message: sanitizeText(message, 5000),
+      source: typeof source === 'string' ? source.slice(0, 40) : 'website',
       ipAddress,
       userAgent
     });

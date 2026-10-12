@@ -1,90 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="<%= site.lang %>">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= blog ? (blog.metaTitle || blog.title) : 'Blog Post' %> - BanjaraMatch</title>
-    
-    <!-- SEO Meta Tags -->
-    <% if (blog) { %>
-    <meta name="description" content="<%= blog.metaDescription || blog.description %>">
-    <% if (blog.metaKeywords && blog.metaKeywords.length > 0) { %>
-    <meta name="keywords" content="<%= blog.metaKeywords.join(', ') %>">
-    <% } %>
-    <link rel="canonical" href="https://www.banjaramatch.com/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>">
-
-    <!-- Open Graph -->
-    <meta property="og:title" content="<%= blog.title %>">
-    <meta property="og:description" content="<%= blog.description %>">
-    <meta property="og:image" content="https://www.banjaramatch.com/<%= blog.featuredImage %>">
-    <meta property="og:url" content="https://www.banjaramatch.com/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>">
-    <meta property="og:type" content="article">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<%= blog.title %>">
-    <meta name="twitter:description" content="<%= blog.description %>">
-    <meta name="twitter:image" content="https://www.banjaramatch.com/<%= blog.featuredImage %>">
-
-    <!-- Structured Data: BlogPosting -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BlogPosting",
-      "headline": <%- JSON.stringify(blog.title) %>,
-      "description": <%- JSON.stringify(blog.metaDescription || blog.description) %>,
-      "image": "https://www.banjaramatch.com/<%= blog.featuredImage %>",
-      "datePublished": "<%= new Date(blog.publishedAt || blog.createdAt).toISOString() %>",
-      "dateModified": "<%= new Date(blog.updatedAt || blog.publishedAt || blog.createdAt).toISOString() %>",
-      "author": {
-        "@type": "Organization",
-        "name": <%- JSON.stringify(blog.author && blog.author.name ? blog.author.name : 'BanjaraMatch Team') %>
-      },
-      "publisher": {
-        "@type": "Organization",
-        "name": "BanjaraMatch",
-        "logo": {
-          "@type": "ImageObject",
-          "url": "https://www.banjaramatch.com/images/logo-bf.png"
-        }
-      },
-      "mainEntityOfPage": {
-        "@type": "WebPage",
-        "@id": "https://www.banjaramatch.com/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>"
-      },
-      "articleSection": <%- JSON.stringify(blog.category) %>,
-      "keywords": <%- JSON.stringify((blog.metaKeywords && blog.metaKeywords.length ? blog.metaKeywords : blog.tags) || []) %>
-    }
-    </script>
-    <% } %>
-    
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!-- Google Analytics (SEO & Traffic Tracking) -->
-    <%- include('../partials/analytics', { pageCategory: 'blog_post' }) %>
-    
-    <!--== PERFORMANCE: Resource Hints ==-->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://www.googletagmanager.com">
-    
-    <!--== CSS FILES - Optimized Loading ==-->
-    <link rel="preload" href="/css/style.min.css" as="style">
-    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/style.min.css">
-    <noscript>
-      <link rel="stylesheet" href="/css/bootstrap.css">
-      <link rel="stylesheet" href="/css/font-awesome.min.css">
-      <link rel="stylesheet" href="/css/animate.min.css">
-    </noscript>
+<%- include('../partials/head') %>
 </head>
 <body>
 
 <%- include('../partials/header') %>
+<%- include('../partials/breadcrumb') %>
 
 
 <% if (blog) { %>
@@ -139,7 +61,7 @@
                                 
                                 <!-- Blog Content -->
                                 <div class="blog-content-section">
-                                    <%- blog.content %>
+                                    <%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ blog.content %>
                                 </div>
 
                                 <div class="blog-info">
@@ -246,11 +168,8 @@
 
 
 <!-- JavaScript Files -->
-<script src="/js/jquery.min.js"></script>
-<script src="/js/popper.min.js"></script>
-<script src="/js/bootstrap.min.js"></script>
-<script src="/js/custom.min.js"></script>
 
+<%- include('../partials/scripts') %>
 <script>
 function copyBlogLink() {
     const url = window.location.href;

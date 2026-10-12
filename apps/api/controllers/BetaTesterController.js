@@ -1,14 +1,21 @@
 const BetaTester = require('../models/BetaTester');
 
+const STATUS_OK = 201;
+const HONEY_OK = { success: true, message: 'Thank you for applying! We will contact you within 24 hours via email.', data: {} };
+
 /**
  * Submit beta tester application
  */
 exports.submitApplication = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email } = req.body || {};
+    // D42 honeypot: bots fill the hidden `website` field; answer 200 and store nothing
+    if (typeof req.body.website === 'string' && req.body.website.trim() !== '') {
+      return res.status(STATUS_OK).json(HONEY_OK);
+    }
 
     // Validation - only email required
-    if (!email) {
+    if (typeof email !== 'string' || !email.trim()) {
       return res.status(400).json({
         success: false,
         message: 'Email is required'

@@ -1,21 +1,7 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'Interests - Banjara Match' %></title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Manage your interest requests">
-    <meta name="keyword" content="matrimony, interests, requests">
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
+<%- include('../partials/head') %>
 </head>
 
 <body>
@@ -144,23 +130,14 @@
     <!-- END -->
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
-    <script src="/js/esc.js"></script>
     
-    <script>
-const API_BASE_URL = 'https://api.banjaramatch.com/api';
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
+const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
 const MY_USER_ID = '<%= user?._id %>';
 
-// Helper function to get auth token
-function getAuthToken() {
-    return document.cookie.split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1];
-}
 
 // Format date
 function formatDate(dateString) {
@@ -274,10 +251,10 @@ async function loadInterestRequests() {
     try {
         // Fetch received requests
         const receivedResponse = await fetch(`${API_BASE_URL}/getInterestList`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -292,10 +269,10 @@ async function loadInterestRequests() {
         
         // Fetch sent requests
         const sentResponse = await fetch(`${API_BASE_URL}/getInterestList`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -310,10 +287,10 @@ async function loadInterestRequests() {
         
         // Fetch accepted requests
         const acceptedResponse = await fetch(`${API_BASE_URL}/getInterestList`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -388,10 +365,10 @@ $(document).on('click', '.accept-btn', async function() {
     
     try {
         const response = await fetch(`${API_BASE_URL}/acceptInterestRequest`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -427,10 +404,10 @@ $(document).on('click', '.reject-btn', async function() {
     
     try {
         const response = await fetch(`${API_BASE_URL}/rejectInterestRequest`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -466,10 +443,10 @@ $(document).on('click', '.cancel-btn', async function() {
     
     try {
         const response = await fetch(`${API_BASE_URL}/cancelInterestRequest`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -505,10 +482,10 @@ $(document).on('click', '.remove-btn', async function() {
     
     try {
         const response = await fetch(`${API_BASE_URL}/removeConnection`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -543,6 +520,13 @@ $(document).ready(function() {
         }
     });
 });
-    </script>
+    
+  window.formatDate = formatDate;
+  window.calculateAge = calculateAge;
+  window.getMembershipBadge = getMembershipBadge;
+  window.renderRequestItem = renderRequestItem;
+  window.loadInterestRequests = loadInterestRequests;
+});
+</script>
 </body>
 </html>

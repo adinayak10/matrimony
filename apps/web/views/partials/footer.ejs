@@ -73,21 +73,10 @@
                 </div>
             </div>
             
-            <!-- Regional Pages -->
-            <div class="row" style="margin-top: 10px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.15);">
-                <div class="col-md-12" style="text-align: center;">
-                    <h5 style="font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 12px; font-weight: 600;">Banjara Matrimony by State</h5>
-                    <p style="font-size: 13px;">
-                        <a href="/banjara-matrimony-telangana" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Telangana</a> |
-                        <a href="/banjara-matrimony-andhra-pradesh" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Andhra Pradesh</a> |
-                        <a href="/banjara-matrimony-maharashtra" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Maharashtra</a> |
-                        <a href="/banjara-matrimony-karnataka" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Karnataka</a> |
-                        <a href="/banjara-matrimony-rajasthan" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Rajasthan</a> |
-                        <a href="/banjara-matrimony-gujarat" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Gujarat</a> |
-                        <a href="/banjara-matrimony-madhya-pradesh" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Madhya Pradesh</a> |
-                        <a href="/banjara-matrimony-delhi" style="color: rgba(255,255,255,0.75); margin: 0 8px;">Delhi NCR</a> |
-                        <a href="/sitemap" style="color: #f6af04; margin: 0 8px;">View All →</a>
-                    </p>
+            <!-- Regional Pages: every state page with its cities (middleware/regionalIndex.js, D3.26) -->
+            <div class="row">
+                <div class="col-md-12">
+                    <%- include('../partials/regional-links', { heading: 'Banjara Matrimony by State' }) %>
                 </div>
             </div>
 

@@ -1,80 +1,43 @@
-<!-- BREADCRUMB NAVIGATION (SEO & UX) -->
-<% 
-// Breadcrumb configuration based on page type
-const breadcrumbs = locals.breadcrumbs || [];
-const showBreadcrumbs = breadcrumbs && breadcrumbs.length > 0;
+<%#
+  Breadcrumb trail + BreadcrumbList JSON-LD (D3.25). Include with
+  `breadcrumbs: [{ name, url }, ...]` from the route; Home is prepended here,
+  so a route (or the regional API's page.breadcrumbs) that already starts with
+  Home is not listed twice. Renders nothing without crumbs. The JSON-LD is the
+  only BreadcrumbList on a page: templates carry no copies of their own.
+  Styles live in public/css/style.css (.breadcrumb-section).
 %>
-
-<% if (showBreadcrumbs) { %>
-<section class="breadcrumb-section" style="background: #f8f9fa; padding: 15px 0; border-bottom: 1px solid #e9ecef;">
+<%
+  const _given = Array.isArray(locals.breadcrumbs) ? locals.breadcrumbs.filter((c) => c && c.name) : [];
+  const _crumbs = _given.length && _given[0].url === '/' ? _given.slice(1) : _given;
+  const _siteUrl = (typeof site !== 'undefined' && site && site.url) || 'https://www.banjaramatch.com';
+  const _absUrl = (u) => (!u ? '' : /^https?:\/\//i.test(u) ? u : _siteUrl + (String(u).startsWith('/') ? u : '/' + u));
+%>
+<% if (_crumbs.length) { %>
+<section class="breadcrumb-section">
   <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb" style="background: transparent; margin-bottom: 0; padding: 0; font-size: 14px;" itemscope itemtype="https://schema.org/BreadcrumbList">
-            <li class="breadcrumb-item" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
-              <a href="/" itemprop="item" style="color: #667eea; text-decoration: none;">
-                <i class="fa fa-home" aria-hidden="true"></i>
-                <span itemprop="name">Home</span>
-              </a>
-              <meta itemprop="position" content="1" />
-            </li>
-            
-            <% breadcrumbs.forEach((crumb, index) => { %>
-              <li class="breadcrumb-item <%= index === breadcrumbs.length - 1 ? 'active' : '' %>" 
-                  itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"
-                  <%= index === breadcrumbs.length - 1 ? 'aria-current="page"' : '' %>>
-                <% if (index === breadcrumbs.length - 1) { %>
-                  <span itemprop="name" style="color: #6c757d;"><%= crumb.name %></span>
-                <% } else { %>
-                  <a href="<%= crumb.url %>" itemprop="item" style="color: #667eea; text-decoration: none;">
-                    <span itemprop="name"><%= crumb.name %></span>
-                  </a>
-                <% } %>
-                <meta itemprop="position" content="<%= index + 2 %>" />
-              </li>
-            <% }) %>
-          </ol>
-        </nav>
-      </div>
-    </div>
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/"><i class="fa fa-home" aria-hidden="true"></i> Home</a></li>
+        <% _crumbs.forEach((crumb, index) => { const last = index === _crumbs.length - 1; %>
+        <li class="breadcrumb-item<%= last ? ' active' : '' %>"<% if (last) { %> aria-current="page"<% } %>>
+          <% if (last || !crumb.url) { %><span><%= crumb.name %></span><% } else { %><a href="<%= crumb.url %>"><%= crumb.name %></a><% } %>
+        </li>
+        <% }); %>
+      </ol>
+    </nav>
   </div>
 </section>
-
-<!-- Schema.org BreadcrumbList JSON-LD -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position": 1,
-      "name": "Home",
-      "item": "https://www.banjaramatch.com/"
-    }<% breadcrumbs.forEach((crumb, index) => { %>,
-    {
-      "@type": "ListItem",
-      "position": <%= index + 2 %>,
-      "name": "<%= crumb.name %>",
-      "item": "https://www.banjaramatch.com<%= crumb.url %>"
-    }<% }) %>
-  ]
-}
-</script>
+<%- jsonLd({
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: _siteUrl + '/' },
+    ..._crumbs.map((crumb, index) => ({
+      '@type': 'ListItem',
+      position: index + 2,
+      name: crumb.name,
+      ...(crumb.url ? { item: _absUrl(crumb.url) } : {}),
+    })),
+  ],
+}) %>
 <% } %>
-
-<style>
-.breadcrumb-item + .breadcrumb-item::before {
-  content: "›";
-  color: #999;
-  padding: 0 8px;
-}
-.breadcrumb-item a:hover {
-  color: #f6af04 !important;
-  text-decoration: underline;
-}
-.breadcrumb-item.active {
-  color: #6c757d;
-}
-</style>

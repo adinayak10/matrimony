@@ -1,24 +1,7 @@
 <!doctype html>
-<html lang="en">
-
-
+<html lang="<%= site.lang %>">
 <head>
-    <title>404 - Page Not Found | BanjaraMatch</title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="The page you are looking for could not be found. Return to BanjaraMatch homepage to find your perfect Banjara match.">
-    <meta name="robots" content="noindex, nofollow">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
+<%- include('../partials/head') %>
 </head>
 
 <body>
@@ -52,11 +35,16 @@
     <!-- END -->
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
+
+
+
+
+
+<%- include('../partials/scripts') %>
+    <script>
+      // Analytics is loaded by partials/head.ejs; record the missing URL (D5.45).
+      if (typeof window.trackError === 'function') window.trackError('404', location.pathname);
+    </script>
 </body>
 
 

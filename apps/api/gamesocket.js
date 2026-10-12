@@ -1,5 +1,20 @@
 // icebreaker.js - Ice Breaker Game Module
+//
+// A5.5: identity comes from socket.userId (never data.userId); the queue
+// only pairs opposite genders that are not blocked either way and not
+// banned; the partner is shown as an alias until identities are revealed.
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
+const blocks = require('./services/blocks');
+const { oppositeGender } = require('./services/matchQuery');
+
+const ALIAS_ADJECTIVES = ['Curious', 'Gentle', 'Bright', 'Calm', 'Witty', 'Kind', 'Brave', 'Cheerful', 'Quiet', 'Sunny'];
+const ALIAS_NOUNS = ['Peacock', 'Lotus', 'Falcon', 'Banyan', 'River', 'Comet', 'Marigold', 'Tiger', 'Sparrow', 'Monsoon'];
+function makeAlias() {
+  const a = ALIAS_ADJECTIVES[crypto.randomInt(ALIAS_ADJECTIVES.length)];
+  const n = ALIAS_NOUNS[crypto.randomInt(ALIAS_NOUNS.length)];
+  return `${a} ${n} ${crypto.randomInt(10, 99)}`;
+}
 
 // In-memory storage (consider moving to Redis for production)
 const icebreakerQueue = [];
@@ -346,34 +361,41 @@ class IceBreakerGame {
     const player = this.players[playerId];
     if (!player) return null;
 
+    if (!includePrivate) {
+      // Alias only (A5.5): nothing that identifies the member before reveal
+      return { alias: player.alias, revealed: false };
+    }
+
     return {
       id: playerId,
+      alias: player.alias,
+      revealed: true,
       name: player.name || player.full_name || 'Anonymous User',
-      age: player.age || 25,
+      age: player.age || null,
       city: player.city || player.location?.city?.name || 'Unknown',
-      profile: player.profile || 'https://via.placeholder.com/150'
+      profile: player.profile || null
     };
   }
 }
 
-// Matchmaking function
-function findIcebreakerMatch(newPlayer) {
+// Matchmaking (A5.5): opposite gender, not blocked either way, not banned.
+async function findIcebreakerMatch(newPlayer) {
+  const wanted = oppositeGender(newPlayer.gender);
+  if (!wanted) return null;
   for (let i = 0; i < icebreakerQueue.length; i++) {
     const waitingPlayer = icebreakerQueue[i];
-    
-    // Check if players are not the same person
+
     if (waitingPlayer.userId === newPlayer.userId) continue;
+    if (waitingPlayer.gender !== wanted) continue;
+    if (waitingPlayer.is_block === 1) continue;
+    // eslint-disable-next-line no-await-in-loop
+    if (await blocks.isBlockedEither(newPlayer.userId, waitingPlayer.userId)) continue;
 
-    // // Basic matching criteria
-    // const cityMatch = !newPlayer.preferences?.city || 
-    //                  !waitingPlayer.preferences?.city || 
-    //                  newPlayer.preferences.city === waitingPlayer.preferences.city;
-
-    { // every queued player is a candidate (preference matching was never implemented)
-      // Remove matched player from queue
-      icebreakerQueue.splice(i, 1);
-      return waitingPlayer;
-    }
+    // the queue may have changed while awaiting: re-locate before splicing
+    const idx = icebreakerQueue.indexOf(waitingPlayer);
+    if (idx === -1) continue;
+    icebreakerQueue.splice(idx, 1);
+    return waitingPlayer;
   }
   return null;
 }
@@ -440,9 +462,11 @@ function endIcebreakerGame(game, io, onlineUsers) {
       const otherPlayerId = game.getOtherPlayerId(playerId);
       let partnerInfo = null;
       
-      // If both players revealed or match score is very high, show partner info
-      if (canReveal && (game.players[otherPlayerId].hasRevealed || matchScore >= 80)) {
+      // Identity only when the partner chose to reveal; otherwise the alias
+      if (canReveal && game.players[otherPlayerId].hasRevealed) {
         partnerInfo = game.getPlayerInfo(otherPlayerId, true);
+      } else {
+        partnerInfo = game.getPlayerInfo(otherPlayerId, false);
       }
 
       io.to(playerSocketId).emit('game_results', {
@@ -470,27 +494,41 @@ function setupIcebreakerSocket(socket, io, onlineUsers, User) {
   // Join ice breaker game queue
   socket.on('join_icebreaker_queue', async (data) => {
     try {
-      console.log('🎮 Player joining ice breaker queue:', data);
-      
-      const user = await User.findById(data.userId);
-      if (!user) {
-        socket.emit('error', { message: 'User not found' });
+      const userId = socket.userId; // identity from the handshake / legacy join only
+      if (!userId) {
+        socket.emit('error', { message: 'Please sign in to play' });
         return;
       }
 
+      const user = await User.findById(userId).select('full_name dob gender is_block profile location').populate('location.city', 'name').lean();
+      if (!user || user.is_block === 1) {
+        socket.emit('error', { message: 'User not found' });
+        return;
+      }
+      if (!oppositeGender(user.gender)) {
+        socket.emit('error', { message: 'Set your gender to play the ice breaker game' });
+        return;
+      }
+      // one queue entry per user
+      const already = icebreakerQueue.findIndex((p) => p.userId === userId);
+      if (already !== -1) icebreakerQueue.splice(already, 1);
+
       const player = {
-        userId: data.userId,
+        userId,
         socketId: socket.id,
-        preferences: data.preferences || {},
+        preferences: (data && data.preferences) || {},
         name: user.full_name,
-        age: user.age,
+        age: user.dob ? Math.floor((Date.now() - new Date(user.dob).getTime()) / (365.25 * 24 * 3600 * 1000)) : null,
+        gender: user.gender,
+        is_block: user.is_block,
         city: user.location?.city?.name,
         profile: user.profile,
+        alias: makeAlias(),
         joinedAt: new Date()
       };
 
       // Try to find a match
-      const matchedPlayer = findIcebreakerMatch(player);
+      const matchedPlayer = await findIcebreakerMatch(player);
 
       if (matchedPlayer) {
         // Create new game
@@ -502,16 +540,16 @@ function setupIcebreakerSocket(socket, io, onlineUsers, User) {
         const player2SocketId = onlineUsers.get(matchedPlayer.userId);
 
         if (player1SocketId && player2SocketId) {
-          // Send game found event
+          // Send game found event — alias instead of partnerId until reveal (A5.5)
           io.to(player1SocketId).emit('game_found', {
             gameId: game.id,
-            partnerId: matchedPlayer.userId,
+            partner: { alias: matchedPlayer.alias },
             questions: game.questions
           });
 
           io.to(player2SocketId).emit('game_found', {
             gameId: game.id,
-            partnerId: player.userId,
+            partner: { alias: player.alias },
             questions: game.questions
           });
 
@@ -539,6 +577,7 @@ function setupIcebreakerSocket(socket, io, onlineUsers, User) {
         icebreakerQueue.push(player);
         socket.emit('queue_joined', {
           position: icebreakerQueue.length,
+          alias: player.alias,
           message: 'Looking for a match...'
         });
       }
@@ -600,6 +639,11 @@ function setupIcebreakerSocket(socket, io, onlineUsers, User) {
 
       const playerId = socket.userId;
       if (!playerId || !game.players[playerId]) return;
+      // Reveal only after the game ended with a qualifying score
+      if (game.state !== 'completed' || !game.canRevealIdentity(game.calculateMatchScore())) {
+        socket.emit('error', { message: 'Identity can be revealed only after a 60%+ match' });
+        return;
+      }
 
       // Mark player as revealed
       game.players[playerId].hasRevealed = true;

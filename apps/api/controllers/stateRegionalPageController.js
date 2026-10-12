@@ -6,6 +6,21 @@ const User = require('../models/User');
 const Profession = require('../models/Profession');
 const Gotra = require('../models/Gotra');
 const { triggerSitemapRegeneration } = require('../services/sitemapService');
+const regionalStats = require('../services/regionalStats');
+const { sanitizeDeep, contentWords } = require('../services/sanitize');
+const { record: audit } = require('../services/auditLog');
+// Fields the admin edits as HTML/text: sanitised on every write (D, Track A)
+const CMS_FIELDS = ['metaTitle', 'metaDescription', 'metaKeywords', 'heroSection', 'introSection', 'aboutSection', 'statsSection',
+  'whyChooseSection', 'successStoriesSection', 'howItWorksSection', 'localitiesSection', 'citiesSection', 'faqSection', 'ctaSection',
+  'topCities', 'communityInsights', 'culturalSection', 'featuredMembers', 'bannerImages', 'customContentBlocks', 'stateInfo',
+  'introContent', 'aboutContent', 'faqs', 'heritageSection'];
+function sanitizeCmsBody(body) {
+  const out = { ...body };
+  for (const f of CMS_FIELDS) if (out[f] !== undefined) out[f] = sanitizeDeep(out[f]);
+  // server-owned fields are never taken from the body
+  delete out.stats; delete out.views; delete out.createdBy; delete out.updatedBy; delete out._id;
+  return out;
+}
 const { 
   generateStatePrefillTemplate, 
   processObjectPlaceholders, 
@@ -134,12 +149,12 @@ exports.createStatePage = async (req, res) => {
 
     const stats = await calculateStateStats(stateId, state.name);
 
-    // Ensure all nested objects are properly included
+    // Ensure all nested objects are properly included (CMS HTML sanitised on write)
     const statePage = new StateRegionalPage({
+      ...sanitizeCmsBody(pageData),
       state: stateId,
       stats,
-      ...pageData,
-      createdBy: req.user?._id
+      createdBy: req.userId
     });
 
     console.log('💾 Saving state page with stateInfo:', statePage.stateInfo ? 'Present' : 'Missing');
@@ -151,6 +166,7 @@ exports.createStatePage = async (req, res) => {
     if (statePage.isPublished) {
       triggerSitemapRegeneration();
     }
+    audit(req, 'regionalPage.create', { type: 'statePage', id: statePage._id }, { after: { slug: statePage.slug, isPublished: statePage.isPublished } });
 
     res.status(201).json({ 
       status: true, 
@@ -255,7 +271,9 @@ exports.getStatePageByIdAdmin = async (req, res) => {
 exports.updateStatePage = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = { ...req.body, updatedBy: req.user?._id };
+    const updateData = { ...sanitizeCmsBody(req.body || {}), updatedBy: req.userId };
+    delete updateData.slug; // slugs are public URLs: read-only after creation (URL contract)
+    delete updateData.state;
 
     console.log('📝 Updating state page ID:', id);
     console.log('📦 Update data keys:', Object.keys(updateData));
@@ -283,9 +301,10 @@ exports.updateStatePage = async (req, res) => {
 
     console.log('✅ State page updated. StateInfo after update:', page.stateInfo ? Object.keys(page.stateInfo) : 'None');
 
-    if (page.isPublished) {
+    if (page.isPublished || existingPage.isPublished) {
       triggerSitemapRegeneration();
     }
+    audit(req, 'regionalPage.update', { type: 'statePage', id }, { before: { isPublished: existingPage.isPublished }, after: { isPublished: page.isPublished, keys: Object.keys(req.body || {}) } });
 
     res.status(200).json({ 
       status: true, 
@@ -333,7 +352,7 @@ exports.refreshStatePageStats = async (req, res) => {
       return res.status(404).json({ status: false, message: 'State page not found' });
     }
 
-    const stats = await calculateStateStats(page.state._id, page.state.name);
+    const stats = await calculateStateStats(page.state._id);
     page.stats = stats;
     page.lastStatsUpdate = new Date();
     await page.save();
@@ -393,7 +412,7 @@ exports.getStatePageBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const page = await StateRegionalPage.findOne({ slug, isActive: true })
+    const page = await StateRegionalPage.findOne({ slug, isActive: true, isPublished: true })
       .populate('state', 'name')
       .populate('topCities.city', 'name')
       .populate('topCities.cityPage')
@@ -419,6 +438,10 @@ exports.getStatePageBySlug = async (req, res) => {
       .limit(25)
       .lean();
 
+    // D22: real counts computed on the GET (1 h cache), never the stored zeros
+    page.stats = { ...(page.stats || {}), ...(await regionalStats.getStateStats(page.state._id)) };
+    delete page.stats.successStories;
+
     // Prepare context for placeholder replacement
     const context = prepareStateDataContext(page, page.state);
     
@@ -430,9 +453,17 @@ exports.getStatePageBySlug = async (req, res) => {
       { name: 'Home', url: '/' },
       { name: `${context.state} Matrimony`, url: `/${slug}`, active: true }
     ];
+    processedPage.contentWords = contentWords(page);
+    // D47: real distributions only above the thresholds (else [])
+    const [gotraDistribution, professionDistribution] = await Promise.all([
+      regionalStats.getStateGotraDistribution(page.state._id),
+      regionalStats.getStateProfessionDistribution(page.state._id),
+    ]);
+    processedPage.gotraDistribution = gotraDistribution;
+    processedPage.professionDistribution = professionDistribution;
 
-    // Increment views
-    await StateRegionalPage.findByIdAndUpdate(page._id, { $inc: { views: 1 } });
+    // D28: view bump never touches updatedAt (lastmod = content date), fire-and-forget
+    StateRegionalPage.updateOne({ _id: page._id }, { $inc: { views: 1 } }, { timestamps: false }).catch(() => {});
 
     res.status(200).json({ status: true, data: processedPage });
   } catch (error) {
@@ -447,12 +478,20 @@ exports.getStatePageBySlug = async (req, res) => {
 exports.getAllStatePages = async (req, res) => {
   try {
     const pages = await StateRegionalPage.find({ isActive: true, isPublished: true })
-      .select('slug state stats')
+      .select(`slug state stats isPublished updatedAt ${CMS_FIELDS.join(' ')}`)
       .populate('state', 'name')
       .sort({ 'stats.totalMembers': -1 })
       .lean();
 
-    res.status(200).json({ status: true, data: pages });
+    // contentWords for the sitemap/noindex rule (D47); the CMS bodies are not returned
+    const data = pages.map((p) => {
+      const words = contentWords(p);
+      const row = { _id: p._id, slug: p.slug, state: p.state, stats: p.stats, isPublished: p.isPublished, updatedAt: p.updatedAt, contentWords: words };
+      if (row.stats) delete row.stats.successStories;
+      return row;
+    });
+
+    res.status(200).json({ status: true, data });
   } catch (error) {
     console.error('Error fetching state pages:', error);
     res.status(500).json({ status: false, message: 'Failed to fetch state pages', error: error.message });
@@ -461,27 +500,9 @@ exports.getAllStatePages = async (req, res) => {
 
 // ============ HELPER FUNCTIONS ============
 
-async function calculateStateStats(stateId, stateName) {
-  try {
-    const totalMembers = await User.countDocuments({ 'location.state': stateId, isActive: true });
-    const activeBrides = await User.countDocuments({ 'location.state': stateId, gender: 'Female', isActive: true });
-    const activeGrooms = await User.countDocuments({ 'location.state': stateId, gender: 'Male', isActive: true });
-    const verifiedProfiles = await User.countDocuments({ 'location.state': stateId, isVerified: true, isActive: true });
-    const totalCities = await City.countDocuments({ state: stateId, isActive: true });
-
-    return {
-      totalMembers,
-      activeBrides,
-      activeGrooms,
-      successStories: Math.floor(totalMembers * 0.05) || 0,
-      verifiedProfiles,
-      totalCities,
-      lastUpdated: new Date()
-    };
-  } catch (error) {
-    console.error('Error calculating state stats:', error);
-    return { totalMembers: 0, activeBrides: 0, activeGrooms: 0, successStories: 0, verifiedProfiles: 0, totalCities: 0 };
-  }
+async function calculateStateStats(stateId) {
+  // D22: real fields (location.state, is_block, is_verified, gender), no estimates
+  return regionalStats.getStateStats(stateId, { fresh: true });
 }
 
 // Get state-specific information
@@ -491,7 +512,6 @@ function getStateSpecificInfo(stateName) {
       introduction: 'The Banjara community in Maharashtra has a rich historical presence, particularly in the Marathwada and Vidarbha regions.',
       communityPresence: 'With significant settlements in Mumbai, Pune, Nagpur, Aurangabad, and Nashik, the Banjara community has integrated well into Maharashtra\'s urban and semi-urban landscape.',
       uniqueFeature: 'region-specific filters for Marathwada, Vidarbha, Western Maharashtra, and Konkan areas',
-      memberCount: '10,000+',
       culturalNote: 'Banjara families in Maharashtra maintain distinctive Lambadi traditions while adapting to Marathi cultural influences.',
       heritageDescription: 'The Banjara (Lambadi) community has been an integral part of Maharashtra for centuries, with historical records tracing presence back to the medieval period. Known for vibrant traditional attire, unique dance forms, and strong community bonds.',
       primaryOccupations: 'transport business, construction, trade, agriculture, and increasingly in IT and service sectors',
@@ -502,9 +522,7 @@ function getStateSpecificInfo(stateName) {
       gotraInfo: 'Common gotras in Maharashtra include Rathod, Chauhan, Pawar, Jadhav, and others, with specific gotra preferences varying by region',
       professionInfo: 'Members range from traditional business owners in textile and transport to modern professionals in IT, healthcare, and corporate sectors',
       educationalInstitutions: 'University of Pune, Mumbai University, Nagpur University, and various professional colleges',
-      verificationNote: 'We verify all Maharashtra profiles with Aadhaar, educational certificates, and family background checks',
       communityEvents: 'Regular community gatherings during Diwali, Teej, and other festivals provide offline networking opportunities',
-      successMetric: 'Over 500 successful matches have been facilitated across Maharashtra in the past year.',
       successStoryRegions: 'Mumbai-Pune corridor, Marathwada region, and Vidarbha',
       demographicInfo: 'An estimated 800,000+ Banjara community members reside across Maharashtra, representing a significant demographic with diverse socio-economic backgrounds.',
       concentrationAreas: 'Marathwada region (particularly Aurangabad district), Nagpur division, and Mumbai Metropolitan Region',
@@ -524,7 +542,6 @@ function getStateSpecificInfo(stateName) {
       introduction: 'Karnataka hosts a vibrant Banjara community, especially in the northern districts and Bengaluru metropolitan area.',
       communityPresence: 'Significant Banjara populations exist in Bengaluru, Mysuru, Belagavi, Kalaburagi, and Ballari districts.',
       uniqueFeature: 'bilingual support for Kannada and Lambadi languages, with filters for North Karnataka and South Karnataka preferences',
-      memberCount: '8,000+',
       culturalNote: 'The community in Karnataka has unique cultural adaptations, blending Lambadi traditions with Karnataka\'s rich cultural heritage.',
       heritageDescription: 'Karnataka\'s Banjara community, locally called Lambani or Lambadi, has deep historical roots especially in North Karnataka districts. The community is renowned for intricate embroidery work, colorful traditional dress, and vibrant folk culture.',
       primaryOccupations: 'agriculture, animal husbandry, construction labor, small-scale business, and tech industry in Bengaluru',
@@ -535,9 +552,7 @@ function getStateSpecificInfo(stateName) {
       gotraInfo: 'Prominent gotras include Rathod, Bhukya, Banoth, Vadthiya, with North Karnataka having distinct gotra lineages',
       professionInfo: 'Diverse range from agricultural workers and construction entrepreneurs to IT professionals in Bengaluru\'s tech corridor',
       educationalInstitutions: 'Bengaluru University, Mysore University, Karnataka State Open University, IITs, and engineering colleges',
-      verificationNote: 'Verification includes Karnataka Aadhaar validation, caste certificates where applicable, and educational credentials',
       communityEvents: 'Annual Lambani Jatre, community sammelans, and cultural programs during major festivals',
-      successMetric: 'Over 400 successful alliances across Karnataka, with special focus on North Karnataka region.',
       successStoryRegions: 'Bengaluru tech community, Kalaburagi-Bijapur belt, and Mysuru',
       demographicInfo: 'Approximately 600,000 Banjara/Lambani community members live across Karnataka, with 40% in North Karnataka districts.',
       concentrationAreas: 'Kalaburagi, Vijayapura, and Ballari districts form the heartland, with significant urban migration to Bengaluru',
@@ -557,7 +572,6 @@ function getStateSpecificInfo(stateName) {
       introduction: 'Telangana has one of the largest and most organized Banjara communities in India, with strong cultural institutions and community networks.',
       communityPresence: 'The community is well-established in Hyderabad, Karimnagar, Warangal, Nizamabad, Adilabad, and Khammam districts.',
       uniqueFeature: 'exclusive Telangana gotra networks, Hyderabad metro area preferences, and connections with community welfare associations',
-      memberCount: '12,000+',
       culturalNote: 'Telangana\'s Banjara community is politically active and well-organized, maintaining strong cultural identity while being highly urbanized.',
       heritageDescription: 'The Banjara community in Telangana, historically known as Lambada or Sugali, has been present since the Nizam era. The community played a significant role in the state\'s formation and maintains active political representation.',
       primaryOccupations: 'construction contracting, transport business, rice milling, poultry farming, and service sector jobs in Hyderabad',
@@ -568,9 +582,7 @@ function getStateSpecificInfo(stateName) {
       gotraInfo: 'Major gotras include Bhukya, Banoth, Vadthiya, Rathod, Lavudya, Kumbam, with specific gotra concentrations in different districts',
       professionInfo: 'From traditional contractors and transporters to modern professionals in Hyderabad\'s IT, pharma, and service industries',
       educationalInstitutions: 'Osmania University, JNTU Hyderabad, Kakatiya University, and numerous engineering and degree colleges',
-      verificationNote: 'Comprehensive verification including Telangana caste certificates, Aadhaar, and community association references',
       communityEvents: 'Large-scale Lambada community sammelans, Teej Utsav, and political rallies fostering community networking',
-      successMetric: 'More than 600 couples have found matches through our Telangana network, spanning Hyderabad to remote districts.',
       successStoryRegions: 'Hyderabad Hi-Tech City, Warangal-Karimnagar belt, and Northern Telangana',
       demographicInfo: 'Over 1.2 million Banjara community members reside in Telangana, making it one of the largest concentrations in India. The community has Schedule Tribe status, providing certain reservations.',
       concentrationAreas: 'Karimnagar, Warangal, Adilabad, and Nizamabad districts, plus significant urban populations in Hyderabad',
@@ -590,7 +602,6 @@ function getStateSpecificInfo(stateName) {
       introduction: 'Andhra Pradesh has a well-established Banjara community with strong presence in Rayalaseema and coastal regions.',
       communityPresence: 'Significant populations in Anantapur, Kurnool, Kadapa, Chittoor, Prakasam, and Krishna districts.',
       uniqueFeature: 'separate filters for Rayalaseema, Coastal Andhra, and North Andhra regions with Telugu language support',
-      memberCount: '7,000+',
       culturalNote: 'AP\'s Banjara community balances traditional Lambadi culture with Telugu linguistic and cultural integration.',
       heritageDescription: 'The Banjara (Sugali/Lambada) community in Andhra Pradesh has historical presence dating back several centuries, particularly in the Rayalaseema region. Known for semi-nomadic trading heritage and gradual settlement into agriculture.',
       primaryOccupations: 'agriculture, livestock rearing, small-scale mining, construction business, and service sector in urban areas',
@@ -601,9 +612,7 @@ function getStateSpecificInfo(stateName) {
       gotraInfo: 'Common gotras include Rathod, Bhukya, Vadthiya, Banoth, Naik, with regional variations in gotra prevalence',
       professionInfo: 'Mix of agricultural families, construction contractors, transporters, and emerging professional class in IT and healthcare',
       educationalInstitutions: 'Sri Venkateswara University (Tirupati), Dravidian University (Kuppam), and numerous regional engineering colleges',
-      verificationNote: 'Strict verification including AP caste certificates, community references, and educational documentation',
       communityEvents: 'District-level community gatherings, Teej celebrations, and annual sammelans in Kurnool and Anantapur',
-      successMetric: 'Over 350 successful matches across Andhra Pradesh, with special focus on Rayalaseema region.',
       successStoryRegions: 'Anantapur-Kurnool belt, Tirupati, and Coastal Andhra cities',
       demographicInfo: 'Approximately 500,000 Banjara community members in Andhra Pradesh, concentrated in Rayalaseema. The community has Scheduled Tribe status.',
       concentrationAreas: 'Anantapur district (largest), Kurnool, Kadapa, and scattered Tandas in Prakasam and Nellore',
@@ -626,7 +635,6 @@ function getStateSpecificInfo(stateName) {
     introduction: 'The Banjara community in this state maintains its rich cultural heritage while embracing modern lifestyles and education.',
     communityPresence: 'Our community members are spread across urban and rural areas, maintaining strong cultural ties.',
     uniqueFeature: 'comprehensive search filters including gotra, profession, education, and location preferences',
-    memberCount: '5,000+',
     culturalNote: 'We maintain traditional Banjara values while adapting to contemporary matrimonial preferences.',
     heritageDescription: 'The Banjara community has a rich nomadic heritage, known for vibrant culture, strong family values, and entrepreneurial spirit.',
     primaryOccupations: 'business, agriculture, government services, and professional careers',
@@ -637,9 +645,7 @@ function getStateSpecificInfo(stateName) {
     gotraInfo: 'Various gotras with specific preferences based on family traditions',
     professionInfo: 'Members from diverse professional backgrounds including business, services, and traditional occupations',
     educationalInstitutions: 'state and national universities',
-    verificationNote: 'All profiles undergo thorough verification for authenticity',
     communityEvents: 'Regular community gatherings and cultural celebrations',
-    successMetric: 'Numerous successful matches have been facilitated in this state.',
     successStoryRegions: 'across various cities and towns',
     demographicInfo: 'A vibrant Banjara community presence exists across the state.',
     concentrationAreas: 'major cities and traditional settlement areas',

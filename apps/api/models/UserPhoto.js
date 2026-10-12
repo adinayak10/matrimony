@@ -7,16 +7,22 @@ const userPhotoSchema = new Schema({
   uploadedAt: { type: Date, default: Date.now },
   isProfile: { type: Boolean, default: false },
 
-  // 🆕 Added for drag-and-drop reordering
+  // Drag-and-drop ordering
   order: { type: Number, default: 0 },
 
-  // Photo moderation — defaults to 'approved' so existing photos (and new
-  // uploads, given there's no moderation staffing yet) stay visible; the
-  // report queue is the primary safety net, this is a proactive-review option.
-  moderationStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
+  // Photo moderation (A6.8): new uploads start as 'pending' so the admin has a
+  // real review queue, but pending photos STAY VISIBLE (getUserPhotos only
+  // hides 'rejected') — with one admin and no moderators, blocking uploads
+  // would stall onboarding. tools/cleanup/backfill-photo-status.js sets the
+  // legacy null rows to 'approved'.
+  moderationStatus: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   moderatedBy: { type: Schema.Types.ObjectId, ref: 'User' },
   moderatedAt: { type: Date },
   rejectionReason: { type: String },
 });
+
+userPhotoSchema.index({ userId: 1, order: 1 });
+// C4.6: moderation queue
+userPhotoSchema.index({ moderationStatus: 1, uploadedAt: -1 });
 
 module.exports = mongoose.model('UserPhoto', userPhotoSchema);

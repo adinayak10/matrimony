@@ -147,9 +147,9 @@
                     <div class="al">
                         <div class="head-pro">
                             <% if (typeof user !== 'undefined' && user) { %>
-                                <img src="<%= user.profilePhoto ? '/uploads/' + user.profilePhoto : '/images/profiles/default.jpg' %>" alt="My Profile" loading="lazy">
+                                <img src="<%= photoUrl(user.profile) %>" alt="My Profile" loading="lazy">
                                 <b>My Account</b><br>
-                                <h4><%= user.name || 'My Profile' %></h4>
+                                <h4><%= user.full_name || 'My Profile' %></h4>
                             <% } else { %>
                                 <img src="/images/profiles/1.jpg" alt="Join BanjaraMatch" loading="lazy">
                                 <b>Free Banjara Matrimony</b><br>
@@ -241,9 +241,9 @@
         <div class="mv-bus">
             <% if (typeof user !== 'undefined' && user) { %>
             <div class="head-pro">
-                <img src="<%= user.profilePhoto ? '/uploads/' + user.profilePhoto : '/images/profiles/default.jpg' %>" alt="My Profile" loading="lazy">
+                <img src="<%= photoUrl(user.profile) %>" alt="My Profile" loading="lazy">
                 <b>My Account</b><br>
-                <h4><%= user.name || 'My Profile' %></h4>
+                <h4><%= user.full_name || 'My Profile' %></h4>
             </div>
             <ul>
                 <li><a href="/dashboard">Dashboard</a></li>

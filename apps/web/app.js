@@ -7,6 +7,10 @@ const cookieParser = require('cookie-parser');
 const compression = require('compression');
 const helmet = require('helmet');
 
+const csp = require('./config/csp');
+const assets = require('./utils/assets');
+const { safeJson, jsonLd } = require('./utils/jsonLd');
+
 const app = express();
 // nginx is the only client; trust its X-Forwarded-* headers.
 app.set('trust proxy', 'loopback');
@@ -15,9 +19,9 @@ app.set('trust proxy', 'loopback');
 // Hide X-Powered-By header
 app.disable('x-powered-by');
 
-// Use Helmet for security headers
+// Helmet: CSP from config/csp.js (report-only until CSP_ENFORCE=1, D1.7).
 app.use(helmet({
-  contentSecurityPolicy: false, // Disable CSP to avoid conflicts with inline scripts
+  contentSecurityPolicy: { useDefaults: false, directives: csp.directives, reportOnly: csp.reportOnly },
   crossOriginEmbedderPolicy: false, // Disable to allow OAuth popups
   crossOriginOpenerPolicy: false // Disable to allow Firebase Google Sign-In popup
 }));
@@ -26,43 +30,53 @@ app.use(helmet({
 app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), geolocation=(self)');
   next();
 });
 
 // ---------- MIDDLEWARE SETUP ----------
 // ---------- CORS SETUP ----------
+// Only the JSON endpoints need CORS at all; a disallowed origin simply gets no
+// CORS headers (callback(null, false)) — never an error, so a page request with
+// a foreign Origin header is still served (D1.9).
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'https://www.banjaramatch.com',
   'https://banjaramatch.com',
-    'https://www.banjaramatch.com',
-   'https://api.banjaramatch.com'
+  'https://api.banjaramatch.com'
 ];
 
-app.use(cors({
+const corsMw = cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      console.warn(`❌ CORS blocked: ${origin}`);
-      return callback(new Error('CORS not allowed from this origin: ' + origin), false);
-    }
+    return callback(null, !origin || allowedOrigins.includes(origin));
   },
   credentials: true,
-}));
-
+});
+app.use('/api', corsMw);
+app.use('/auth', corsMw);
 
 app.use(cookieParser());
 app.use(compression({ threshold: 1024 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// Same limit as the API (integrator conflict #7); proxied JSON bodies pass through here first.
+app.use(express.json({ limit: '2mb' }));
+app.use(express.urlencoded({ extended: false, limit: '2mb' }));
 
 // ---------- VIEW ENGINE ----------
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
+// Template helpers (Express merges app.locals into every render).
+app.locals.safeJson = safeJson;
+app.locals.jsonLd = jsonLd;
+app.locals.asset = assets.asset;
+app.locals.assetHas = assets.has;
+app.locals.assetFileExists = assets.publicFileExists;
+app.locals.photoUrl = require('./utils/photoUrl');
+app.locals.img = require('./utils/img');
+app.locals.site = require('./config/site');
+app.locals.escapeHtml = require('./utils/escapeHtml');
 
 // ---------- HTML EXTENSION REDIRECTS (SEO: prevent duplicate content) ----------
 // Must be before express.static so .html files in /public don't serve as duplicates
@@ -102,17 +116,42 @@ const htmlRedirectMap = {
   '/user-chat.html':              '/user-chat',
 };
 app.use((req, res, next) => {
-  const target = htmlRedirectMap[req.path];
+  const target = htmlRedirectMap[req.path] || htmlRedirectMap[req.path.toLowerCase()];
   if (target) return res.redirect(301, target);
-  // Generic .html extension stripping for any unmapped legacy file
-  if (req.path.endsWith('.html')) {
-    const cleanPath = req.path.slice(0, -5) || '/';
+  // Generic .html extension stripping for any unmapped legacy file (one hop: lowercased here)
+  if (/\.html$/i.test(req.path)) {
+    const cleanPath = req.path.slice(0, -5).toLowerCase() || '/';
     return res.redirect(301, cleanPath);
   }
   next();
 });
 
+// One URL per page: lowercase, no trailing slash (D3.27). Before express.static.
+app.use(require('./middleware/canonicalUrl'));
+
+// ---------- SITEMAPS (D3.31) ----------
+// Generated into SITEMAP_DIR (shared dir in the monorepo deploy) and served
+// from there directly (mounted before express.static, which would otherwise
+// serve the public/ symlinks), so the public/ symlinks are a convenience, not a need.
+const SITEMAP_DIR = process.env.SITEMAP_DIR;
+if (SITEMAP_DIR) {
+  app.get(/^\/sitemap(-[a-z]+)?\.xml$/, (req, res, next) => {
+    const file = path.join(SITEMAP_DIR, path.basename(req.path));
+    res.sendFile(file, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600, must-revalidate' } }, (err) => {
+      if (err) next();
+    });
+  });
+}
+
 // ---------- STATIC FILES ----------
+// Hashed build output (utils/assets.js manifest): immutable for a year.
+app.use('/build', express.static(path.join(__dirname, 'public', 'build'), {
+  immutable: true,
+  maxAge: '365d',
+  etag: false,
+  index: false,
+}));
+
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: true,
   lastModified: true,
@@ -165,8 +204,17 @@ app.get('/health', (req, res) => {
 });
 
 // ---------- ROUTES ----------
+// Order matters (integrator conflict #18): wellKnown/auth/cspReport before the
+// /:slug catch-all in indexRoutes; the /api proxy after it so the web's own
+// /api/regenerate-sitemap and /api/proxy/cities keep precedence.
+app.use(require('./middleware/seoDefaults'));
+app.use(require('./middleware/regionalIndex'));
+app.use(require('./routes/wellKnown'));
+app.use(require('./routes/auth'));
+app.use(require('./routes/cspReport'));
 const indexRoutes = require('./routes/index');
 app.use('/', indexRoutes);
+app.use(require('./middleware/apiProxy'));
 
 
 const generateAllSitemaps = require('./utils/generateAllSitemaps');
@@ -191,8 +239,15 @@ setInterval(() => {
 
 // ---------- 404 HANDLER ----------
 app.use((req, res) => {
-  res.status(404).render('pages/404', { title: '404 - Page Not Found' });
+  res.status(404).render('pages/404', {
+    title: '404 - Page Not Found | BanjaraMatch',
+    meta: require('./config/pageMeta').pageMeta('notFound', { canonical: undefined }),
+    user: null,
+  });
 });
+
+// ---------- ERROR HANDLER (last) ----------
+app.use(require('./middleware/errorHandler'));
 
 // ---------- START SERVER ----------
 const PORT = Number(process.env.PORT) || 4000;

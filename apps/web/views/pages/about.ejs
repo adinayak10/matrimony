@@ -1,71 +1,7 @@
 <!doctype html>
-<html lang="en">
-
-
+<html lang="<%= site.lang %>">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>About BanjaraMatch - Free Banjara Matrimony Platform | Our Mission</title>
-  <meta name="description" content="BanjaraMatch is India's dedicated free Banjara matrimony platform, connecting Banjara, Lambani, Gormati, and Sugali community members for marriage.">
-  <meta name="keywords" content="banjara matrimony, banjara marriage, banjara brides, banjara grooms, banjara matrimonial site, trusted matrimony, banjara shaadi, banjara rishta">
-  <meta name="robots" content="index, follow">
-  <meta name="author" content="Banjara Match">
-  <link rel="canonical" href="https://www.banjaramatch.com/about" />
-
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="About BanjaraMatch - Trusted Banjara Matrimony">
-  <meta property="og:description" content="Learn more about BanjaraMatch, the most reliable matchmaking site for the Banjara community. Find your perfect match today.">
-  <meta property="og:url" content="https://www.banjaramatch.com/about">
-  <meta property="og:image" content="https://www.banjaramatch.com/images/banjaramatch-preview.jpg">
-
-  <!-- Twitter -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="About BanjaraMatch - Trusted Banjara Matrimony">
-  <meta name="twitter:description" content="Discover BanjaraMatch.com – the leading matrimony platform for Banjara brides and grooms. Secure, verified, and community-focused.">
-  <meta name="twitter:image" content="https://www.banjaramatch.com/images/banjaramatch-preview.jpg">
-  <meta name="twitter:site" content="@banjaramatch">
-
-  <!-- Schema.org Organization JSON-LD -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "BanjaraMatch",
-    "alternateName": "Banjara Matrimony - BanjaraMatch.com",
-    "url": "https://www.banjaramatch.com",
-    "logo": "https://www.banjaramatch.com/images/logo-bf.png",
-    "description": "India's free dedicated Banjara matrimony platform for finding Banjara, Lambani, Gormati and Sugali life partners.",
-    "sameAs": [
-      "https://www.facebook.com/banjaramatch",
-      "https://www.instagram.com/banjaramatch",
-      "https://www.twitter.com/banjaramatch"
-    ]
-  }
-  </script>
-
-  <!-- Performance Optimization -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!--== FAV ICON ==-->
-  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-
-  <!-- Google Analytics (SEO & Traffic Tracking) -->
-  <%- include('../partials/analytics', { pageCategory: 'about' }) %>
-
-  <!--== CSS FILES ==-->
-  <link rel="stylesheet" href="css/bootstrap.css">
-  <link rel="stylesheet" href="css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/animate.min.css">
-  <link rel="stylesheet" href="css/style.min.css">
-
-  <!-- HTML5 Shim and Respond.js IE8 support -->
-  <!--[if lt IE 9]>
-    <script src="js/html5shiv.min.js"></script>
-    <script src="js/respond.min.js"></script>
-  <![endif]-->
+<%- include('../partials/head') %>
 </head>
 
 
@@ -324,7 +260,7 @@
         <!-- IMAGE RIGHT -->
         <div class="col-lg-6">
           <div class="ab-faq-rhs">
-            <img src="images/about/3.jpg" alt="banjara faq">
+            <img src="/images/about/3.jpg" alt="banjara faq">
           </div>
         </div>
       </div>
@@ -344,13 +280,12 @@
     <!-- END -->
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/custom.min.js"></script>
     
     <!-- FAQ Accordion Fix -->
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
       $(document).ready(function() {
         // Ensure Bootstrap collapse works properly
         $('.card-link').on('click', function(e) {
@@ -359,7 +294,8 @@
           $(target).collapse('toggle');
         });
       });
-    </script>
+    });
+</script>
 </body>
 
 

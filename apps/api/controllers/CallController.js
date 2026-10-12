@@ -19,10 +19,16 @@ const TOKEN_TTL_SECONDS = 3600; // 1 hour
  */
 exports.generateCallToken = async (req, res) => {
   try {
-    const { my_user_id, user_id, channelName } = req.body;
+    const mongoose = require('mongoose');
+    const { resolveCaller } = require('../middleware/identity');
+    const my_user_id = resolveCaller(req); // token identity (A1.2)
+    const { user_id, channelName } = req.body;
 
-    if (!my_user_id || !user_id || !channelName) {
-      return res.status(400).json({ status: false, message: 'my_user_id, user_id and channelName are required' });
+    if (!my_user_id || !user_id || !channelName || typeof channelName !== 'string') {
+      return res.status(400).json({ status: false, message: 'user_id and channelName are required' });
+    }
+    if (!mongoose.isValidObjectId(user_id) || String(user_id) === my_user_id) {
+      return res.status(400).json({ status: false, message: 'Invalid user_id' });
     }
 
     const room = await ChatRoom.findOne({
@@ -32,6 +38,16 @@ exports.generateCallToken = async (req, res) => {
 
     if (!room) {
       return res.status(403).json({ status: false, message: 'Calls are only available between mutually accepted connections' });
+    }
+
+    // The channel must belong to a live call the caller is part of (A4.6)
+    const call = await CallLog.findOne({
+      channelName,
+      status: { $in: ['ringing', 'accepted'] },
+      $or: [{ caller: my_user_id, callee: user_id }, { caller: user_id, callee: my_user_id }],
+    }).select('_id').lean();
+    if (!call) {
+      return res.status(403).json({ status: false, message: 'No active call on this channel' });
     }
 
     const appId = process.env.AGORA_APP_ID;
@@ -65,9 +81,9 @@ exports.generateCallToken = async (req, res) => {
  */
 exports.getCallHistory = async (req, res) => {
   try {
-    const { my_user_id } = req.query;
+    const my_user_id = req.userId; // token identity (A1.2); query my_user_id ignored
     if (!my_user_id) {
-      return res.status(400).json({ status: false, message: 'my_user_id is required' });
+      return res.status(401).json({ status: false, code: 'AUTH_REQUIRED', message: 'Authentication required' });
     }
 
     const calls = await CallLog.find({ $or: [{ caller: my_user_id }, { callee: my_user_id }] })

@@ -1,85 +1,86 @@
-// API Configuration
-if (!window.API_BASE_URL) {
-    window.API_BASE_URL = 'https://api.banjaramatch.com';
-}
-const API_BASE_URL = window.API_BASE_URL;
+// Legacy-compat shim (docs/plans/admin-base-ui.md C1.8). Loaded by the
+// un-migrated public/*.html pages; deleted in C6 when the last one is replaced.
+//
+// All API calls are same-origin against the admin server's /api proxy
+// (routes/proxy.js), which turns the httpOnly admin_session cookie into the
+// Bearer header. The browser never sees a token: nothing here reads
+// localStorage, sets Authorization, or logs request headers.
+window.API_BASE_URL = '';
+const API_BASE_URL = '';
 
-// Get auth token
+// Kept for callers that still reference it; there is no browser-side token.
 function getAuthToken() {
-    return localStorage.getItem('admin_token') || localStorage.getItem('token');
+    return null;
 }
 
-// API Request helper with better error handling
+function goToLogin() {
+    const next = window.location.pathname + window.location.search;
+    window.location.assign('/login?next=' + encodeURIComponent(next || '/dashboard'));
+}
+
+// API Request helper. Supports both call styles used by the legacy pages:
+//   apiRequest(endpoint, 'POST', data)   and   apiRequest(endpoint, { method, body, headers })
 async function apiRequest(endpoint, methodOrOptions = 'GET', data = null) {
-    const token = getAuthToken();
-    
-    // Handle both old signature (endpoint, method, data) and new signature (endpoint, options)
     let options = {};
     if (typeof methodOrOptions === 'string') {
-        // Old signature: (endpoint, method, data)
         options = {
             method: methodOrOptions,
             ...(data && { body: JSON.stringify(data) })
         };
     } else {
-        // New signature: (endpoint, options)
         options = methodOrOptions || {};
     }
-    
-    console.log('🌐 API Request:', options.method || 'GET', endpoint);
-    console.log('📦 Request Data:', data);
-    console.log('⚙️ Request Options:', options);
-    
+
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData;
     const defaultOptions = {
         headers: {
-            'Content-Type': 'application/json',
-            ...(token && { 
-                'Authorization': `Bearer ${token}`
-            })
+            ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+            'X-Requested-With': 'admin'
         },
-        credentials: 'include'
+        credentials: 'same-origin'
     };
 
     const config = {
         ...defaultOptions,
         ...options,
+        credentials: 'same-origin',
         headers: {
             ...defaultOptions.headers,
-            ...(options.headers || {})
+            ...(options.headers || {}),
+            'X-Requested-With': 'admin'
         }
     };
+    delete config.headers.Authorization;
+    delete config.headers.authorization;
+
+    const path = String(endpoint || '');
+    const url = path.startsWith('/') ? path : '/' + path;
 
     try {
-        console.log('📤 Sending fetch to:', `${API_BASE_URL}${endpoint}`);
-        console.log('📤 Fetch config:', config);
-        
-        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-        console.log('📡 Response status:', response.status, response.statusText);
-        console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-        
-        // Handle 401 Unauthorized - redirect to login
+        const response = await fetch(url, config);
+
+        // The proxy answers 401 when the session is missing or expired.
         if (response.status === 401) {
-            console.log('❌ Unauthorized, redirecting to login');
-            localStorage.clear();
-            window.location.href = '/';
+            goToLogin();
             throw new Error('Unauthorized');
         }
-        
-        const responseData = await response.json();
-        console.log('📦 Response data:', responseData);
-        
+
+        let responseData = {};
+        const text = await response.text();
+        if (text) {
+            try { responseData = JSON.parse(text); } catch (e) { responseData = {}; }
+        }
+
         // Handle both 'status' and 'success' fields
         const isSuccess = responseData.status === true || responseData.success === true || response.ok;
-        
+
         if (!response.ok && !isSuccess) {
-            console.error('❌ API Error:', responseData);
             throw new Error(responseData.message || 'Request failed');
         }
-        
-        console.log('✅ API Success:', endpoint);
+
         return responseData;
     } catch (error) {
-        console.error('❌ API Error:', endpoint, error);
+        console.error('API error:', url, error && error.message);
         throw error;
     }
 }
@@ -95,16 +96,14 @@ function showNotification(message, type = 'success') {
     notification.style.zIndex = '9999';
     notification.style.minWidth = '300px';
     notification.style.animation = 'slideIn 0.3s';
-    
+
     document.body.appendChild(notification);
-    
+
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s';
         setTimeout(() => notification.remove(), 300);
     }, 3000);
 }
-
-// Confirm dialog (removed - conflicts with window.confirm)
 
 // Format date
 function formatDate(dateString) {

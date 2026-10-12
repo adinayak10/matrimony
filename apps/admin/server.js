@@ -1,129 +1,108 @@
-const express = require('express');
+'use strict';
+// admin.banjaramatch.com — Express 4 + EJS admin server.
+//
+// Middleware order is load-bearing (docs/plans/admin-base-ui.md C1.2):
+//   1. security headers       middleware/security.js (helmet CSP report-only,
+//                             X-Robots-Tag noindex, Cache-Control no-store)
+//   2. cookieParser           the admin_session cookie is the only state
+//   3. static assets          /css /js /img /vendor + /robots.txt ONLY. The
+//                             legacy public/*.html files are never served here;
+//                             routes/pages.js sends them behind requireAdmin.
+//   4. GET /health            unauthenticated, never 5xx because the API is down
+//   5. /api/* proxy           routes/proxy.js at the APP ROOT (http-proxy-middleware
+//                             v3 would strip an app.use('/api') prefix) and BEFORE
+//                             any body parser so multipart uploads keep streaming
+//   6+7. auth / legacy / pages  routes/auth.js carries its own route-level
+//                             express.urlencoded; every page route is behind
+//                             requireAdmin (migrated pages render through
+//                             lib/render.js, the rest are the legacy-compat shim)
+//   8. *.html → 404, generic 404, error handler (error.ejs, never a stack)
+//   9. listen on HOST:PORT (loopback) and tell pm2 we are ready
+//
+// The server never holds JWT_SECRET: sessions are validated by asking the API
+// (/api/admin/auth/me) and the API-issued token lives in an httpOnly cookie.
 const path = require('path');
+const express = require('express');
 const cookieParser = require('cookie-parser');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-require('dotenv').config();
 
-const app = express();
-const PORT = Number(process.env.PORT) || 4001;
-const HOST = process.env.HOST || '127.0.0.1';
-// nginx is the only client; trust its X-Forwarded-* headers.
-app.set('trust proxy', 'loopback');
+const env = require('./config/env');
+const { renderError } = require('./lib/render');
+const requireAdmin = require('./middleware/requireAdmin');
+const security = require('./middleware/security');
+const apiProxy = require('./routes/proxy');
+const authRoutes = require('./routes/auth');
+const legacyRoutes = require('./routes/legacy');
+const pageRoutes = require('./routes/pages');
 
-// Middleware
-app.use(cors({
-  origin: ['http://localhost:3001', 'https://admin.banjaramatch.com'],
-  credentials: true
-}));
-app.use(cookieParser());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+const PUBLIC_DIR = path.join(__dirname, 'public');
+// Only these paths are static. Everything else in public/ (the un-migrated
+// *.html pages) is reachable solely through routes/pages.js behind the gate.
+const STATIC_PATH = /^\/(css|js|img|vendor)\/|^\/robots\.txt$/;
 
-// Health check for deploy.sh wait_healthy (before static so no file can shadow it).
-app.get('/health', (req, res) => {
-  res.set('Cache-Control', 'no-store').json({
-    ok: true,
-    app: 'admin',
-    release: process.env.RELEASE_SHA || null,
-    uptime: process.uptime(),
+function createApp() {
+  const app = express();
+  // nginx is the only client; trust its X-Forwarded-* headers.
+  app.set('trust proxy', 'loopback');
+  app.disable('x-powered-by');
+  app.set('etag', false);
+
+  // 1. security headers
+  app.use(security());
+
+  // 2. cookies
+  app.use(cookieParser());
+
+  // 3. static assets, gated by path
+  const staticFiles = express.static(PUBLIC_DIR, { maxAge: '7d', index: false, dotfiles: 'ignore' });
+  app.use((req, res, next) => (STATIC_PATH.test(req.path) ? staticFiles(req, res, next) : next()));
+
+  // 4. health (deploy.sh wait_healthy). `api` is the last /me outcome, not a live call.
+  app.get('/health', (req, res) => {
+    res.set('Cache-Control', 'no-store').json({
+      ok: true,
+      app: 'admin',
+      release: env.RELEASE_SHA || null,
+      uptime: process.uptime(),
+      api: requireAdmin.apiReachable(),
+    });
   });
-});
 
-// Disable caching for HTML files and set correct MIME types
-app.use((req, res, next) => {
-  if (req.url.endsWith('.html') || req.url === '/users' || req.url === '/dashboard' || req.url === '/beta-testers' || req.url === '/contact-enquiries' || req.url === '/settings') {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-  } else if (req.url.endsWith('.js')) {
-    res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
-  }
-  next();
-});
+  // 5. /api/* proxy — before any body parser
+  app.use(apiProxy);
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+  // 6+7. auth (own urlencoded parser), legacy 301s, pages (each behind requireAdmin)
+  app.use(authRoutes);
+  app.use(legacyRoutes);
+  app.use(pageRoutes);
 
-// Routes
+  // 8. anything *.html that the legacy map did not 301 is gone
+  app.get(/\.html$/i, (req, res) => renderError(res, 404));
+  app.use((req, res) => renderError(res, 404));
+  // eslint-disable-next-line no-unused-vars
+  app.use((err, req, res, next) => {
+    console.error('[admin]', req.method, req.originalUrl, err && err.message);
+    if (res.headersSent) return res.end();
+    const status = Number.isInteger(err && err.status) && err.status >= 400 && err.status < 600 ? err.status : 500;
+    return renderError(res, status, {
+      message: status >= 500 ? 'The page could not be rendered. Nothing was changed.' : '',
+    });
+  });
 
-// Serve main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
-});
+  return app;
+}
 
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
+// 9. boot
+if (require.main === module) {
+  const app = createApp();
+  const server = app.listen(env.PORT, env.HOST, () => {
+    console.log(`admin listening on http://${env.HOST}:${env.PORT} (${env.NODE_ENV}${env.RELEASE_SHA ? `, release ${env.RELEASE_SHA.slice(0, 7)}` : ''})`);
+    // pm2 wait_ready: the old process is kept until this is sent.
+    if (process.send) process.send('ready');
+  });
+  server.on('error', (err) => {
+    console.error('[admin] listen failed:', err && err.message);
+    process.exit(1);
+  });
+}
 
-app.get('/users', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'users.html'));
-});
-
-app.get('/contact-enquiries', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'contact-enquiries.html'));
-});
-
-app.get('/beta-testers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'beta-testers.html'));
-});
-
-app.get('/user-detail', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'user-detail.html'));
-});
-
-app.get('/settings', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'settings.html'));
-});
-
-app.get('/banners', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'banners.html'));
-});
-
-app.get('/reports', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'reports.html'));
-});
-
-app.get('/photo-moderation', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'photo-moderation.html'));
-});
-
-app.get('/constants', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'constants.html'));
-});
-
-app.get('/community-data', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'community-data.html'));
-});
-
-app.get('/community-feedback', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'community-feedback.html'));
-});
-
-app.get('/regional-pages', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'regional-pages.html'));
-});
-
-app.get('/city-pages', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'city-pages.html'));
-});
-
-app.get('/state-pages', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'state-pages.html'));
-});
-
-app.get('/apk-manager', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'apk-manager.html'));
-});
-
-app.get('/broadcast-email', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'broadcast-email.html'));
-});
-
-// Start server
-app.listen(PORT, HOST, () => {
-  console.log(`✅ Admin panel running on http://${HOST}:${PORT}`);
-  // pm2 wait_ready: the old process is kept until this is sent.
-  if (process.send) process.send('ready');
-});
+module.exports = { createApp };

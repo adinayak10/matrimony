@@ -12227,3 +12227,29 @@ h2.db-tit{
         margin-right: 7px;
     }
 }
+
+/* Breadcrumb partial (views/partials/breadcrumb.ejs, D3.25) */
+.breadcrumb-section{background:#f8f9fa;padding:15px 0;border-bottom:1px solid #e9ecef;position:relative;z-index:5}
+.breadcrumb-section .breadcrumb{background:transparent;margin-bottom:0;padding:0;font-size:14px}
+.breadcrumb-section .breadcrumb-item a{color:#667eea;text-decoration:none}
+.breadcrumb-section .breadcrumb-item a:hover{color:#f6af04;text-decoration:underline}
+.breadcrumb-section .breadcrumb-item.active{color:#6c757d}
+.breadcrumb-section .breadcrumb-item+.breadcrumb-item::before{content:"\203A";color:#999;padding:0 8px}
+/* Regional links partial (views/partials/regional-links.ejs, D3.26) */
+.regional-links{padding:10px 0}
+.regional-links__title{font-size:14px;font-weight:600;margin:0 0 12px;text-align:center}
+.regional-links__states{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:center}
+.regional-links__state{font-size:13px;line-height:1.7}
+.regional-links__state>a,.regional-links__state>strong{display:block;text-align:center}
+.regional-links__cities{list-style:none;padding:0;margin:0;text-align:center}
+.regional-links__cities li{display:inline}
+.regional-links__cities li+li::before{content:"\00B7";padding:0 5px;color:#999}
+.wed-hom-footer .regional-links{margin-top:10px;padding-top:20px;border-top:1px solid rgba(255,255,255,.15)}
+.wed-hom-footer .regional-links__title{color:rgba(255,255,255,.9)}
+.wed-hom-footer .regional-links a{color:rgba(255,255,255,.75)}
+.wed-hom-footer .regional-links a:hover{color:#f6af04}
+.home-regional-links{background:#fdfaf5;border-top:1px solid #f0e8d0;padding:36px 0;position:relative;z-index:1}
+.home-regional-links .regional-links__title{font-size:22px;color:#3b1a00;margin-bottom:20px}
+.home-regional-links .regional-links a{color:#a05000}
+/* Chat full-screen on phones (D5.45) */
+@media (max-width:575.98px){.chat-window{right:0;left:0;bottom:0;width:100%;height:100vh;height:100dvh;border-radius:0;border:0}}

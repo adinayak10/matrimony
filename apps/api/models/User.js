@@ -76,7 +76,15 @@ const userSchema = new mongoose.Schema({
 
   password: {
     type: String,
-    required: false
+    required: false,
+    select: false
+  },
+
+  // Bumped on logout / password reset / admin block: tokens carry `tv` and
+  // are rejected when it no longer matches (A2.3/A2.4).
+  tokenVersion: {
+    type: Number,
+    default: 0
   },
   
   role: {
@@ -246,6 +254,12 @@ height: {
     incomeRange: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'IncomeRange',
+      default: null,
+    },
+    // Mother's gotra for exogamy matching (A6.1)
+    motherGotra: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Gotra',
       default: null,
     },
     basedOut: {
@@ -511,7 +525,23 @@ height: {
     goals: [{ type: String, index: true }],
     about: { type: String, default: "" }
   },
-}, { timestamps: true });
+}, {
+  timestamps: true,
+  // Secrets never leave the server, whichever serializer is used (A1.3)
+  toJSON: { transform: stripSecrets },
+  toObject: { transform: stripSecrets },
+});
+
+function stripSecrets(doc, ret) {
+  if (!ret || typeof ret !== 'object') return ret;
+  delete ret.password;
+  delete ret.device_token;
+  delete ret.firebase_uid;
+  delete ret.__v;
+  delete ret.blocked;
+  if (ret.personalityMap && typeof ret.personalityMap === 'object') delete ret.personalityMap.prompt;
+  return ret;
+}
 
 // ✅ Pre-save hook: Convert empty strings to null for unique sparse fields
 userSchema.pre('save', function(next) {
@@ -529,5 +559,17 @@ userSchema.pre('findOneAndUpdate', function(next) {
 });
 
 userSchema.index({ coordinates: '2dsphere' });
+userSchema.index({ gender: 1, is_block: 1, gotra: 1 });
+userSchema.index({ 'family.motherGotra': 1 });
+userSchema.index({ lastSeen: -1 });
+userSchema.index({ is_verified: -1, createdAt: -1 });
+// C4.6 dashboard counts
+userSchema.index({ is_block: 1 });
+userSchema.index({ is_verified: 1 });
+userSchema.index({ gender: 1 });
+userSchema.index({ createdAt: -1 });
+userSchema.index({ role: 1, email: 1 });
+userSchema.index({ 'location.state': 1, is_block: 1 });
+userSchema.index({ 'location.city': 1, is_block: 1 });
 
 module.exports = mongoose.model('User', userSchema);

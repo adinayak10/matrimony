@@ -1,52 +1,8 @@
 <!doctype html>
-<html lang="en">
-
-
+<html lang="<%= site.lang %>">
 <head>
-    <title>Banjara Matrimony | Find Your Perfect Life Partner - Banjaramatch.com</title>
-
-    <!-- META TAGS -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="robots" content="noindex, follow">
-
-    <meta name="description" content="BanjaraMatch.com is the most trusted Banjara matrimony site to find your perfect life partner. Join now to explore verified Banjara profiles for marriage.">
-    <meta name="keywords" content="Banjara Matrimony, BanjaraMatch, Banjara Marriage, Banjara Brides, Banjara Grooms, Banjara Matrimonial, Find Banjara Partner, Trusted Banjara Marriage Website">
-
-    <meta name="author" content="Banjaramatch.com">
-    <meta property="og:title" content="Banjara Matrimony - Trusted Matrimonial Site for Banjara Community">
-    <meta property="og:description" content="Explore verified Banjara bride and groom profiles. Find your perfect match with BanjaraMatch.com.">
-    <meta property="og:url" content="https://www.banjaramatch.com">
-    <meta property="og:image" content="https://www.banjaramatch.com/images/social-preview.jpg">
-    <meta property="og:type" content="website">
-
-    <link rel="canonical" href="https://www.banjaramatch.com/login">
-
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-
-    <!-- Google Analytics (SEO & Traffic Tracking) -->
-    <%- include('../partials/analytics', { pageCategory: 'login' }) %>
-
-    <!-- CSS Files -->
-    <link rel="stylesheet" href="css/bootstrap.css">
-    <link rel="stylesheet" href="css/font-awesome.min.css">
-    <link rel="stylesheet" href="css/animate.min.css">
-    <link rel="stylesheet" href="css/style.min.css">
-
-    <!-- Firebase SDK for Email/Password Auth -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    
-    <!-- Prevent Firebase auto-initialization -->
-    <script>
-        // Disable automatic Firebase initialization
-        window.FIREBASE_APPCHECK_DEBUG_TOKEN = false;
-    </script>
-
-    <style>
+<%- include('../partials/head') %>
+<style>
         .password-input-wrapper {
             position: relative;
         }
@@ -156,11 +112,6 @@
             cursor: not-allowed;
         }
     </style>
-
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-      <script src="js/respond.min.js"></script>
-    <![endif]-->
 </head>
 
 <body>
@@ -178,7 +129,7 @@
                         <h2>Find Your <b>Perfect Banjara Life Partner</b><br> Simple. Safe. Secure.</h2>
                     </div>
                     <div class="im">
-                        <img src="images/login-couple.png" alt="Banjara couple image">
+                        <img src="/images/login-couple.png" alt="Banjara couple image">
                     </div>
                     <div class="log-bg">&nbsp;</div>
                 </div>
@@ -189,17 +140,18 @@
                         <div class="form-tit">
                             <h4>Join the #1 Trusted Banjara Matrimony</h4>
                             <h1>Sign In to BanjaraMatch</h1>
-                            <p>Not a member yet? <a href="register">Create your free profile</a></p>
+                            <p>Not a member yet? <a href="/register">Create your free profile</a></p>
                         </div>
 
                         <div class="form-login">
                             <form id="loginForm">
+                                <div id="loginAlert" class="alert" style="display: none;" role="alert" aria-live="polite"></div>
                                 <div class="form-group">
-                                    <label class="lb">Email:</label>
+                                    <label class="lb" for="email">Email:</label>
                                     <input type="email" class="form-control" id="email" placeholder="Enter your email" name="email" required>
                                 </div>
                                 <div class="form-group">
-                                    <label class="lb">Password:</label>
+                                    <label class="lb" for="password">Password:</label>
                                     <div class="password-input-wrapper">
                                         <input type="password" class="form-control" id="password" placeholder="Enter your password" name="password" required>
                                         <i class="fa fa-eye toggle-password" onclick="togglePassword()"></i>
@@ -238,14 +190,12 @@
     <!-- END -->
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="js/jquery.min.js"></script>
-    <script src="js/popper.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/select-opt.min.js"></script>
-    <script src="js/custom.min.js"></script>
 
 
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
         // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBEQVygTdSOOUczWmUezTt0CyoGm4l5Qe8",
@@ -295,7 +245,7 @@
             const password = document.getElementById("password").value;
             
             if (!email || !password) {
-                alert('Please enter both email and password');
+                showAlert('Please enter both email and password', 'danger');
                 return;
             }
 
@@ -316,8 +266,9 @@
                 const firebaseToken = await firebaseUser.getIdToken();
                 console.log('🎫 Firebase ID Token obtained');
 
-                // Login to backend
-                const loginResponse = await fetch('https://api.banjaramatch.com/api/auth/firebase-email-login', {
+                // Login through the web's own route: the session cookie is set
+                // server-side (httpOnly) and the token never reaches page JS.
+                const loginResponse = await fetch('/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
@@ -325,16 +276,12 @@
                         firebaseUid: firebaseUser.uid,
                         firebaseToken: firebaseToken
                     }),
-                    credentials: 'include'
+                    credentials: 'same-origin'
                 });
 
-                const loginData = await loginResponse.json();
-                console.log('🔐 Backend login response:', loginData);
+                const loginData = await loginResponse.json().catch(() => ({}));
 
-                if (loginData.status && loginData.token) {
-                    console.log('✅ Login successful! Setting token...');
-                    document.cookie = `token=${loginData.token}; path=/; max-age=${7 * 24 * 60 * 60}; domain=.banjaramatch.com; SameSite=Lax`;
-                    
+                if (loginResponse.ok && loginData.status) {
                     // Track login event
                     if (typeof gtag !== 'undefined') {
                         gtag('event', 'login', {
@@ -343,11 +290,10 @@
                         });
                     }
                     
-                    console.log('🎉 Redirecting to dashboard...');
-                    alert('Login successful!');
-                    window.location.href = '/dashboard';
+                    showAlert('Login successful!', 'success');
+                    window.location.href = loginData.redirect || '/dashboard';
                 } else {
-                    alert(loginData.message || 'Login failed. Please try again.');
+                    showAlert(loginData.message || 'Login failed. Please try again.', 'danger');
                     document.getElementById('login-spinner').classList.remove('active');
                     document.getElementById('loginBtn').disabled = false;
                 }
@@ -375,7 +321,7 @@
                     errorMsg += error.message || 'Please try again.';
                 }
                 
-                alert(errorMsg);
+                showAlert(errorMsg, 'danger');
             }
         });
 
@@ -469,7 +415,7 @@
                     errorMsg = 'Google sign-in failed: ' + (error.message || 'Unknown error');
                 }
                 
-                alert(errorMsg);
+                showAlert(errorMsg, 'danger');
             }
         });
 
@@ -524,8 +470,6 @@
                 console.log('\nGetting Firebase ID token...');
                 const firebaseToken = await firebaseUser.getIdToken();
                 console.log('✅ Firebase ID Token obtained');
-                console.log('Token length:', firebaseToken.length);
-                console.log('Token (first 50 chars):', firebaseToken.substring(0, 50) + '...');
 
                 console.log('\nPreparing backend login request...');
                 const requestData = { 
@@ -535,91 +479,33 @@
                     firebaseToken: firebaseToken,
                     photoURL: firebaseUser.photoURL
                 };
-                console.log('Request data:', JSON.stringify(requestData, null, 2));
 
-                console.log('\nCalling backend API...');
-                console.log('URL: https://api.banjaramatch.com/api/auth/firebase-google-login');
-                console.log('⏳ Sending request...');
-                
-                const loginResponse = await fetch('https://api.banjaramatch.com/api/auth/firebase-google-login', {
+                // Sign in through the web's own route: the session cookie is set
+                // server-side (httpOnly) and the token never reaches page JS.
+                const loginResponse = await fetch('/auth/google', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestData),
-                    credentials: 'include'
+                    credentials: 'same-origin'
                 });
 
-                console.log('\n✅ Backend responded');
-                console.log('Response status:', loginResponse.status);
-                console.log('Response status text:', loginResponse.statusText);
-                console.log('Response headers:', [...loginResponse.headers.entries()]);
-                
-                const loginData = await loginResponse.json();
-                console.log('✅ Response parsed');
-                console.log('Backend response:', JSON.stringify(loginData, null, 2));
+                const loginData = await loginResponse.json().catch(() => ({}));
 
-                if (loginData.status && loginData.token) {
-                    console.log('\n🎉 Google login successful!');
-                    console.log('Token received:', loginData.token.substring(0, 50) + '...');
-                    console.log('Message:', loginData.message);
-                    
-                    // Set cookie with proper flags (backend also sets it, but we ensure it here too)
-                    console.log('Setting cookie on client-side...');
-                    const cookieString = `token=${loginData.token}; path=/; max-age=${7 * 24 * 60 * 60}; domain=.banjaramatch.com; SameSite=Lax; Secure`;
-                    document.cookie = cookieString;
-                    console.log('Cookie string:', cookieString.substring(0, 100) + '...');
-                    
-                    // Verify cookie was set
-                    const cookies = document.cookie;
-                    console.log('Current cookies:', cookies);
-                    const hasToken = cookies.includes('token=');
-                    console.log('Token cookie exists:', hasToken);
-                    
-                    // Also store in localStorage as backup
-                    try {
-                        localStorage.setItem('auth_token', loginData.token);
-                        console.log('✅ Token also saved to localStorage');
-                    } catch (e) {
-                        console.warn('⚠️ Could not save to localStorage:', e);
-                    }
-                    
-                    // Track event based on registration vs login
-                    const isNewUser = loginData.message && loginData.message.includes('Registration');
-                    console.log('Is new user?', isNewUser);
-                    
-                    if (typeof gtag !== 'undefined') {
-                        gtag('event', isNewUser ? 'sign_up' : 'login', {
+                if (loginResponse.ok && loginData.status) {
+                    // New registrations are counted once, on /thank-you (D1.15).
+                    const isNewUser = !!loginData.isNewUser;
+                    if (!isNewUser && typeof gtag !== 'undefined') {
+                        gtag('event', 'login', {
                             'event_category': 'engagement',
                             'method': 'google'
                         });
                     }
-                    
-                    console.log('🎉 Google login completed successfully!');
-                    console.log('✅ ALL DONE - Check logs above for details');
-                    console.log('📋 SUMMARY:');
-                    console.log('  - Firebase authentication: ✅');
-                    console.log('  - Backend API call: ✅');
-                    console.log('  - Token saved in cookie: ✅');
-                    console.log('  - Token saved in localStorage: ✅');
-                    console.log('');
-                    
-                    // Redirect to thank-you page for new registrations, dashboard for existing users
-                    if (isNewUser) {
-                        console.log('🔗 New user - Redirecting to thank-you page...');
-                        // Track registration conversion
-                        if (typeof window.trackRegistrationConversion === 'function') {
-                            window.trackRegistrationConversion();
-                        }
-                        window.location.href = '/thank-you';
-                    } else {
-                        console.log('🔗 Existing user - Redirecting to dashboard...');
-                        window.location.href = '/dashboard';
-                    }
+                    window.location.href = loginData.redirect || (isNewUser ? '/thank-you' : '/dashboard');
                 } else {
                     console.error('\n❌ Backend login failed');
                     console.error('Status:', loginData.status);
                     console.error('Message:', loginData.message);
-                    console.error('Full response:', loginData);
-                    alert(loginData.message || 'Login failed. Please try again.');
+                    showAlert(loginData.message || 'Login failed. Please try again.', 'danger');
                     if (googleBtn) {
                         googleBtn.disabled = false;
                         googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Sign in with Google';
@@ -630,7 +516,22 @@
                 throw error;
             }
         }
-    </script>
+    
+  // Inline alert instead of alert() (D5.42; same pattern as contact.ejs)
+  function showAlert(message, type) {
+    var box = document.getElementById('loginAlert');
+    if (!box) { window.alert(message); return; }
+    box.className = 'alert alert-' + (type || 'info');
+    box.textContent = message;
+    box.style.display = 'block';
+    box.scrollIntoView({ block: 'nearest' });
+    clearTimeout(box._t);
+    if (type !== 'danger') box._t = setTimeout(function () { box.style.display = 'none'; }, 6000);
+  }
+  window.togglePassword = togglePassword;
+  window.processGoogleLogin = processGoogleLogin;
+});
+</script>
 </body>
 
 

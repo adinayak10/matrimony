@@ -1,10 +1,30 @@
-    // WhatsApp-style Messaging with Offline Delivery Handling and Unique Room Fix
-    const ChatRoom = require('./models/ChatRoom');
-    const Message = require('./models/Message');
-    const User = require('./models/User');
-    const Notification = require('./models/Notification')
-    const ActivityLog = require('./models/ActivityLog')
-    const lazyIO = new Proxy({}, {
+'use strict';
+/**
+ * socket.js — chat / presence / badge counts / call signalling (A5).
+ *
+ * Identity: socket.userId is set by the handshake middleware (A5.1, dual
+ * mode) or by a legacy `join(userId)` while settings.security.legacySocketJoin
+ * is on. Every event below reads the identity from socket.userId and ignores
+ * sender ids in the payload (A5.5).
+ */
+const ChatRoom = require('./models/ChatRoom');
+const Message = require('./models/Message');
+const User = require('./models/User');
+const Notification = require('./models/Notification');
+const ActivityLog = require('./models/ActivityLog');
+const FriendShipRequest = require('./models/FriendShipRequest');
+const CallLog = require('./models/CallLog');
+const mongoose = require('mongoose');
+const { verifyUserToken, tokenFromHandshake } = require('./services/verifyUserToken');
+const { getSettings } = require('./services/settingsCache');
+const blocks = require('./services/blocks');
+const { effectiveVisibility } = require('./services/profileSerializer');
+const { ALLOW_MESSAGES_ENUM } = require('./enum/enum');
+
+// Import Ice Breaker Game Module
+const { setupIcebreakerSocket, getIcebreakerStats, cleanupAbandonedGames } = require('./gamesocket');
+
+const lazyIO = new Proxy({}, {
   get(_, prop) {
     if (!ioInstance) throw new Error('Socket.io not initialized');
     const v = ioInstance[prop];
@@ -12,663 +32,515 @@
   },
 });
 let ioInstance = null;
-    const onlineUsers = new Map();
+const onlineUsers = new Map(); // userId -> socket.id (last connection wins)
 
-// Import Ice Breaker Game Module
-const { setupIcebreakerSocket, getIcebreakerStats, cleanupAbandonedGames } = require('./gamesocket');
+const MAX_MESSAGE_LENGTH = 2000;
+const isId = (v) => mongoose.isValidObjectId(v);
+const oid = (v) => new mongoose.Types.ObjectId(String(v));
 
-
-
-  const FriendShipRequest = require('./models/FriendShipRequest');
-  const CallLog = require('./models/CallLog');
-
-
-
-
-
-
-    module.exports = {
-      setupSocket: (io) => {
-
-
-
-    // Set up cleanup interval for abandoned ice breaker games
-    setInterval(() => {
-      cleanupAbandonedGames();
-    }, 300000); // Clean up every 5 minutes
-
-
-
-        ioInstance = io;
-
-        // your full socket.on('connection', ...) logic
-        io.on('connection', (socket) => {
-
-
-          
-        
-        
-              console.log('✅ Socket connected:', socket.id);
-
-        socket.on('join', async (userId) => {
-          try {
-            console.log(`User ${userId} joined with socket ID: ${socket.id}`);
-
-            // Save socket mapping
-            onlineUsers.set(userId, socket.id);
-            socket.userId = userId;
-
-            // Mark user online
-            await User.findByIdAndUpdate(userId, {
-              isOnline: true,
-              lastSeen: null,
-            });
-
-            // Emit unread notification count
-            const totalUnread = await Notification.countDocuments({
-              toUser: userId,
-              isRead: false,
-            });
-            io.to(socket.id).emit('notification_count', { total: totalUnread });
-
-
-            // Log activity
-            await ActivityLog.create({
-              userId,
-              timestamp: new Date(),
-            });
-
-            // Notify other users
-            socket.broadcast.emit('user_online', { userId });
-
-            // 🚀 Deliver undelivered messages
-            const undeliveredMessages = await Message.find({
-              receiver: userId,
-              status: 'sent',
-            });
-
-            for (const msg of undeliveredMessages) {
-              io.to(socket.id).emit('receive_message', msg);
-              await Message.findByIdAndUpdate(msg._id, { status: 'delivered' });
-
-              const senderSocketId = onlineUsers.get(msg.sender.toString());
-              if (senderSocketId) {
-                io.to(senderSocketId).emit('message_delivered', { messageId: msg._id });
-              }
-            }
-
-            // 🔍 AI Match Radar: high_match_online
-            const currentUser = await User.findById(userId)
-              .populate('location.city')
-              .populate('location.state')
-              .populate('location.country');
-
-            if (!currentUser?.coordinates) return;
-
-            for (let [otherUserId, otherSocketId] of onlineUsers.entries()) {
-              if (otherUserId === userId) continue;
-
-              const otherUser = await User.findById(otherUserId)
-                .populate('location.city')
-                .populate('location.state')
-                .populate('location.country');
-
-              if (!otherUser?.coordinates) continue;
-
-              const score = calculateCompatibility(currentUser, otherUser);
-              const distance = calculateDistance(currentUser.coordinates, otherUser.coordinates); // km
-
-              if (score >= 85 && distance <= 50) {
-                // Notify other user
-                io.to(otherSocketId).emit('high_match_online', {
-                  userId: currentUser._id,
-                  name: currentUser.full_name,
-                  score,
-                  distance,
-                  profile: currentUser.profile,
-                });
-
-                // Notify current user
-                io.to(socket.id).emit('high_match_online', {
-                  userId: otherUser._id,
-                  name: otherUser.full_name,
-                  score,
-                  distance,
-                  profile: otherUser.profile,
-                });
-              }
-            }
-
-          } catch (error) {
-            console.error(`❌ Error in socket join for user ${userId}:`, error);
-          }
-        });
-
-
-             // 🎮 Setup Ice Breaker Game Socket Events
-      setupIcebreakerSocket(socket, io, onlineUsers, User);
-
-
-        // Send message
-  socket.on('send_message', async (data) => {
-    const { senderId, receiverId, content, type = 'text' } = data;
-    if (!content && type === 'text') return;
-
-
-if(detectSensitiveContentAdvanced(content)){
-  return
+/** Ids of everyone with an accepted FriendShipRequest with userId. */
+async function acceptedConnectionIds(userId) {
+  const rows = await FriendShipRequest.find({
+    status: 'accepted',
+    $or: [{ requester: userId }, { recipient: userId }],
+  })
+    .select('requester recipient')
+    .lean();
+  return rows.map((r) => (String(r.requester) === String(userId) ? String(r.recipient) : String(r.requester)));
 }
 
+/** Presence (A5.2): only accepted connections hear user_online/user_offline. */
+async function emitToConnections(io, userId, event, payload) {
+  const ids = await acceptedConnectionIds(userId);
+  for (const id of ids) {
+    if (await blocks.isBlockedEither(userId, id)) continue;
+    io.to(id).emit(event, payload);
+  }
+}
 
-    const sortedParticipants = [senderId, receiverId].sort();
+/** Unread accepted-room count for a user (one aggregate instead of N queries). */
+async function unreadRoomCount(userId) {
+  const rooms = await ChatRoom.find({ participants: userId, status: 'accepted' }).select('_id').lean();
+  if (!rooms.length) return 0;
+  const agg = await Message.aggregate([
+    { $match: { room: { $in: rooms.map((r) => r._id) }, receiver: oid(userId), status: { $in: ['sent', 'delivered'] } } },
+    { $group: { _id: '$room' } },
+    { $count: 'n' },
+  ]);
+  return (agg[0] && agg[0].n) || 0;
+}
 
-    // 🔍 Find or create chat room
-    let room = await ChatRoom.findOne({
-      participants: { $all: sortedParticipants, $size: 2 },
-      isGroup: false,
-    });
+async function emitUnreadRoomCount(io, userId) {
+  const socketId = onlineUsers.get(String(userId));
+  if (!socketId) return;
+  io.to(socketId).emit('unread_chatroom_count_update', { total: await unreadRoomCount(userId) });
+}
 
-    if (!room) {
-      room = await ChatRoom.create({
-        participants: sortedParticipants,
-        isGroup: false,
-        status: 'pending',
-      });
-    }
+module.exports = {
+  setupSocket: (io) => {
+    // Set up cleanup interval for abandoned ice breaker games
+    const cleanupTimer = setInterval(() => {
+      cleanupAbandonedGames();
+    }, 300000); // Clean up every 5 minutes
+    if (typeof cleanupTimer.unref === 'function') cleanupTimer.unref();
 
-    // ✅ Save message to MongoDB
-    const message = await Message.create({
-      room: room._id,
-      sender: senderId,
-      receiver: receiverId,
-      content,
-      type,
-      status: 'sent',
-      timestamp: new Date(),
-    });
+    ioInstance = io;
 
-    await message.populate('sender', 'full_name profile');
-
-    // ✅ ACK to sender
-    const senderSocket = onlineUsers.get(senderId);
-    if (senderSocket) {
-      io.to(senderSocket).emit('message_sent', message);
-    }
-
-    // 📤 Deliver to receiver if online
-    const receiverSocket = onlineUsers.get(receiverId);
-    if (receiverSocket) {
-      io.to(receiverSocket).emit('receive_message', message);
-
-      // Mark as delivered
-      await Message.findByIdAndUpdate(message._id, { status: 'delivered' });
-
-      // Notify sender it's delivered
-      if (senderSocket) {
-        io.to(senderSocket).emit('message_delivered', { messageId: message._id });
-      }
-
-      // 🔁 🔔 Send updated unread chatroom count to receiver
-      const rooms = await ChatRoom.find({
-        participants: receiverId,
-        status: 'accepted',
-      }).select('_id');
-
-      let unreadRoomCount = 0;
-
-      for (let r of rooms) {
-        const hasUnread = await Message.exists({
-          room: r._id,
-          receiver: receiverId,
-          status: { $in: ['sent', 'delivered'] },
-        });
-        if (hasUnread) unreadRoomCount++;
-      }
-
-      io.to(receiverSocket).emit('unread_chatroom_count_update', {
-        total: unreadRoomCount,
-      });
-    }
-  });
-
-
-  socket.on('mark_seen', async ({ roomId, receiverId }) => {
-    console.log("🔵 Marking messages as seen...");
-
-    const updated = await Message.updateMany(
-      { room: roomId, receiver: receiverId, status: { $ne: 'seen' } },
-      { status: 'seen' }
-    );
-
-    if (updated.modifiedCount > 0) {
-      const seenMessages = await Message.find({
-        room: roomId,
-        receiver: receiverId,
-        status: 'seen',
-      });
-
-      seenMessages.forEach((msg) => {
-        const senderSocket = onlineUsers.get(msg.sender.toString());
-        if (senderSocket) {
-          io.to(senderSocket).emit('message_seen', {
-            messageId: msg._id,
-            roomId: roomId,
-          });
-        }
-      });
-    }
-
-    // 🔁 🔔 Emit updated unread chatroom count
-    const receiverSocket = onlineUsers.get(receiverId);
-    if (receiverSocket) {
-      const rooms = await ChatRoom.find({
-        participants: receiverId,
-        status: 'accepted',
-      }).select('_id');
-
-      let unreadRoomCount = 0;
-
-      for (let r of rooms) {
-        const hasUnread = await Message.exists({
-          room: r._id,
-          receiver: receiverId,
-          status: { $in: ['sent', 'delivered'] },
-        });
-        if (hasUnread) unreadRoomCount++;
-      }
-
-      io.to(receiverSocket).emit('unread_chatroom_count_update', {
-        total: unreadRoomCount,
-      });
-    }
-  });
-
-
-
-        socket.on('typing', ({ toUserId, fromUserId }) => {
-          const toSocket = onlineUsers.get(toUserId);
-          if (toSocket) io.to(toSocket).emit('user_typing', { fromUserId });
-        });
-
-        socket.on('stop_typing', ({ toUserId, fromUserId }) => {
-          const toSocket = onlineUsers.get(toUserId);
-          if (toSocket) io.to(toSocket).emit('user_stop_typing', { fromUserId });
-        });
-
-    // Accept chat
-    socket.on('accept_chat', async ({ roomId }) => {
-      const room = await ChatRoom.findByIdAndUpdate(roomId, { status: 'accepted' }, { new: true });
-      if (!room) return;
-
-      // Identify accepting user and other participant
-      const acceptedBy = socket.userId;
-      const toNotifyUsers = room.participants.filter(u => u.toString() !== acceptedBy);
-
-      // Notify other participants
-      for (const userId of toNotifyUsers) {
-        const userSocket = onlineUsers.get(userId.toString());
-
-        if (userSocket) {
-          io.to(userSocket).emit('chat_accepted', { roomId });
-        }
-
-        // Save Notification in DB
-      var x= await Notification.create({
-          type: 'chat_accepted',
-          fromUser: acceptedBy,
-          toUser: userId,
-          content: `Your chat request has been accepted.`,
-          data: { roomId },
-        });
-        
-      }
-    });
-
-    // Decline chat
-    socket.on('decline_chat', async ({ roomId }) => {
-      const room = await ChatRoom.findByIdAndUpdate(roomId, { status: 'declined' }, { new: true });
-      if (!room) return;
-
-      const declinedBy = socket.userId;
-      const toNotifyUsers = room.participants.filter(u => u.toString() !== declinedBy);
-
-      for (const userId of toNotifyUsers) {
-        const userSocket = onlineUsers.get(userId.toString());
-
-        if (userSocket) {
-          io.to(userSocket).emit('chat_declined', { roomId });
-        }
-
-        // Save Notification in DB
-        await Notification.create({
-          type: 'chat_declined',
-          fromUser: declinedBy,
-          toUser: userId,
-          content: `Your chat request has been declined.`,
-          data: { roomId },
-        });
-      }
-    });
-
-
-
-    // 🔔 Notification Count
-    socket.on('get_notification_count', async (userId) => {
+    // A5.1 handshake auth, dual mode (integrator conflict #2):
+    // auth.token -> Authorization header -> bm_session|token cookie.
+    // While settings.security.legacySocketJoin !== false an invalid or
+    // missing token falls back to the legacy `join(userId)` branch; in
+    // strict mode the connection is rejected with AUTH_REQUIRED.
+    io.use(async (socket, next) => {
       try {
-        const total = await Notification.countDocuments({
-          toUser: userId,
-          isRead: false,
-        });
-
-        io.to(socket.id).emit('notification_count', { total });
+        const token = tokenFromHandshake(socket.handshake);
+        const s = await getSettings();
+        const legacy = !s || !s.security || s.security.legacySocketJoin !== false;
+        if (token) {
+          try {
+            const { user } = await verifyUserToken(token);
+            socket.userId = String(user._id);
+            socket.join(socket.userId);
+            return next();
+          } catch (e) {
+            if (!legacy) return next(new Error(e.code || 'AUTH_REQUIRED'));
+            console.warn('socket_bad_token', e.code);
+          }
+        }
+        if (legacy) {
+          socket.legacy = true;
+          return next();
+        }
+        return next(new Error('AUTH_REQUIRED'));
       } catch (err) {
-        console.error('❌ Error in get_notification_count:', err);
+        return next(new Error('AUTH_ERROR'));
       }
     });
 
-    // ❤️ Match Request Count
-    socket.on('get_match_request_count', async (userId) => {
-      try {
-        const total = await FriendShipRequest.countDocuments({
-          recipient: userId,
-          status: 'pending',
-        });
-
-        io.to(socket.id).emit('new_match_request', { total });
-      } catch (err) {
-        console.error('❌ Error in get_match_request_count:', err);
-      }
-    });
-
-    // 💬 Unread Chat Count (by unique rooms)
-    socket.on('get_unread_chat_count', async (userId) => {
-      try {
-        const rooms = await Message.aggregate([
-          { $match: { receiver: userId, status: 'sent' } },
-          { $group: { _id: "$roomId" } }
-        ]);
-
-        io.to(socket.id).emit('chat_update', { total: rooms.length });
-      } catch (err) {
-        console.error('❌ Error in get_unread_chat_count:', err);
-      }
-    });
-
-
-
-    
-
-  socket.on('get_unread_chatroom_count', async (userId) => {
-    try {
-      // Step 1: Get rooms user is part of and accepted
-      const rooms = await ChatRoom.find({
-        participants: userId,
-        status: 'accepted',
-      }).select('_id');
-
-      let unreadRoomCount = 0;
-
-      // Step 2: For each room, check if there's any unread message
-      for (let room of rooms) {
-        const hasUnread = await Message.exists({
-          room: room._id,
-          receiver: userId,
-          status: { $in: ['sent', 'delivered'] }, // Not yet seen
-        });
-
-        if (hasUnread) unreadRoomCount++;
-      }
-
-      // Step 3: Emit count
-      io.to(socket.id).emit('unread_chatroom_count_update', {
-        total: unreadRoomCount,
-      });
-    } catch (err) {
-      console.error('❌ Error in get_unread_chatroom_count:', err);
-      io.to(socket.id).emit('unread_chatroom_count_update', { total: 0 });
-    }
-  });
-
-
-
-        // 🎮 Get Ice Breaker Game Statistics
-      socket.on('get_icebreaker_stats', () => {
+    io.on('connection', (socket) => {
+      // A5.4: every handler runs inside safe() so a thrown error never
+      // becomes an unhandledRejection; the client gets error_event instead.
+      const safe = (name, fn) => async (...a) => {
         try {
-          const stats = getIcebreakerStats();
-          io.to(socket.id).emit('icebreaker_stats', stats);
-        } catch (err) {
-          console.error('❌ Error in get_icebreaker_stats:', err);
-          io.to(socket.id).emit('icebreaker_stats', { activeGames: 0, playersInQueue: 0 });
+          await fn(...a);
+        } catch (e) {
+          console.error('[socket]', name, e && e.message);
+          try { socket.emit('error_event', { event: name }); } catch (_) { /* ignore */ }
         }
-      });
+      };
+      const on = (name, fn) => socket.on(name, safe(name, fn));
+      const me = () => socket.userId || null;
 
-      // ── Voice/video call signaling (Agora) ──────────────────────
-      // Non-negotiable gate: only initiable between users with an accepted
-      // ChatRoom (same mutual-connection check the token-minting HTTP
-      // endpoint enforces server-side) — never between strangers.
-      socket.on('call_invite', async ({ toUserId, roomId, callType }) => {
-        try {
-          const fromUserId = socket.userId;
-          if (!fromUserId || !toUserId || !roomId) return;
+      // Bind the socket once the identity is known (token or legacy join)
+      const bindOnline = async (userId) => {
+        onlineUsers.set(userId, socket.id);
+        socket.join(userId);
 
-          const room = await ChatRoom.findOne({ _id: roomId, status: 'accepted', participants: { $all: [fromUserId, toUserId] } });
-          if (!room) {
-            io.to(socket.id).emit('call_failed', { reason: 'Calls are only available between mutually accepted connections' });
+        await User.updateOne({ _id: userId }, { $set: { isOnline: true, lastSeen: null } });
+
+        const totalUnread = await Notification.countDocuments({ toUser: userId, isRead: false });
+        io.to(socket.id).emit('notification_count', { total: totalUnread });
+
+        await ActivityLog.create({ userId, timestamp: new Date() });
+
+        // Presence only to accepted connections (A5.2)
+        await emitToConnections(io, userId, 'user_online', { userId });
+
+        // Deliver undelivered messages
+        const undeliveredMessages = await Message.find({ receiver: userId, status: 'sent' }).sort({ createdAt: 1 }).limit(200);
+        for (const msg of undeliveredMessages) {
+          io.to(socket.id).emit('receive_message', msg);
+          await Message.updateOne({ _id: msg._id }, { $set: { status: 'delivered' } });
+          const senderSocketId = onlineUsers.get(String(msg.sender));
+          if (senderSocketId) io.to(senderSocketId).emit('message_delivered', { messageId: msg._id });
+        }
+      };
+
+      // Token-authenticated sockets are online as soon as they connect
+      if (socket.userId) {
+        safe('bind', bindOnline)(socket.userId);
+      }
+
+      on('join', async (payloadUserId) => {
+        let userId;
+        // Identity: the verified handshake token wins; the payload is only
+        // honoured for legacy (no-token) connections while dual mode is on.
+        if (socket.userId) {
+          userId = socket.userId;
+          if (onlineUsers.get(userId) === socket.id) {
+            // already bound at connect: just refresh the badge for old clients
+            const totalUnread = await Notification.countDocuments({ toUser: userId, isRead: false });
+            io.to(socket.id).emit('notification_count', { total: totalUnread });
             return;
           }
+        } else if (socket.legacy && isId(payloadUserId)) {
+          userId = String(payloadUserId);
+          const user = await User.findById(userId).select('_id is_block').lean();
+          if (!user || user.is_block === 1) return;
+          socket.userId = userId;
+          console.info('legacy_socket_join');
+        } else {
+          return;
+        }
+        await bindOnline(userId);
+        // The O(N) high_match_online loop that used to run here was deleted (A5.2).
+      });
 
-          const channelName = `call_${[fromUserId, toUserId].sort().join('_')}_${Date.now()}`;
-          const call = await CallLog.create({
-            caller: fromUserId,
-            callee: toUserId,
-            chatRoom: roomId,
+      // Ice Breaker Game socket events
+      setupIcebreakerSocket(socket, io, onlineUsers, User);
+
+      // ─── send_message (A5.5) ────────────────────────────────────────────
+      on('send_message', async (data) => {
+        const senderId = me();
+        if (!senderId) return;
+        const { receiverId, type = 'text' } = data || {};
+        let content = data && typeof data.content === 'string' ? data.content.trim() : '';
+        const msgType = typeof type === 'string' && type.length <= 20 ? type : 'text';
+
+        if (!isId(receiverId) || String(receiverId) === senderId) return;
+        if (!content && msgType === 'text') return;
+        if (content.length > MAX_MESSAGE_LENGTH) {
+          return socket.emit('message_blocked', { reason: 'too_long', max: MAX_MESSAGE_LENGTH });
+        }
+        if (detectSensitiveContentAdvanced(content)) {
+          return socket.emit('message_blocked', { reason: 'contact_info' });
+        }
+
+        // Blocks both ways and banned receiver -> silently dropped
+        if (await blocks.isBlockedEither(senderId, receiverId)) {
+          return socket.emit('message_blocked', { reason: 'blocked' });
+        }
+        const receiver = await User.findById(receiverId).select('_id is_block settings').lean();
+        if (!receiver || receiver.is_block === 1) {
+          return socket.emit('message_blocked', { reason: 'unavailable' });
+        }
+
+        // Room: accepted -> ok; otherwise only when the receiver allows
+        // messages from everyone (a new pending room, initiated by the sender)
+        const pairKey = ChatRoom.pairKeyOf(senderId, receiverId);
+        let room = await ChatRoom.findOne({ $or: [{ pairKey }, { participants: { $all: [senderId, receiverId], $size: 2 }, isGroup: false }] });
+
+        if (!room || room.status !== 'accepted') {
+          const allow = effectiveVisibility(receiver.settings && receiver.settings.allowMessages, ALLOW_MESSAGES_ENUM, 'onlyAccepted');
+          if (allow !== 'everyone') {
+            return socket.emit('message_blocked', { reason: room && room.status === 'declined' ? 'declined' : 'not_connected' });
+          }
+          if (room && room.status === 'declined') {
+            return socket.emit('message_blocked', { reason: 'declined' });
+          }
+          if (!room) {
+            try {
+              room = await ChatRoom.create({
+                participants: [senderId, receiverId].sort(),
+                isGroup: false,
+                status: 'pending',
+                pairKey,
+                initiatedBy: senderId,
+              });
+            } catch (e) {
+              if (e.code !== 11000) throw e;
+              room = await ChatRoom.findOne({ pairKey });
+              if (!room) throw e;
+            }
+          }
+        }
+
+        // A deleted (hidden) room comes back for both when a message arrives
+        if (!room.pairKey || (room.hiddenFor && room.hiddenFor.length)) {
+          await ChatRoom.updateOne({ _id: room._id }, { $set: { pairKey: room.pairKey || pairKey, hiddenFor: [] } });
+        }
+
+        const message = await Message.create({
+          room: room._id,
+          sender: senderId,
+          receiver: receiverId,
+          content,
+          msgType,
+          status: 'sent',
+        });
+        await message.populate('sender', 'full_name profile');
+
+        // ACK to sender
+        io.to(socket.id).emit('message_sent', message);
+
+        // Deliver to receiver if online
+        const receiverSocket = onlineUsers.get(String(receiverId));
+        if (receiverSocket) {
+          io.to(receiverSocket).emit('receive_message', message);
+          await Message.updateOne({ _id: message._id }, { $set: { status: 'delivered' } });
+          io.to(socket.id).emit('message_delivered', { messageId: message._id });
+          if (room.status === 'accepted') await emitUnreadRoomCount(io, receiverId);
+          else io.to(receiverSocket).emit('chat_request', { roomId: room._id, fromUserId: senderId });
+        }
+      });
+
+      // ─── mark_seen (A5.5): receiver = socket.userId, must be a participant ──
+      on('mark_seen', async (data) => {
+        const receiverId = me();
+        const roomId = data && data.roomId;
+        if (!receiverId || !isId(roomId)) return;
+
+        const room = await ChatRoom.findOne({ _id: roomId, participants: receiverId }).select('_id').lean();
+        if (!room) return;
+
+        const toMark = await Message.find({ room: roomId, receiver: receiverId, status: { $ne: 'seen' } })
+          .select('_id sender')
+          .lean();
+        if (toMark.length) {
+          await Message.updateMany({ _id: { $in: toMark.map((m) => m._id) } }, { $set: { status: 'seen', isRead: true } });
+          for (const msg of toMark) {
+            const senderSocket = onlineUsers.get(String(msg.sender));
+            if (senderSocket) io.to(senderSocket).emit('message_seen', { messageId: msg._id, roomId });
+          }
+        }
+        await emitUnreadRoomCount(io, receiverId);
+      });
+
+      // ─── typing (A5.5): only between accepted, non-blocked rooms ─────────
+      const typingRelay = (event) => async (data) => {
+        const fromUserId = me();
+        const toUserId = data && data.toUserId;
+        if (!fromUserId || !isId(toUserId) || String(toUserId) === fromUserId) return;
+        const toSocket = onlineUsers.get(String(toUserId));
+        if (!toSocket) return;
+        const room = await ChatRoom.exists({
+          participants: { $all: [fromUserId, toUserId], $size: 2 },
+          status: 'accepted',
+        });
+        if (!room) return;
+        if (await blocks.isBlockedEither(fromUserId, toUserId)) return;
+        io.to(toSocket).emit(event, { fromUserId });
+      };
+      on('typing', typingRelay('user_typing'));
+      on('stop_typing', typingRelay('user_stop_typing'));
+
+      // ─── accept_chat / decline_chat (A5.5): pending room, participant, not the initiator ──
+      const decideChat = (status, event, notifType, text) => async (data) => {
+        const userId = me();
+        const roomId = data && data.roomId;
+        if (!userId || !isId(roomId)) return;
+
+        const room = await ChatRoom.findOneAndUpdate(
+          { _id: roomId, status: 'pending', participants: userId, initiatedBy: { $ne: oid(userId) } },
+          { $set: { status } },
+          { new: true }
+        );
+        if (!room) return;
+
+        const others = room.participants.filter((u) => String(u) !== userId);
+        for (const other of others) {
+          const userSocket = onlineUsers.get(String(other));
+          if (userSocket) io.to(userSocket).emit(event, { roomId });
+          await Notification.create({ type: notifType, fromUser: userId, toUser: other, content: text, data: { roomId } });
+        }
+        if (status === 'accepted') await emitUnreadRoomCount(io, userId);
+      };
+      on('accept_chat', decideChat('accepted', 'chat_accepted', 'chat_accepted', 'Your chat request has been accepted.'));
+      on('decline_chat', decideChat('declined', 'chat_declined', 'chat_declined', 'Your chat request has been declined.'));
+
+      // ─── badge counts (A5.5): always for socket.userId ────────────────────
+      on('get_notification_count', async () => {
+        const userId = me();
+        if (!userId) return;
+        const total = await Notification.countDocuments({ toUser: userId, isRead: false });
+        io.to(socket.id).emit('notification_count', { total });
+      });
+
+      on('get_match_request_count', async () => {
+        const userId = me();
+        if (!userId) return;
+        const total = await FriendShipRequest.countDocuments({ recipient: userId, status: 'pending' });
+        io.to(socket.id).emit('new_match_request', { total });
+      });
+
+      // Unread chat count by unique rooms ($roomId -> $room, cast ObjectId)
+      on('get_unread_chat_count', async () => {
+        const userId = me();
+        if (!userId) return;
+        const rooms = await Message.aggregate([
+          { $match: { receiver: oid(userId), status: { $in: ['sent', 'delivered'] } } },
+          { $group: { _id: '$room' } },
+        ]);
+        io.to(socket.id).emit('chat_update', { total: rooms.length });
+      });
+
+      on('get_unread_chatroom_count', async () => {
+        const userId = me();
+        if (!userId) return;
+        io.to(socket.id).emit('unread_chatroom_count_update', { total: await unreadRoomCount(userId) });
+      });
+
+      on('get_icebreaker_stats', () => {
+        const stats = getIcebreakerStats();
+        io.to(socket.id).emit('icebreaker_stats', stats);
+      });
+
+      // ─── Voice/video call signalling (Agora) ──────────────────────────────
+      // Only between users with an ACCEPTED ChatRoom, never blocked, and every
+      // follow-up event requires socket.userId ∈ {caller, callee} (A5.5).
+      on('call_invite', async (data) => {
+        const fromUserId = me();
+        const { toUserId, roomId, callType } = data || {};
+        if (!fromUserId || !isId(toUserId) || !isId(roomId) || String(toUserId) === fromUserId) return;
+
+        if (await blocks.isBlockedEither(fromUserId, toUserId)) {
+          return io.to(socket.id).emit('call_failed', { reason: 'Calls are only available between mutually accepted connections' });
+        }
+        const room = await ChatRoom.findOne({ _id: roomId, status: 'accepted', participants: { $all: [fromUserId, toUserId] } });
+        if (!room) {
+          return io.to(socket.id).emit('call_failed', { reason: 'Calls are only available between mutually accepted connections' });
+        }
+
+        const channelName = `call_${[fromUserId, String(toUserId)].sort().join('_')}_${Date.now()}`;
+        const call = await CallLog.create({
+          caller: fromUserId,
+          callee: toUserId,
+          chatRoom: roomId,
+          channelName,
+          callType: callType === 'video' ? 'video' : 'audio',
+          status: 'ringing',
+        });
+
+        const fromUser = await User.findById(fromUserId).select('full_name profile').lean();
+        const calleeSocket = onlineUsers.get(String(toUserId));
+
+        if (calleeSocket) {
+          io.to(calleeSocket).emit('call_incoming', {
+            callId: call._id,
+            roomId,
             channelName,
-            callType: callType === 'video' ? 'video' : 'audio',
-            status: 'ringing',
+            callType: call.callType,
+            fromUserId,
+            fromUserName: (fromUser && fromUser.full_name) || 'Someone',
+            fromUserProfile: (fromUser && fromUser.profile) || null,
           });
-
-          const fromUser = await User.findById(fromUserId).select('full_name profile');
-          const calleeSocket = onlineUsers.get(toUserId.toString());
-
-          if (calleeSocket) {
-            io.to(calleeSocket).emit('call_incoming', {
-              callId: call._id,
-              roomId,
-              channelName,
-              callType: call.callType,
-              fromUserId,
-              fromUserName: fromUser?.full_name || 'Someone',
-              fromUserProfile: fromUser?.profile || null,
-            });
-          } else {
-            call.status = 'missed';
-            call.endedAt = new Date();
-            await call.save();
-            io.to(socket.id).emit('call_failed', { reason: 'User is not online right now' });
-          }
-        } catch (err) {
-          console.error('❌ Error in call_invite:', err);
-          io.to(socket.id).emit('call_failed', { reason: 'Server error starting the call' });
-        }
-      });
-
-      socket.on('call_accept', async ({ callId }) => {
-        try {
-          const call = await CallLog.findByIdAndUpdate(callId, { status: 'accepted' }, { new: true });
-          if (!call) return;
-          const callerSocket = onlineUsers.get(call.caller.toString());
-          if (callerSocket) {
-            io.to(callerSocket).emit('call_accepted', { callId: call._id, channelName: call.channelName });
-          }
-        } catch (err) {
-          console.error('❌ Error in call_accept:', err);
-        }
-      });
-
-      socket.on('call_reject', async ({ callId }) => {
-        try {
-          const call = await CallLog.findByIdAndUpdate(callId, { status: 'rejected', endedAt: new Date() }, { new: true });
-          if (!call) return;
-          const callerSocket = onlineUsers.get(call.caller.toString());
-          if (callerSocket) {
-            io.to(callerSocket).emit('call_rejected', { callId: call._id });
-          }
-        } catch (err) {
-          console.error('❌ Error in call_reject:', err);
-        }
-      });
-
-      socket.on('call_end', async ({ callId }) => {
-        try {
-          const call = await CallLog.findById(callId);
-          if (!call) return;
-          if (call.status !== 'rejected' && call.status !== 'missed') {
-            call.status = 'ended';
-          }
+        } else {
+          call.status = 'missed';
           call.endedAt = new Date();
           await call.save();
-
-          const enderId = socket.userId;
-          const otherUserId = call.caller.toString() === enderId ? call.callee.toString() : call.caller.toString();
-          const otherSocket = onlineUsers.get(otherUserId);
-          if (otherSocket) {
-            io.to(otherSocket).emit('call_end', { callId: call._id });
-          }
-        } catch (err) {
-          console.error('❌ Error in call_end:', err);
+          io.to(socket.id).emit('call_failed', { reason: 'User is not online right now' });
         }
       });
 
+      const participantCall = async (callId, userId) => {
+        if (!userId || !isId(callId)) return null;
+        return CallLog.findOne({ _id: callId, $or: [{ caller: userId }, { callee: userId }] });
+      };
 
-        socket.on('disconnect', async () => {
-          const userId = socket.userId;
-          if (userId) {
-            onlineUsers.delete(userId);
-            await User.findByIdAndUpdate(userId, {
-              isOnline: false,
-              lastSeen: new Date(),
-            });
-            socket.broadcast.emit('user_offline', {
-              userId,
-              lastSeen: new Date(),
-            });
-          }
-        });
-
-
-
-          
-        });
-      },
-      // Controllers capture `io` at require time, before setupSocket() has run
-      // (and tests never run it): hand out a lazy proxy that resolves the real
-      // instance on first use instead of throwing at module load.
-      getIO: () => ioInstance || lazyIO,
-      onlineUsers, // optional: export this too
-    };
-
-
-
-
-    function detectSensitiveContentAdvanced(message) {
-      if (!message || typeof message !== 'string') return false;
-
-      const original = message.toLowerCase();
-      const normalized = original
-        .replace(/[\s\-_.]/g, '')                      // remove symbols/space
-        .replace(/zero/g, '0').replace(/one/g, '1')    // convert spelled numbers
-        .replace(/two/g, '2').replace(/three/g, '3')
-        .replace(/four/g, '4').replace(/five/g, '5')
-        .replace(/six/g, '6').replace(/seven/g, '7')
-        .replace(/eight/g, '8').replace(/nine/g, '9');
-
-      let score = 0;
-
-      // 1. Phone number detection
-      const phonePattern = /(?:\+91)?\d{10,12}/g;
-      if (phonePattern.test(normalized)) score += 3;
-
-      // 2. Email
-      if (/\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/.test(original)) score += 3;
-
-      // 3. Handle detection
-      if (/[@#][a-z0-9_.]{3,}/.test(original)) score += 2;
-
-      // 4. Link detection (even obfuscated)
-      const obfuscatedLink = /(insta|fb|tme|wa|dotme|linkdin|snap)(dot|\.|\s)?(com)?/.test(original);
-      if (obfuscatedLink) score += 3;
-
-      // 5. Keywords and app hints
-      const behaviorHints = [
-        "text me", "ping me", "call me", "connect on", "whatsapp",
-        "my number", "my insta", "my handle", "reach me", "you know where",
-        "blue app", "green app", "chat me", "find me", "message me"
-      ];
-      behaviorHints.forEach(hint => {
-        if (original.includes(hint)) score += 2;
+      on('call_accept', async (data) => {
+        const userId = me();
+        const call = await participantCall(data && data.callId, userId);
+        if (!call || String(call.callee) !== userId || call.status !== 'ringing') return;
+        call.status = 'accepted';
+        await call.save();
+        const callerSocket = onlineUsers.get(String(call.caller));
+        if (callerSocket) io.to(callerSocket).emit('call_accepted', { callId: call._id, channelName: call.channelName });
       });
 
-      // 6. Social platform codewords or URLs
-      const keywords = [
-        "instagram", "facebook", "telegram", "snapchat", "linkedin", "twitter",
-        "ig", "fb", "t.me", "wa.me", "wame", "linkdin", "discord", "skype"
-      ];
-      keywords.forEach(kw => {
-        if (original.includes(kw)) score += 3;
+      on('call_reject', async (data) => {
+        const userId = me();
+        const call = await participantCall(data && data.callId, userId);
+        if (!call || String(call.callee) !== userId || call.status !== 'ringing') return;
+        call.status = 'rejected';
+        call.endedAt = new Date();
+        await call.save();
+        const callerSocket = onlineUsers.get(String(call.caller));
+        if (callerSocket) io.to(callerSocket).emit('call_rejected', { callId: call._id });
       });
 
-      // 7. Emojis (📞, 📲, 📧, 💬)
-      const emojiHints = ["📞", "📲", "📧", "💬", "🟦", "🟢", "📱"];
-      emojiHints.forEach(e => {
-        if (original.includes(e)) score += 2;
+      on('call_end', async (data) => {
+        const userId = me();
+        const call = await participantCall(data && data.callId, userId);
+        if (!call) return;
+        if (call.status !== 'rejected' && call.status !== 'missed') call.status = 'ended';
+        call.endedAt = new Date();
+        await call.save();
+        const otherUserId = String(call.caller) === userId ? String(call.callee) : String(call.caller);
+        const otherSocket = onlineUsers.get(otherUserId);
+        if (otherSocket) io.to(otherSocket).emit('call_end', { callId: call._id });
       });
 
-      // 8. Suspicious digit sequences even without +91
-      const digits = normalized.replace(/\D/g, '');
-      if (digits.length >= 8 && digits.length <= 12) score += 2;
+      on('disconnect', async () => {
+        const userId = socket.userId;
+        if (!userId) return;
+        // Another connection of the same user may have replaced this one
+        if (onlineUsers.get(userId) !== socket.id) return;
+        onlineUsers.delete(userId);
+        const lastSeen = new Date();
+        await User.updateOne({ _id: userId }, { $set: { isOnline: false, lastSeen } });
+        await emitToConnections(io, userId, 'user_offline', { userId, lastSeen });
+      });
+    });
+  },
+  // Controllers capture `io` at require time, before setupSocket() has run
+  // (and tests never run it): hand out a lazy proxy that resolves the real
+  // instance on first use instead of throwing at module load.
+  getIO: () => ioInstance || lazyIO,
+  onlineUsers,
+  detectSensitiveContentAdvanced,
+  acceptedConnectionIds,
+};
 
-      // 9. Spelling tricks ("watsapp", "t dot me")
-      if (/t\s?dot\s?me|watsapp|link\s?din|ig\s?dot\s?com/.test(original)) score += 2;
+/**
+ * Contact-info detector (A5.5): word-boundary patterns so "Hawaii", "figure"
+ * or "football" are delivered while "wa.me/…", "my ig", "fb me" are blocked.
+ */
+function detectSensitiveContentAdvanced(message) {
+  if (!message || typeof message !== 'string') return false;
 
-      // 🚨 Final cutoff
-      return score >= 5;
-    }
+  const original = message.toLowerCase();
+  const normalized = original
+    .replace(/[\s\-_.]/g, '')
+    .replace(/zero/g, '0').replace(/one/g, '1')
+    .replace(/two/g, '2').replace(/three/g, '3')
+    .replace(/four/g, '4').replace(/five/g, '5')
+    .replace(/six/g, '6').replace(/seven/g, '7')
+    .replace(/eight/g, '8').replace(/nine/g, '9');
 
+  let score = 0;
 
+  // 1. Phone number detection
+  if (/(?:\+91)?\d{10,12}/.test(normalized)) score += 3;
 
-    function calculateCompatibility(userA, userB) {
-      let score = 0;
+  // 2. Email
+  if (/\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/.test(original)) score += 3;
 
-      if (userA.gender !== userB.gender) score += 20;
-      if (userA.age && userB.age && Math.abs(userA.age - userB.age) <= 5) score += 15;
-      if (userA.height === userB.height) score += 10;
-      if (userA.maritalStatus === userB.maritalStatus) score += 10;
-      if (userA.profession === userB.profession) score += 10;
-      if (userA.income && userB.income && Math.abs(userA.income - userB.income) < 50000) score += 5;
-      if (userA.location.city?.toString() === userB.location.city?.toString()) score += 15;
+  // 3. Handle detection
+  if (/(^|\s)[@#][a-z0-9_.]{3,}/.test(original)) score += 2;
 
-      return Math.min(score, 100); // Max 100
-    }
+  // 4. Link / platform shorthand (word-boundary, incl. obfuscated "insta dot com")
+  if (/\b(insta|fb|t\.?me|wa\.?me|linkdin|linkedin|snap)\b\s*(dot|\.)\s*(com|me)\b/.test(original)) score += 3;
+  if (/\bwa\.me\b|\bt\.me\b|https?:\/\/|\bwww\./.test(original)) score += 3;
 
+  // 5. Keywords and app hints
+  const behaviorHints = [
+    'text me', 'ping me', 'call me', 'connect on', 'whatsapp',
+    'my number', 'my insta', 'my handle', 'reach me', 'you know where',
+    'blue app', 'green app', 'chat me', 'find me', 'message me',
+  ];
+  for (const hint of behaviorHints) {
+    if (new RegExp(`\\b${hint.replace(/\s+/g, '\\s+')}\\b`).test(original)) score += 2;
+  }
 
-    function calculateDistance(coord1, coord2) {
-      if (!coord1 || !coord2) return 999;
-      const [lat1, lon1] = coord1.coordinates;
-      const [lat2, lon2] = coord2.coordinates;
+  // 6. Social platform code words (whole words only)
+  const keywords = [
+    'instagram', 'facebook', 'telegram', 'snapchat', 'linkedin', 'twitter',
+    'ig', 'fb', 'wame', 'linkdin', 'discord', 'skype',
+  ];
+  for (const kw of keywords) {
+    if (new RegExp(`\\b${kw}\\b`).test(original)) score += 3;
+  }
 
-      const R = 6371; // Radius of Earth in km
-      const dLat = deg2rad(lat2 - lat1);
-      const dLon = deg2rad(lon2 - lon1);
+  // 7. Emojis (📞, 📲, 📧, 💬)
+  const emojiHints = ['📞', '📲', '📧', '💬', '🟦', '🟢', '📱'];
+  for (const e of emojiHints) if (original.includes(e)) score += 2;
 
-      const a =
-        Math.sin(dLat / 2) ** 2 +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) ** 2;
+  // 8. Suspicious digit sequences even without +91
+  const digits = normalized.replace(/\D/g, '');
+  if (digits.length >= 8 && digits.length <= 12) score += 2;
 
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    }
+  // 9. Spelling tricks ("watsapp", "t dot me")
+  if (/\bt\s?dot\s?me\b|\bwatsapp\b|\blink\s?din\b|\big\s?dot\s?com\b/.test(original)) score += 2;
 
-    function deg2rad(deg) {
-      return deg * (Math.PI / 180);
-    }
+  return score >= 5;
+}

@@ -45,6 +45,9 @@ const processObjectPlaceholders = (obj, data) => {
   if (Array.isArray(obj)) {
     return obj.map(item => processObjectPlaceholders(item, data));
   }
+
+  // Dates / ObjectIds / Buffers are values, not containers (D28)
+  if (obj instanceof Date || (obj && typeof obj === 'object' && obj._bsontype) || Buffer.isBuffer(obj)) return obj;
   
   if (obj && typeof obj === 'object') {
     const processed = {};

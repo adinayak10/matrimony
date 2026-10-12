@@ -1,41 +1,50 @@
+const mongoose = require('mongoose');
 const UserReport = require('../../models/UserReport');
 const User = require('../../models/User');
+const { record: audit } = require('../../services/auditLog');
+
+const SORT_WHITELIST = new Set(['-createdAt', 'createdAt', '-updatedAt', 'status']);
+const isId = (v) => mongoose.isValidObjectId(v);
 
 /**
  * List user-vs-user abuse reports, filterable by status/reason, paginated.
  */
 exports.getAllReports = async (req, res) => {
   try {
-    const {
-      page = 1,
-      limit = 20,
-      status,
-      reason,
-      sort = '-createdAt'
-    } = req.query;
+    const { status, reason, reportedUser, reportedBy } = req.query;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const sort = SORT_WHITELIST.has(String(req.query.sort)) ? String(req.query.sort) : '-createdAt';
 
     const query = {};
-    if (status) query.status = status;
-    if (reason) query.reason = reason;
+    if (['pending', 'resolved', 'dismissed'].includes(status)) query.status = status;
+    if (typeof reason === 'string' && reason) query.reason = reason.slice(0, 100);
+    // C4.2: user-detail Reports tab filters (24-hex ids only)
+    if (reportedUser !== undefined) {
+      if (!isId(reportedUser)) return res.status(400).json({ status: false, message: 'Invalid reportedUser' });
+      query.reportedUser = reportedUser;
+    }
+    if (reportedBy !== undefined) {
+      if (!isId(reportedBy)) return res.status(400).json({ status: false, message: 'Invalid reportedBy' });
+      query.reportedBy = reportedBy;
+    }
 
-    const total = await UserReport.countDocuments(query);
-
-    const reports = await UserReport.find(query)
-      .populate('reportedBy', 'full_name email profile')
-      .populate('reportedUser', 'full_name email profile is_block')
-      .populate('resolvedBy', 'full_name email')
-      .sort(sort)
-      .limit(parseInt(limit))
-      .skip((parseInt(page) - 1) * parseInt(limit));
+    const [total, reports] = await Promise.all([
+      UserReport.countDocuments(query),
+      UserReport.find(query)
+        .populate('reportedBy', 'full_name email profile')
+        .populate('reportedUser', 'full_name email profile is_block')
+        .populate('resolvedBy', 'full_name email')
+        .sort(sort)
+        .limit(limit)
+        .skip((page - 1) * limit)
+        .lean(),
+    ]);
 
     res.json({
       status: true,
       data: reports,
-      pagination: {
-        total,
-        page: parseInt(page),
-        pages: Math.ceil(total / parseInt(limit))
-      }
+      pagination: { total, page, limit, pages: Math.ceil(total / limit) }
     });
   } catch (error) {
     console.error('Admin getAllReports error:', error);
@@ -63,6 +72,7 @@ exports.getReportStats = async (req, res) => {
 
 exports.getReportById = async (req, res) => {
   try {
+    if (!isId(req.params.id)) return res.status(404).json({ status: false, message: 'Report not found' });
     const report = await UserReport.findById(req.params.id)
       .populate('reportedBy', 'full_name email profile phone')
       .populate('reportedUser', 'full_name email profile phone is_block')
@@ -89,6 +99,8 @@ exports.updateReportStatus = async (req, res) => {
     if (!['pending', 'resolved', 'dismissed'].includes(status)) {
       return res.status(400).json({ status: false, message: 'Invalid status' });
     }
+    if (!isId(req.params.id)) return res.status(404).json({ status: false, message: 'Report not found' });
+    const before = await UserReport.findById(req.params.id).select('status').lean();
 
     const report = await UserReport.findByIdAndUpdate(
       req.params.id,
@@ -105,6 +117,7 @@ exports.updateReportStatus = async (req, res) => {
       return res.status(404).json({ status: false, message: 'Report not found' });
     }
 
+    audit(req, 'report.status', { type: 'report', id: req.params.id }, { before, after: { status, resolutionNote } });
     res.json({ status: true, message: `Report marked as ${status}`, data: report });
   } catch (error) {
     console.error('Admin updateReportStatus error:', error);
@@ -119,19 +132,21 @@ exports.updateReportStatus = async (req, res) => {
  */
 exports.blockReportedUser = async (req, res) => {
   try {
+    if (!isId(req.params.id)) return res.status(404).json({ status: false, message: 'Report not found' });
     const report = await UserReport.findById(req.params.id);
     if (!report) {
       return res.status(404).json({ status: false, message: 'Report not found' });
     }
 
-    const user = await User.findById(report.reportedUser);
+    // A2.4: tokenVersion bump makes the ban immediate
+    const user = await User.findByIdAndUpdate(
+      report.reportedUser,
+      { $set: { is_block: 1, block_reason: `Blocked via report #${report._id}: ${report.reason}` }, $inc: { tokenVersion: 1 } },
+      { new: true }
+    ).select('is_block');
     if (!user) {
       return res.status(404).json({ status: false, message: 'Reported user not found' });
     }
-
-    user.is_block = 1;
-    user.block_reason = `Blocked via report #${report._id}: ${report.reason}`;
-    await user.save();
 
     report.status = 'resolved';
     report.resolvedBy = req.userId;
@@ -139,6 +154,7 @@ exports.blockReportedUser = async (req, res) => {
     report.resolutionNote = req.body.resolutionNote || 'User blocked';
     await report.save();
 
+    audit(req, 'user.block', { type: 'user', id: String(report.reportedUser) }, { after: { is_block: 1, viaReport: String(report._id) } });
     res.json({ status: true, message: 'User blocked and report resolved', data: { is_block: user.is_block } });
   } catch (error) {
     console.error('Admin blockReportedUser error:', error);

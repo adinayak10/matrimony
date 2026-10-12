@@ -1,54 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= profile?.full_name || 'Profile' %> - Banjara Match</title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="View <%= profile?.full_name %>'s profile">
-    <meta name="keyword" content="matrimony, profile, <%= profile?.full_name %>">
-    <% if (profile) { %>
-    <link rel="canonical" href="https://www.banjaramatch.com/profile/<%= profile._id %>">
-    <% } %>
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <% if (profile) { %>
-    <!-- Structured Data: Person -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Person",
-      "name": "<%= profile.full_name %>",
-      "gender": "<%= profile.gender %>",
-      "birthPlace": "<%= profile.location?.city || profile.city %>",
-      "nationality": "Indian",
-      "memberOf": {
-        "@type": "Organization",
-        "name": "Banjara Community"
-      }
-    }
-    </script>
-    <% } %>
-    
-    <!--== PERFORMANCE: Resource Hints ==-->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    
-    <!--== CSS FILES - Optimized Loading ==-->
-    <link rel="preload" href="/css/style.min.css" as="style">
-    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/style.min.css">
-    <noscript>
-      <link rel="stylesheet" href="/css/bootstrap.css">
-      <link rel="stylesheet" href="/css/font-awesome.min.css">
-      <link rel="stylesheet" href="/css/animate.min.css">
-    </noscript>
-    <style>
+<%- include('../partials/head') %>
+<% if (profile) { %>
+<% } %>
+<% if (profile) { %>
+<% } %>
+<style>
     /* ── Premium Action Buttons ─────────────────────────────────── */
     .action-btns-wrap {
       background: linear-gradient(135deg,rgba(255,255,255,.97) 0%,rgba(255,246,253,.97) 100%);
@@ -512,26 +470,17 @@
     <!-- END -->
 
     <!-- Optional JavaScript -->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/slick.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
     
-    <script>
-const API_BASE_URL = 'https://api.banjaramatch.com/api';
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
+const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
 const MY_USER_ID = '<%= user?._id || "" %>';
 const PROFILE_USER_ID = '<%= profile?._id || "" %>';
 const CONNECTION_STATUS = '<%= connectionStatus?.status || "" %>';
 const CONNECTION_TYPE = '<%= connectionStatus?.type || "" %>';
 
-// Helper function to get auth token
-function getAuthToken() {
-    return document.cookie.split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1];
-}
 
 // Initialize sliders
 $(document).ready(function() {
@@ -551,8 +500,9 @@ $(document).ready(function() {
 // ── Helper: API call wrapper ──────────────────────────────────
 async function callAPI(endpoint, body) {
     const res = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        credentials: 'same-origin',
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     });
     return res.json();
@@ -639,10 +589,10 @@ $('#shortlistBtn').on('click', async function() {
     
     try {
         const response = await fetch(`${API_BASE_URL}/toggleShortlist`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -717,8 +667,9 @@ async function loadCompatibility() {
 
         // ── Horoscope (Guna Milan) ──
         const gunaRes = await fetch(`${API_BASE_URL}/compatibility/guna-milan`, {
+            credentials: 'same-origin',
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID })
         }).then(r => r.json()).catch(() => null);
 
@@ -752,6 +703,11 @@ async function loadCompatibility() {
     }
 }
 loadCompatibility();
-    </script>
+    
+  window.callAPI = callAPI;
+  window.setLoading = setLoading;
+  window.loadCompatibility = loadCompatibility;
+});
+</script>
 </body>
 </html>

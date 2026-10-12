@@ -1,28 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'Privacy Settings - Banjara Match' %></title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Manage your privacy and notification settings">
-    <meta name="robots" content="noindex, nofollow">
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!--== PERFORMANCE: Resource Hints ==-->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    
-    <style>
+<%- include('../partials/head') %>
+<style>
     .settings-card {
         background: #fff;
         border-radius: 8px;
@@ -286,22 +266,13 @@
     <!-- END -->
     
     <!-- JavaScript -->
-    <script defer src="/js/jquery.min.js"></script>
-    <script defer src="/js/popper.min.js"></script>
-    <script defer src="/js/bootstrap.min.js"></script>
-    <script defer src="/js/custom.min.js"></script>
     
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
 document.addEventListener('DOMContentLoaded', function() {
-    const API_BASE_URL = 'https://api.banjaramatch.com/api';
+    const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
     const MY_USER_ID = '<%= user?._id %>';
 
-    // Helper function to get auth token
-    function getAuthToken() {
-        return document.cookie.split('; ')
-            .find(row => row.startsWith('token='))
-            ?.split('=')[1];
-    }
 
     // Save settings
     $('#saveSettingsBtn').on('click', async function() {
@@ -325,10 +296,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             const response = await fetch(`${API_BASE_URL}/editProfile`, {
+                credentials: 'same-origin',
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${getAuthToken()}`
                 },
                 body: JSON.stringify({
                     user_id: MY_USER_ID,

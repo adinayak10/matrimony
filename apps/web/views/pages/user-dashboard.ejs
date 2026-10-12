@@ -1,45 +1,10 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'Dashboard - Banjara Match' %></title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Your personal matrimony dashboard">
-    <meta name="keywords" content="matrimony, dashboard, banjara match">
-    <meta name="robots" content="noindex, nofollow">
-    <!--== FAV ICON(BROWSER TAB ICON) ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!-- Google Analytics (SEO & Traffic Tracking) -->
-    <%- include('../partials/analytics', { pageCategory: 'dashboard' }) %>
-    
-    <!--== PERFORMANCE: Resource Hints ==-->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    
-    <!--== CSS FILES - Optimized Loading ==-->
-    <link rel="preload" href="/css/style.css" as="style">
-    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
-    <link rel="stylesheet" href="/css/style.css">
-    <noscript>
-      <link rel="stylesheet" href="/css/bootstrap.css">
-      <link rel="stylesheet" href="/css/font-awesome.min.css">
-      <link rel="stylesheet" href="/css/animate.min.css">
-    </noscript>
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-      <script src="js/html5shiv.min.js"></script>
-      <script src="js/respond.min.js"></script>
-      <![endif]-->
+<%- include('../partials/head') %>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
+<link rel="stylesheet" href="/css/style.css">
 </head>
 
 <body>
@@ -645,17 +610,12 @@
     <!-- END -->
     <!-- Optional JavaScript - Optimized Loading -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script defer src="/js/jquery.min.js"></script>
-    <script defer src="/js/popper.min.js"></script>
-    <script defer src="/js/bootstrap.min.js"></script>
-    <script defer src="/js/slick.js"></script>
-    <script defer src="/js/select-opt.js"></script>
-    <script defer src="/js/Chart.js"></script>
-    <script defer src="/js/custom.js"></script>
-    <script src="/js/esc.js"></script>
-    <script defer>
+    <%- include('../partials/scripts') %>
+<script defer>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
 // Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', function() {
+(function (f) { f(); })(function() {
     
 // Wait for jQuery and slick to be loaded
 const initSliders = () => {
@@ -734,7 +694,7 @@ $('.count').each(function () {
 });
 
 // API Configuration
-const API_BASE_URL = 'https://api.banjaramatch.com/api';
+const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
 const MY_USER_ID = '<%= user?._id %>';
 
 // Log profile completion data
@@ -742,24 +702,18 @@ console.log('Profile Completion Percentage:', <%= Math.round(user?.profileComple
 console.log('Profile Completion Data:', {
     percentage: <%= Math.round(user?.profileCompletion?.percentage || 0) %>,
     suggestion: '<%= (user?.profileCompletion?.suggestion || '').replace(/'/g, "\\'") %>',
-    missingFields: <%- JSON.stringify(user?.profileCompletion?.missingFields || []) %>
+    missingFields: <%- safeJson(user?.profileCompletion?.missingFields || []) %>
 });
 
-// Helper function to get auth token
-function getAuthToken() {
-    return document.cookie.split('; ')
-        .find(row => row.startsWith('token='))
-        ?.split('=')[1];
-}
 
 // Load Profile Statistics
 async function loadProfileStats() {
     try {
         const response = await fetch(`${API_BASE_URL}/getProfileVisitorSummary`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 user_id: MY_USER_ID
@@ -785,6 +739,7 @@ async function loadProfileStats() {
 async function loadLivePlayersCount() {
     try {
         const response = await fetch(`${API_BASE_URL}/getIcebreakerStats`, {
+            credentials: 'same-origin',
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -809,10 +764,10 @@ async function loadLivePlayersCount() {
 async function loadRecentChats() {
     try {
         const response = await fetch(`${API_BASE_URL}/fetchUserRooms`, {
+            credentials: 'same-origin',
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getAuthToken()}`
             },
             body: JSON.stringify({
                 my_user_id: MY_USER_ID,
@@ -864,11 +819,13 @@ async function loadLiveActivity() {
     try {
         const [activityRes, momentumRes] = await Promise.all([
             fetch(`${API_BASE_URL}/fetchLiveActivity`, {
+                credentials: 'same-origin',
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ my_user_id: MY_USER_ID })
             }).then(r => r.json()).catch(() => null),
             fetch(`${API_BASE_URL}/getMatchMomentum`, {
+                credentials: 'same-origin',
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: MY_USER_ID })
@@ -918,7 +875,13 @@ $(document).ready(function() {
 });
 
 }); // End DOMContentLoaded
-    </script>
+    
+  window.loadProfileStats = loadProfileStats;
+  window.loadLivePlayersCount = loadLivePlayersCount;
+  window.loadRecentChats = loadRecentChats;
+  window.loadLiveActivity = loadLiveActivity;
+});
+</script>
     
     <style>
     @keyframes pulse {

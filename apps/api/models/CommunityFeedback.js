@@ -62,5 +62,6 @@ CommunityFeedbackSchema.index({ email: 1 });
 CommunityFeedbackSchema.index({ category: 1 });
 CommunityFeedbackSchema.index({ status: 1 });
 CommunityFeedbackSchema.index({ createdAt: -1 });
+CommunityFeedbackSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('CommunityFeedback', CommunityFeedbackSchema);

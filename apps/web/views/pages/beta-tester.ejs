@@ -1,51 +1,8 @@
 <!doctype html>
-<html lang="en">
-
+<html lang="<%= site.lang %>">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-  <title>Join BanjaraMatch Beta Testing - Get Advanced Features First</title>
-  <meta name="description" content="Be among the first to access AI-powered matching, advanced filters, and profile verification. Join our beta program for lifetime early access.">
-  <meta name="keywords" content="BanjaraMatch beta tester, AI matrimony app, advanced matching, beta testing program, early access features">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="https://www.banjaramatch.com/beta-tester" />
-
-  <!--== FAV ICON ==-->
-  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-
-  <!-- Google Analytics -->
-  <%- include('../partials/analytics', { pageCategory: 'beta-tester' }) %>
-
-  <!-- Structured Data: BreadcrumbList -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      {
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://www.banjaramatch.com"
-      },
-      {
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Beta Testing Program",
-        "item": "https://www.banjaramatch.com/beta-tester"
-      }
-    ]
-  }
-  </script>
-
-  <!--== CSS FILES ==-->
-  <link rel="stylesheet" href="css/bootstrap.css">
-  <link rel="stylesheet" href="css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/animate.min.css">
-  <link rel="stylesheet" href="css/style.min.css">
-
-  <style>
+<%- include('../partials/head') %>
+<style>
     .beta-hero {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       padding: 100px 0 80px;
@@ -398,6 +355,10 @@
             </div>
 
             <form id="betaTesterForm">
+<div class="bm-hp" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden;">
+  <label for="betaWebsite">Website</label>
+  <input type="text" id="betaWebsite" name="website" tabindex="-1" autocomplete="off" value="">
+</div>
               <div class="form-group">
                 <label for="email" style="font-size: 1.1rem;">Enter Your Email Address *</label>
                 <input type="email" class="form-control" id="email" name="email" placeholder="your@email.com" required style="padding: 15px; font-size: 1.05rem;">
@@ -487,12 +448,11 @@
   <%- include('../partials/footer') %>
 
   <!--== SCRIPT FILES ==-->
-  <script src="js/jquery.min.js"></script>
-  <script src="js/popper.min.js"></script>
-  <script src="js/bootstrap.min.js"></script>
-  <script src="js/custom.min.js"></script>
 
-  <script>
+  <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
     $(document).ready(function() {
       // Load available slots count
       function loadSlots() {
@@ -580,7 +540,10 @@
         });
       });
     });
-  </script>
+  
+  window.loadSlots = loadSlots;
+});
+</script>
 
 </body>
 </html>

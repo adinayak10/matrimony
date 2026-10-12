@@ -1,22 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title><%= title || 'Profile Visitors - Banjara Match' %></title>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Who viewed your profile on Banjara Match">
-    <meta name="robots" content="noindex, nofollow">
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/animate.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-
-    <style>
+<%- include('../partials/head') %>
+<style>
     .visitor-tabs {
         display: flex;
         gap: 10px;
@@ -119,23 +105,15 @@
 
     <%- include('../partials/footer') %>
 
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
-    <script src="/js/esc.js"></script>
 
-    <script>
-        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
+        const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
         const MY_USER_ID = '<%= user._id %>';
         const ACTIVE_TYPE = '<%= activeType %>';
 
-        function getAuthToken() {
-            return document.cookie.split('; ')
-                .find(row => row.startsWith('token='))
-                ?.split('=')[1];
-        }
 
         function photoUrl(profile) {
             if (!profile) return '/images/default-user.jpg';
@@ -156,10 +134,10 @@
             const grid = document.getElementById('visitorGrid');
             try {
                 const res = await fetch(`${API_BASE_URL}/getProfileVisitorSummary`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${getAuthToken()}`
                     },
                     body: JSON.stringify({ my_user_id: MY_USER_ID, type: ACTIVE_TYPE, page: 1, limit: 60 })
                 });
@@ -169,7 +147,7 @@
                     const emptyText = ACTIVE_TYPE === 'they_viewed_me' ? 'No one has viewed your profile yet.'
                         : ACTIVE_TYPE === 'mutual' ? 'No mutual views yet — keep exploring profiles!'
                         : "You haven't viewed anyone's profile yet.";
-                    grid.innerHTML = `<div class="empty-visitors" style="grid-column:1/-1;"><div style="font-size:48px; opacity:.3;">👀</div><p class="text-muted">${emptyText}</p><a href="/all-profiles" class="cta-3">Browse Profiles</a></div>`;
+                    grid.innerHTML = `<div class="empty-visitors" style="grid-column:1/-1;"><div style="font-size:48px; opacity:.3;">👀</div><p class="text-muted">${esc(emptyText)}</p><a href="/all-profiles" class="cta-3">Browse Profiles</a></div>`;
                     return;
                 }
 
@@ -196,6 +174,12 @@
         }
 
         loadVisitors();
-    </script>
+    
+  window.photoUrl = photoUrl;
+  window.calcAge = calcAge;
+  window.formatVisitDate = formatVisitDate;
+  window.loadVisitors = loadVisitors;
+});
+</script>
 </body>
 </html>

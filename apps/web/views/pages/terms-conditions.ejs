@@ -1,50 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title>Terms & Conditions - BanjaraMatch | Free Banjara Matrimony</title>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Terms and Conditions for BanjaraMatch - India's First Free Banjara Matrimony Platform">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://www.banjaramatch.com/terms-conditions">
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="Terms & Conditions - BanjaraMatch">
-    <meta property="og:description" content="Terms and Conditions for BanjaraMatch matrimony platform.">
-    <meta property="og:url" content="https://www.banjaramatch.com/terms-conditions">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://www.banjaramatch.com/images/banjaramatch-preview.jpg">
-    
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    
-    <!-- Structured Data: BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://www.banjaramatch.com"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Terms & Conditions",
-          "item": "https://www.banjaramatch.com/terms-conditions"
-        }
-      ]
-    }
-    </script>
-    
-    <style>
+<%- include('../partials/head') %>
+<style>
         .terms-container { background: #fff; padding: 40px; margin: 40px 0; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .terms-container h1 { color: #f6af04; margin-bottom: 30px; font-size: 32px; }
         .terms-container h2 { color: #2c3e50; margin-top: 30px; margin-bottom: 15px; font-size: 24px; }
@@ -504,9 +462,6 @@
     <!-- END -->
     
     <!-- JavaScript -->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/custom.min.js"></script>
+<%- include('../partials/scripts') %>
 </body>
 </html>

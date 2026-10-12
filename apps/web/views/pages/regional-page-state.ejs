@@ -1,7 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <%
+<%- include('../partials/head') %>
+<%
     const stateName = typeof page.state === 'object' ? page.state.name : page.state;
     const defaultTitle = `Banjara Matrimony in ${stateName} - Free Lambani Matches Across the State`;
     // Normalize legacy flat fields against the real nested schema (heroSection/introSection/faqSection)
@@ -12,141 +13,12 @@
     const introContent = page.introContent || (page.introSection && page.introSection.content);
     const pageFaqs = (page.faqs && page.faqs.length > 0) ? page.faqs : ((page.faqSection && page.faqSection.faqs) || []);
     %>
-    <title><%= page.metaTitle || defaultTitle %></title>
-    
-    <!-- Essential Meta -->
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-    <meta name="theme-color" content="#f6af04" />
-    <meta name="robots" content="index, follow" />
-    
-    <!-- SEO Meta Tags -->
-    <meta name="description" content="<%= page.metaDescription || `Find verified Banjara/Lambani/Gormati brides and grooms across ${stateName} — 100% free matrimonial service with verified profiles.` %>">
-    
-    <% 
-    let keywords = [];
-    if (page.metaKeywords && page.metaKeywords.length > 0) {
-        keywords = page.metaKeywords;
-    } else {
-        const stateLower = stateName.toLowerCase();
-        keywords = [
-            `banjara matrimony ${stateLower}`,
-            `lambadi matrimony ${stateLower}`,
-            `lambani brides ${stateLower}`,
-            `banjara grooms ${stateLower}`,
-            `gormati matrimony ${stateLower}`,
-            `${stateName} banjara wedding`,
-            `free banjara matrimony ${stateLower}`,
-            `lambadi community ${stateLower}`,
-            `banjara matches ${stateLower}`,
-            `lambani matrimony ${stateLower}`
-        ];
-    }
-    %>
-    <meta name="keywords" content="<%= keywords.join(', ') %>">
-    <meta name="author" content="BanjaraMatch Team" />
-    <meta name="copyright" content="BanjaraMatch.com" />
-    <meta name="language" content="English" />
-    <meta name="geo.region" content="IN" />
-    <meta name="geo.placename" content="<%= stateName %>, India" />
-    <meta name="geo.country" content="India" />
-    <meta name="classification" content="Matrimony" />
-    
-    <!-- Canonical -->
-    <link rel="canonical" href="https://www.banjaramatch.com/<%= page.slug %>">
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="<%= page.metaTitle || `Banjara Matrimony in ${stateName}` %>">
-    <meta property="og:description" content="<%= page.metaDescription || `Find verified Banjara/Lambani matches across ${stateName}. 100% Free matrimonial service.` %>">
-    <meta property="og:url" content="https://www.banjaramatch.com/<%= page.slug %>">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="BanjaraMatch">
-    <meta property="og:locale" content="en_IN">
-    <meta property="og:image" content="<%= page.bannerImages && page.bannerImages[0] ? page.bannerImages[0].url : 'https://www.banjaramatch.com/images/banner.jpg' %>">
-    
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="<%= page.metaTitle || `Banjara Matrimony in ${stateName}` %>">
-    <meta name="twitter:description" content="<%= page.metaDescription || `Find verified Banjara/Lambani matches across ${stateName}` %>">
-    <meta name="twitter:image" content="<%= page.bannerImages && page.bannerImages[0] ? page.bannerImages[0].url : 'https://www.banjaramatch.com/images/banner.jpg' %>">
-    
-    <!-- Favicon -->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon" />
-    
-    <!-- Google Analytics -->
-    <%- include('../partials/analytics') %>
-    
-    <!-- Resource Hints -->
-    <link rel="preconnect" href="https://api.banjaramatch.com">
-    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    
-    <!-- CSS FILES -->
-    <link rel="preload" href="/css/style.min.css" as="style">
-    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/style.min.css">
-    <noscript>
-        <link rel="stylesheet" href="/css/bootstrap.css">
-        <link rel="stylesheet" href="/css/font-awesome.min.css">
-        <link rel="stylesheet" href="/css/animate.min.css">
-    </noscript>
-    
-    <!-- Structured Data: Organization -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "Organization",
-      "name": "BanjaraMatch - <%= stateName %>",
-      "description": "<%= page.metaDescription || `Free Banjara matrimony service across ${stateName}` %>",
-      "url": "https://www.banjaramatch.com/<%= page.slug %>",
-      "email": "support@banjaramatch.com",
-      "priceRange": "Free",
-      "areaServed": {
-        "@type": "State",
-        "name": "<%= stateName %>",
-        "addressCountry": "IN"
-      }
-    }
-    </script>
-    
-    <% if (pageFaqs.length > 0) { %>
-    <!-- Structured Data: FAQ -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      "mainEntity": [
-        <% pageFaqs.forEach((faq, index) => { %>
-        {
-          "@type": "Question",
-          "name": "<%= faq.question %>",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "<%= faq.answer %>"
-          }
-        }<%= index < pageFaqs.length - 1 ? ',' : '' %>
-        <% }); %>
-      ]
-    }
-    </script>
-    <% } %>
 </head>
 
 <body>
     <%- include('../partials/header') %>
 
-    <!-- BREADCRUMB -->
-    <section style="background: #f8f9fa; padding: 15px 0; position: relative; z-index: 5;">
-        <div class="container">
-            <div style="display: flex; align-items: center; font-size: 14px; color: #666;">
-                <a href="/" style="color: #667eea; text-decoration: none;">Home</a>
-                <span style="margin: 0 10px;">›</span>
-                <span style="color: #333; font-weight: 600;"><%= stateName %></span>
-            </div>
-        </div>
-    </section>
+    <%- include('../partials/breadcrumb') %>
 
     <!-- BANNER & SEARCH -->
     <section style="position: relative; z-index: 2;">
@@ -159,21 +31,22 @@
                                 <span><i class="no1">#1</i> <%= stateName %> Banjara Matrimony</span>
                                 <h1>
                                     <% if (heroTitle) { %>
-                                        <%- heroTitle %>
+                                        <%= heroTitle %>
                                     <% } else { %>
                                         India's First <strong>Free</strong> <b>Banjara Matrimony</b> in <%= stateName %>
                                     <% } %>
                                 </h1>
                                 <p>
                                     <% if (heroSubtitle) { %>
-                                        <%- heroSubtitle %>
+                                        <%= heroSubtitle %>
                                     <% } else { %>
                                         Connect with verified Banjara/Lambani/Gormati profiles across <%= stateName %>. Find your perfect life partner from all major cities in the Banjara community with <strong>100% Free matrimonial service</strong> - No hidden charges, completely free forever.
                                     <% } %>
                                 </p>
                             </div>
                             <div class="ban-search chosenini">
-                                <form action="/all-profiles" method="GET">
+                                <form action="<%= user ? '/all-profiles' : '/register' %>" method="GET" class="hero-search" data-guest="<%= user ? '0' : '1' %>">
+                                    <% if (!user) { %><input type="hidden" name="intent" value="search"><% } %>
                                     <input type="hidden" name="state" value="<%= stateName %>">
                                     <ul>
                                         <li class="sr-look">
@@ -449,7 +322,7 @@
                     </div>
                     <% if (introContent) { %>
                     <div style="max-width: 900px; margin: 30px auto 0 auto; font-size: 16px; line-height: 1.8; color: #555; text-align: center;">
-                        <%- introContent.replace(/\n/g, '<br>') %>
+                        <%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ introContent.replace(/\n/g, '<br>') %>
                     </div>
                     <% } %>
                 </div>
@@ -481,9 +354,9 @@
                                 </h2>
                                 <div style="font-size: 15px; line-height: 1.8; color: #666;">
                                     <% if (page.aboutContent) { %>
-                                        <%- page.aboutContent.replace(/\n/g, '<br>') %>
+                                        <%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ page.aboutContent.replace(/\n/g, '<br>') %>
                                     <% } else if (page.aboutSection && page.aboutSection.content) { %>
-                                        <%- page.aboutSection.content %>
+                                        <%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ page.aboutSection.content %>
                                     <% } else { %>
                                         <p>BanjaraMatch is proud to serve the Banjara/Lambani/Gormati community across <%= stateName %>. Our platform connects verified profiles seeking matrimonial alliances within our community from all major cities in the state.</p>
                                         <p>Join thousands of <%= stateName %>-based Banjara members who have found their life partners through our 100% free matrimonial service. We preserve traditions while embracing modern matchmaking.</p>
@@ -745,7 +618,7 @@
                     
                     <% if (page.communityInsights.description) { %>
                     <div class="text-center" style="max-width: 800px; margin: 30px auto 50px; font-size: 16px; color: #555;">
-                        <%- page.communityInsights.description %>
+                        <%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ page.communityInsights.description %>
                     </div>
                     <% } %>
                     
@@ -962,7 +835,8 @@
     </section>
     <% } %>
 
-    <% if (page.pageType === 'state' && page.interlinking && page.interlinking.relatedCityPages && page.interlinking.relatedCityPages.length > 0) { %>
+    <% const relatedCityPages = Array.isArray(page.relatedCityPages) ? page.relatedCityPages.filter((c) => c && c.slug) : []; %>
+    <% if (relatedCityPages.length > 0) { %>
     <!-- MAJOR CITIES IN STATE - Clickable Links to City Pages -->
     <section style="position: relative; z-index: 4; padding: 60px 0; background: #f8f9fa;">
         <div class="container">
@@ -978,7 +852,7 @@
                         <span class="tit-ani-"></span>
                     </div>
                     <div style="max-width: 1100px; margin: 40px auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                        <% page.interlinking.relatedCityPages.forEach(cityPage => { 
+                        <% relatedCityPages.forEach(cityPage => { 
                             const cityPageName = typeof cityPage.city === 'object' ? cityPage.city.name : cityPage.city;
                             const cityMembers = cityPage.stats?.totalMembers || 0;
                         %>
@@ -1094,11 +968,23 @@
 
 
     <!-- JavaScript -->
-    <script defer src="/js/jquery.min.js"></script>
-    <script defer src="/js/popper.min.js"></script>
-    <script defer src="/js/bootstrap.min.js"></script>
-    <script defer src="/js/select-opt.min.js"></script>
-    <script defer src="/js/slick.min.js"></script>
-    <script defer src="/js/custom.min.js"></script>
+<%- include('../partials/scripts') %>
+    <script>
+      // Guests: the hero search goes to /register?next=<encoded /all-profiles?...> (D5.41).
+      (function () {
+        var form = document.querySelector('form.hero-search[data-guest="1"]');
+        if (!form) return;
+        form.addEventListener('submit', function (e) {
+          var qs = new URLSearchParams();
+          ['gender', 'age', 'maritalStatus', 'city', 'state'].forEach(function (name) {
+            var el = form.elements[name];
+            if (el && el.value) qs.set(name, el.value);
+          });
+          var next = '/all-profiles' + (qs.toString() ? '?' + qs.toString() : '');
+          e.preventDefault();
+          location.href = '/register?next=' + encodeURIComponent(next);
+        });
+      })();
+    </script>
 </body>
 </html>

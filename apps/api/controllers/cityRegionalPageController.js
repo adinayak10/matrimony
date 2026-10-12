@@ -7,6 +7,20 @@ const Gotra = require('../models/Gotra');
 const Caste = require('../models/Caste');
 const Qualification = require('../models/Qualification');
 const { triggerSitemapRegeneration } = require('../services/sitemapService');
+const regionalStats = require('../services/regionalStats');
+const { sanitizeDeep, contentWords } = require('../services/sanitize');
+const { record: audit } = require('../services/auditLog');
+// Fields the admin edits as HTML/text: sanitised on every write (D, Track A)
+const CMS_FIELDS = ['metaTitle', 'metaDescription', 'metaKeywords', 'heroSection', 'introSection', 'aboutSection', 'statsSection',
+  'whyChooseSection', 'successStoriesSection', 'howItWorksSection', 'localitiesSection', 'faqSection', 'ctaSection',
+  'popularLocalities', 'communityInsights', 'culturalSection', 'featuredMembers', 'bannerImages', 'customContentBlocks', 'cityDemographics',
+  'introContent', 'aboutContent', 'faqs', 'heritageSection'];
+function sanitizeCmsBody(body) {
+  const out = { ...body };
+  for (const f of CMS_FIELDS) if (out[f] !== undefined) out[f] = sanitizeDeep(out[f]);
+  delete out.stats; delete out.views; delete out.createdBy; delete out.updatedBy; delete out._id;
+  return out;
+}
 const { getCityEnhancedData, generateUniqueIntro } = require('../utils/citySpecificData');
 const { 
   generateCityPrefillTemplate, 
@@ -146,13 +160,13 @@ exports.createCityPage = async (req, res) => {
 
     const stats = await calculateCityStats(cityId, city.name);
 
-    // Ensure all nested objects are properly included
+    // Ensure all nested objects are properly included (CMS HTML sanitised on write)
     const cityPage = new CityRegionalPage({
+      ...sanitizeCmsBody(pageData),
       city: cityId,
       state: city.state._id,
       stats,
-      ...pageData,
-      createdBy: req.user?._id
+      createdBy: req.userId
     });
 
     console.log('💾 Saving city page with demographics:', cityPage.cityDemographics ? 'Present' : 'Missing');
@@ -164,6 +178,7 @@ exports.createCityPage = async (req, res) => {
     if (cityPage.isPublished) {
       triggerSitemapRegeneration();
     }
+    audit(req, 'regionalPage.create', { type: 'cityPage', id: cityPage._id }, { after: { slug: cityPage.slug, isPublished: cityPage.isPublished } });
 
     res.status(201).json({ 
       status: true, 
@@ -324,7 +339,10 @@ exports.getCityPageByIdAdmin = async (req, res) => {
 exports.updateCityPage = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = { ...req.body, updatedBy: req.user?._id };
+    const updateData = { ...sanitizeCmsBody(req.body || {}), updatedBy: req.userId };
+    delete updateData.slug; // slugs are public URLs: read-only after creation (URL contract)
+    delete updateData.city;
+    delete updateData.state;
 
     console.log('📝 Updating city page ID:', id);
     console.log('📦 Update data keys:', Object.keys(updateData));
@@ -352,9 +370,10 @@ exports.updateCityPage = async (req, res) => {
 
     console.log('✅ City page updated. CityDemographics after update:', page.cityDemographics ? Object.keys(page.cityDemographics) : 'None');
 
-    if (page.isPublished) {
+    if (page.isPublished || existingPage.isPublished) {
       triggerSitemapRegeneration();
     }
+    audit(req, 'regionalPage.update', { type: 'cityPage', id }, { before: { isPublished: existingPage.isPublished }, after: { isPublished: page.isPublished, keys: Object.keys(req.body || {}) } });
 
     res.status(200).json({ 
       status: true, 
@@ -402,7 +421,7 @@ exports.refreshCityPageStats = async (req, res) => {
       return res.status(404).json({ status: false, message: 'City page not found' });
     }
 
-    const stats = await calculateCityStats(page.city._id, page.city.name);
+    const stats = await calculateCityStats(page.city._id);
     page.stats = stats;
     page.lastStatsUpdate = new Date();
     await page.save();
@@ -423,7 +442,7 @@ exports.getCityPageBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const page = await CityRegionalPage.findOne({ slug, isActive: true })
+    const page = await CityRegionalPage.findOne({ slug, isActive: true, isPublished: true })
       .populate('city', 'name district latitude longitude')
       .populate('state', 'name')
       .populate('nearbyCities', 'name district')
@@ -451,11 +470,23 @@ exports.getCityPageBySlug = async (req, res) => {
       .limit(20)
       .lean();
 
+    // D22: real counts computed on the GET (1 h cache), never the stored zeros
+    page.stats = { ...(page.stats || {}), ...(await regionalStats.getCityStats(page.city._id)) };
+    delete page.stats.successStories;
+
     // Prepare context for placeholder replacement
     const context = prepareCityDataContext(page, page.city, page.state);
     
     // Process placeholders in page content
     const processedPage = processObjectPlaceholders(page, context);
+
+    processedPage.contentWords = contentWords(page);
+    const [gotraDistribution, professionDistribution] = await Promise.all([
+      regionalStats.getCityGotraDistribution(page.city._id),
+      regionalStats.getCityProfessionDistribution(page.city._id),
+    ]);
+    processedPage.gotraDistribution = gotraDistribution;
+    processedPage.professionDistribution = professionDistribution;
 
     processedPage.sameStateCities = sameStateCities;
     processedPage.breadcrumbs = [
@@ -464,8 +495,8 @@ exports.getCityPageBySlug = async (req, res) => {
       { name: `${context.city} Matrimony`, url: `/${slug}`, active: true }
     ];
 
-    // Increment views
-    await CityRegionalPage.findByIdAndUpdate(page._id, { $inc: { views: 1 } });
+    // D28: view bump never touches updatedAt (lastmod = content date), fire-and-forget
+    CityRegionalPage.updateOne({ _id: page._id }, { $inc: { views: 1 } }, { timestamps: false }).catch(() => {});
 
     res.status(200).json({ status: true, data: processedPage });
   } catch (error) {
@@ -480,12 +511,19 @@ exports.getCityPageBySlug = async (req, res) => {
 exports.getAllCityPages = async (req, res) => {
   try {
     const pages = await CityRegionalPage.find({ isActive: true, isPublished: true })
-      .select('slug city state stats')
+      .select(`slug city state stats isPublished updatedAt ${CMS_FIELDS.join(' ')}`)
       .populate('city state', 'name')
       .sort({ 'stats.totalMembers': -1 })
       .lean();
 
-    res.status(200).json({ status: true, data: pages });
+    // contentWords for the sitemap/noindex rule (D47); the CMS bodies are not returned
+    const data = pages.map((p) => {
+      const row = { _id: p._id, slug: p.slug, city: p.city, state: p.state, stats: p.stats, isPublished: p.isPublished, updatedAt: p.updatedAt, contentWords: contentWords(p) };
+      if (row.stats) delete row.stats.successStories;
+      return row;
+    });
+
+    res.status(200).json({ status: true, data });
   } catch (error) {
     console.error('Error fetching city pages:', error);
     res.status(500).json({ status: false, message: 'Failed to fetch city pages', error: error.message });
@@ -499,9 +537,12 @@ exports.getCityPagesByState = async (req, res) => {
   try {
     const { stateId } = req.params;
 
+    if (!require('mongoose').isValidObjectId(stateId)) {
+      return res.status(200).json({ status: true, data: [] });
+    }
     const pages = await CityRegionalPage.find({ state: stateId, isActive: true, isPublished: true })
       .populate('city', 'name district')
-      .select('slug city stats')
+      .select('slug city stats updatedAt')
       .sort({ 'stats.totalMembers': -1 })
       .lean();
 
@@ -514,25 +555,9 @@ exports.getCityPagesByState = async (req, res) => {
 
 // ============ HELPER FUNCTIONS ============
 
-async function calculateCityStats(cityId, cityName) {
-  try {
-    const totalMembers = await User.countDocuments({ 'location.city': cityId, isActive: true });
-    const activeBrides = await User.countDocuments({ 'location.city': cityId, gender: 'Female', isActive: true });
-    const activeGrooms = await User.countDocuments({ 'location.city': cityId, gender: 'Male', isActive: true });
-    const verifiedProfiles = await User.countDocuments({ 'location.city': cityId, isVerified: true, isActive: true });
-
-    return {
-      totalMembers,
-      activeBrides,
-      activeGrooms,
-      successStories: Math.floor(totalMembers * 0.15), // Estimate 15% success rate
-      verifiedProfiles,
-      lastUpdated: new Date()
-    };
-  } catch (error) {
-    console.error('Error calculating city stats:', error);
-    return { totalMembers: 0, activeBrides: 0, activeGrooms: 0, successStories: 0, verifiedProfiles: 0 };
-  }
+async function calculateCityStats(cityId) {
+  // D22: real fields (location.city, is_block, is_verified, gender), no estimates
+  return regionalStats.getCityStats(cityId, { fresh: true });
 }
 
 module.exports = exports;

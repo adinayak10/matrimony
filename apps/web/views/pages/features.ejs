@@ -1,57 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-  <title>BanjaraMatch Features – India's First Free AI-Powered Banjara Matrimony Platform</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#f6af04" />
-  <meta name="robots" content="index, follow" />
-  <meta name="description" content="Discover why BanjaraMatch is India's first free Banjara matrimony platform — AI matching, verified profiles, real-time chat, nearby matches, and more." />
-  <meta name="keywords" content="banjara matrimony features, free banjara matrimony, ai matrimony, banjara match ai, free matrimony website, banjara matrimony app features, lambani matrimony, smart matching banjara" />
-  <link rel="canonical" href="https://www.banjaramatch.com/features" />
-
-  <!-- Open Graph -->
-  <meta property="og:title" content="BanjaraMatch Features – Free AI-Powered Banjara Matrimony" />
-  <meta property="og:description" content="India's first completely free AND AI-powered Banjara matrimony platform. Discover all features that make BanjaraMatch the smartest way to find your Banjara life partner." />
-  <meta property="og:url" content="https://www.banjaramatch.com/features" />
-  <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg" />
-  <meta property="og:site_name" content="BanjaraMatch - Banjara Matrimony" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="BanjaraMatch Features – Free AI Banjara Matrimony" />
-  <meta name="twitter:description" content="India's first free AI-powered Banjara matrimony platform. See all smart features designed for the Banjara community." />
-  <meta name="twitter:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg" />
-
-  <!-- Structured Data: SoftwareApplication -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "BanjaraMatch – Banjara Matrimony Platform",
-    "applicationCategory": "LifestyleApplication",
-    "operatingSystem": "Web, Android",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
-    "description": "India's first completely free Banjara matrimony platform and app. Smart AI matching, verified profiles, real-time chat, nearby GPS matching, Ice Breaker game, Match Radar, and more – all free.",
-    "featureList": "Smart Match Scoring, Manual Profile Verification, Real-Time Chat, Advanced Search Filters, Daily AI Matches, Privacy Controls, Nearby GPS Matches, Ice Breaker Game, AI Match Radar, Push Notifications, Mobile App",
-    "author": { "@type": "Organization", "name": "BanjaraMatch", "url": "https://www.banjaramatch.com" }
-  }
-  </script>
-
-  <!-- Favicon -->
-  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon" />
-
-  <!-- Google Analytics -->
-  <%- include('../partials/analytics') %>
-
-  <!-- CSS FILES -->
-  <link rel="stylesheet" href="/css/bootstrap.css">
-  <link rel="stylesheet" href="/css/font-awesome.min.css">
-  <link rel="stylesheet" href="/css/animate.min.css">
-  <link rel="stylesheet" href="/css/style.min.css">
-
-  <style>
+<%- include('../partials/head') %>
+<style>
     /* ===== PAGE-SPECIFIC STYLES ===== */
     .feat-hero {
       background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
@@ -611,15 +562,10 @@
   <%- include('../partials/footer') %>
 
   <!-- JS -->
-  <script src="/js/jquery.min.js"></script>
-  <script src="/js/popper.min.js"></script>
-  <script src="/js/bootstrap.min.js"></script>
-  <script src="/js/select-opt.min.js"></script>
-  <script src="/js/slick.min.js"></script>
-  <script src="/js/custom.min.js"></script>
 
   <!-- Smooth scroll + TOC highlight -->
-  <script>
+  <%- include('../partials/scripts') %>
+<script>
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         const target = document.querySelector(a.getAttribute('href'));

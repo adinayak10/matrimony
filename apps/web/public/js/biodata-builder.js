@@ -379,7 +379,8 @@ function showSuccessMessage(message) {
     container.insertBefore(successMsg, container.firstChild);
   }
   
-  successMsg.innerHTML = `<i class="fa fa-check-circle"></i> ${message}`;
+  successMsg.innerHTML = '<i class="fa fa-check-circle"></i> ';
+  successMsg.appendChild(document.createTextNode(message));
   successMsg.classList.add('show');
   
   // Hide after 3 seconds

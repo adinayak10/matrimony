@@ -6,6 +6,31 @@ const blogController = require('../controllers/admin/blogController');
 const apkUpload = require('../middleware/apkUpload');
 const fs = require('fs');
 const path = require('path');
+const { invalidate: invalidateSettings } = require('../services/settingsCache');
+const { record: audit } = require('../services/auditLog');
+
+// APK files live only here; any stored path is reduced to its basename and
+// must resolve inside this directory before it is unlinked (A4.3).
+const APK_DIR = path.resolve(__dirname, '..', 'uploads', 'apk');
+function resolveApkFile(apk) {
+  if (!apk) return null;
+  const name = path.basename(apk.fileName || path.basename(apk.filePath || ''));
+  if (!name || name === '.' || name === '..') return null;
+  const file = path.resolve(APK_DIR, name);
+  return file.startsWith(APK_DIR + path.sep) ? file : null;
+}
+function unlinkApkQuiet(file) {
+  if (!file) return false;
+  try {
+    if (fs.existsSync(file)) {
+      fs.unlinkSync(file);
+      return true;
+    }
+  } catch (err) {
+    console.error('❌ Error deleting APK:', err.message);
+  }
+  return false;
+}
 
 // NOTE: this file previously duplicated /users, /banners, a generic constants
 // CRUD factory, and /stats/overview from routes/admin.js, guarded by a fake
@@ -47,7 +72,7 @@ router.patch('/blogs/:id/status', adminAuth, blogController.updateStatus);
 // ==================== APK MANAGEMENT ====================
 
 // Upload APK and update version info
-router.post('/apk/upload', adminAuth, apkUpload.single('apkFile'), async (req, res) => {
+router.post('/apk/upload', adminAuth, apkUpload.single('apkFile'), apkUpload.validateApk, async (req, res) => {
   try {
     const { versionName, versionCode, releaseNotes, isMandatoryUpdate } = req.body;
     
@@ -76,16 +101,11 @@ router.post('/apk/upload', adminAuth, apkUpload.single('apkFile'), async (req, r
       settings = new Setting();
     }
     
-    // Delete old APK file if exists
-    if (settings.apk?.filePath) {
-      const oldFilePath = path.join(__dirname, '..', settings.apk.filePath);
-      if (fs.existsSync(oldFilePath)) {
-        try {
-          fs.unlinkSync(oldFilePath);
-          console.log('✅ Old APK file deleted:', oldFilePath);
-        } catch (err) {
-          console.error('❌ Error deleting old APK:', err);
-        }
+    // Delete old APK file if exists (basename under uploads/apk only)
+    if (settings.apk?.fileName || settings.apk?.filePath) {
+      const oldFile = resolveApkFile(settings.apk);
+      if (oldFile && oldFile !== path.resolve(req.file.path) && unlinkApkQuiet(oldFile)) {
+        console.log('✅ Old APK file deleted');
       }
     }
     
@@ -103,6 +123,8 @@ router.post('/apk/upload', adminAuth, apkUpload.single('apkFile'), async (req, r
     };
     
     await settings.save();
+    invalidateSettings();
+    audit(req, 'apk.upload', { type: 'apk', id: settings._id }, { after: { versionName: settings.apk.versionName, versionCode: settings.apk.versionCode, fileName: settings.apk.fileName, fileSize: settings.apk.fileSize, isMandatoryUpdate: settings.apk.isMandatoryUpdate } });
     
     res.json({ 
       success: true, 
@@ -198,6 +220,8 @@ router.put('/apk/update-info', adminAuth, async (req, res) => {
     settings.apk.lastUpdated = new Date();
     
     await settings.save();
+    invalidateSettings();
+    audit(req, 'apk.updateInfo', { type: 'apk', id: settings._id }, { after: { versionName: settings.apk.versionName, versionCode: settings.apk.versionCode, isMandatoryUpdate: settings.apk.isMandatoryUpdate } });
     
     res.json({ 
       success: true, 
@@ -222,11 +246,9 @@ router.delete('/apk/delete', adminAuth, async (req, res) => {
       });
     }
     
-    // Delete physical file
-    const filePath = path.join(__dirname, '..', settings.apk.filePath);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      console.log('✅ APK file deleted:', filePath);
+    // Delete physical file (basename under uploads/apk only)
+    if (unlinkApkQuiet(resolveApkFile(settings.apk))) {
+      console.log('✅ APK file deleted');
     }
     
     // Reset APK data in settings
@@ -243,6 +265,8 @@ router.delete('/apk/delete', adminAuth, async (req, res) => {
     };
     
     await settings.save();
+    invalidateSettings();
+    audit(req, 'apk.delete', { type: 'apk', id: settings._id });
     
     res.json({ 
       success: true, 

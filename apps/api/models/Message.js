@@ -7,8 +7,6 @@ const messageSchema = new mongoose.Schema({
   content: { type: String, required: true },
   msgType: { type: String, required: false , default: 'TEXT',},
 
-  
-
   status: {
     type: String,
     enum: ['sent', 'delivered', 'seen'],
@@ -16,5 +14,11 @@ const messageSchema = new mongoose.Schema({
   },
   isRead: { type: Boolean, default: false },
 }, { timestamps: true });
+
+// A6.11 + C4.6
+messageSchema.index({ room: 1, createdAt: -1 });
+messageSchema.index({ receiver: 1, status: 1 });
+messageSchema.index({ createdAt: -1 });
+messageSchema.index({ sender: 1 });
 
 module.exports = mongoose.model('Message', messageSchema);

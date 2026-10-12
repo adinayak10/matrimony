@@ -1,55 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title>Browse Profiles - BanjaraMatch | Find Your Perfect Match</title>
-    
-    <!-- META TAGS -->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Browse verified Banjara profiles with advanced filters">
-    <meta name="keyword" content="Banjara matrimony, profiles, matches">
-    <link rel="canonical" href="https://www.banjaramatch.com/all-profiles">
-    
-    <!-- FAV ICON -->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!-- Google Analytics (SEO & Traffic Tracking) -->
-    <%- include('../partials/analytics', { pageCategory: 'profiles' }) %>
-    
-    <!-- Structured Data: BreadcrumbList -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      "itemListElement": [{
-        "@type": "ListItem",
-        "position": 1,
-        "name": "Home",
-        "item": "https://www.banjaramatch.com"
-      },{
-        "@type": "ListItem",
-        "position": 2,
-        "name": "Browse Profiles",
-        "item": "https://www.banjaramatch.com/all-profiles"
-      }]
-    }
-    </script>
-    
-    <!-- CSS FILES -->
-    <link rel="preload" href="/css/style.min.css" as="style">
-    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
-    <link rel="stylesheet" href="/css/style.min.css">
-    <noscript>
-      <link rel="stylesheet" href="/css/bootstrap.css">
-      <link rel="stylesheet" href="/css/font-awesome.min.css">
-      <link rel="stylesheet" href="/css/animate.min.css">
-    </noscript>
-    
-    <style>
+<%- include('../partials/head') %>
+<style>
         /* Button state styles */
         .cta-connected {
             pointer-events: none;
@@ -385,26 +338,18 @@
 
 
     <!-- Scripts -->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/popper.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/select-opt.min.js"></script>
-    <script src="/js/custom.min.js"></script>
-    <script src="/js/esc.js"></script>
 
-    <script>
-        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
+        const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
         const USER_ID = '<%= user?._id %>';
         
         let currentPage = 1;
         let totalProfiles = 0;
         let allProfiles = [];
 
-        function getAuthToken() {
-            return document.cookie.split('; ')
-                .find(row => row.startsWith('token='))
-                ?.split('=')[1];
-        }
 
         // Calculate age from DOB
         function calculateAge(dob) {
@@ -533,14 +478,13 @@
         // Load dropdown data
         async function loadDropdownData() {
             try {
-                const token = getAuthToken();
 
                 // Load castes
                 const casteRes = await fetch(`${API_BASE_URL}/fetchCasteList`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({})
                 });
@@ -554,10 +498,10 @@
 
                 // Load gotras
                 const gotraRes = await fetch(`${API_BASE_URL}/fetchGotraList`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({})
                 });
@@ -571,10 +515,10 @@
 
                 // Load qualifications
                 const qualRes = await fetch(`${API_BASE_URL}/fetchQualificationList`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({})
                 });
@@ -588,10 +532,10 @@
 
                 // Load professions
                 const profRes = await fetch(`${API_BASE_URL}/fetchProfessionList`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({})
                 });
@@ -605,10 +549,10 @@
 
                 // Load income ranges
                 const incomeRes = await fetch(`${API_BASE_URL}/fetchIncomeRange`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({})
                 });
@@ -634,7 +578,6 @@
         // Load profiles
         async function loadProfiles() {
             try {
-                const token = getAuthToken();
                 const filters = {};
 
                 // Age filter from range sliders
@@ -699,10 +642,10 @@
                 };
 
                 const response = await fetch(`${API_BASE_URL}/searchProfiles`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(payload)
                 });
@@ -913,12 +856,11 @@
         // Send interest
         async function sendInterest(userId) {
             try {
-                const token = getAuthToken();
                 const response = await fetch(`${API_BASE_URL}/sendInterestRequest`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         my_user_id: USER_ID,
@@ -948,12 +890,11 @@
             }
 
             try {
-                const token = getAuthToken();
                 const response = await fetch(`${API_BASE_URL}/cancelInterestRequest`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         my_user_id: USER_ID,
@@ -978,12 +919,11 @@
         // Accept interest request
         async function acceptInterest(userId) {
             try {
-                const token = getAuthToken();
                 const response = await fetch(`${API_BASE_URL}/acceptInterestRequest`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         my_user_id: USER_ID,
@@ -1008,12 +948,11 @@
         // Shortlist profile
         async function shortlistProfile(userId) {
             try {
-                const token = getAuthToken();
                 const response = await fetch(`${API_BASE_URL}/toggleShortlist`, {
+                    credentials: 'same-origin',
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
                         userId: USER_ID,
@@ -1033,6 +972,24 @@
                 alert('An error occurred. Please try again.');
             }
         }
-    </script>
+    
+  window.calculateAge = calculateAge;
+  window.cmToFeetInches = cmToFeetInches;
+  window.cmToFeetInchesOnly = cmToFeetInchesOnly;
+  window.initRangeSliders = initRangeSliders;
+  window.loadDropdownData = loadDropdownData;
+  window.loadProfiles = loadProfiles;
+  window.renderProfiles = renderProfiles;
+  window.getLastSeenText = getLastSeenText;
+  window.updatePagination = updatePagination;
+  window.changePage = changePage;
+  window.applyFilters = applyFilters;
+  window.resetFilters = resetFilters;
+  window.sendInterest = sendInterest;
+  window.cancelInterest = cancelInterest;
+  window.acceptInterest = acceptInterest;
+  window.shortlistProfile = shortlistProfile;
+});
+</script>
 </body>
 </html>

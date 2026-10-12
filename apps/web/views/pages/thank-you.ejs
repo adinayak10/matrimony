@@ -1,83 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title>Thank You - Registration Successful | BanjaraMatch</title>
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    <meta name="description" content="Thank you for registering with BanjaraMatch. Your journey to find your perfect match starts now!">
-    <meta name="robots" content="noindex, nofollow">
-    
-    <!-- Prevent caching to avoid showing on back button -->
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    
-    <!--== FAV ICON ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!-- Prevent duplicate views on browser back -->
-    <script>
-      // Check if this page was already shown in this browser session
-      if (sessionStorage.getItem('thankYouShown') === 'true') {
-        // Already shown, redirect immediately
-        window.location.replace('/dashboard');
-      } else {
-        // Mark as shown for this browser session
-        sessionStorage.setItem('thankYouShown', 'true');
-      }
-    </script>
-    
-    <!-- Google Analytics & Ads Conversion Tracking -->
-    <%- include('../partials/analytics', { pageCategory: 'conversion' }) %>
-    
-    <!-- Google Ads Conversion Tracking -->
-    <script>
-      // Track conversion event immediately on page load
-      if (typeof gtag !== 'undefined') {
-        // Google Ads - Other conversion
-        gtag('event', 'conversion', {
-          'send_to': 'AW-357336842/3N9aCIbm68obEIqOsqoB',
-          'transaction_id': '<%= userId || "" %>'
-        });
-        
-        // Google Ads - Form submission conversion
-        gtag('event', 'conversion', {
-          'send_to': 'AW-357336842/q-YJCIvsq8obEIqOsqoB',
-          'transaction_id': '<%= userId || "" %>'
-        });
-        
-        // GA4 - Track as sign_up event
-        gtag('event', 'sign_up', {
-          'event_category': 'engagement',
-          'event_label': 'registration_complete',
-          'value': 1,
-          'currency': 'INR',
-          'transaction_id': '<%= userId || "" %>'
-        });
-        
-        // GA4 - Track as generate_lead event
-        gtag('event', 'generate_lead', {
-          'event_category': 'form',
-          'event_label': 'registration',
-          'value': 1,
-          'currency': 'INR'
-        });
-      }
-    </script>
-
-
-
-
-    
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    
-    <style>
+<%- include('../partials/head') %>
+<style>
       .thank-you-container {
         min-height: 100vh;
         display: flex;
@@ -220,9 +145,51 @@
         margin-right: 10px;
       }
     </style>
-    
-    <!-- Auto-redirect script -->
-    <script>
+<script>
+      // Check if this page was already shown in this browser session
+      if (sessionStorage.getItem('thankYouShown') === 'true') {
+        // Already shown, redirect immediately
+        window.location.replace('/dashboard');
+      } else {
+        // Mark as shown for this browser session
+        sessionStorage.setItem('thankYouShown', 'true');
+      }
+    </script>
+<script>
+      // Track conversion event immediately on page load
+      if (typeof gtag !== 'undefined') {
+        // Google Ads - Other conversion
+        gtag('event', 'conversion', {
+          'send_to': 'AW-357336842/3N9aCIbm68obEIqOsqoB',
+          'transaction_id': '<%= userId || "" %>'
+        });
+        
+        // Google Ads - Form submission conversion
+        gtag('event', 'conversion', {
+          'send_to': 'AW-357336842/q-YJCIvsq8obEIqOsqoB',
+          'transaction_id': '<%= userId || "" %>'
+        });
+        
+        // GA4 - Track as sign_up event
+        gtag('event', 'sign_up', {
+          'event_category': 'engagement',
+          'event_label': 'registration_complete',
+          'value': 1,
+          'currency': 'INR',
+          'transaction_id': '<%= userId || "" %>'
+        });
+        
+        // GA4 - Track as generate_lead event
+        gtag('event', 'generate_lead', {
+          'event_category': 'form',
+          'event_label': 'registration',
+          'value': 1,
+          'currency': 'INR',
+          'transaction_id': '<%= userId || "" %>'
+        });
+      }
+    </script>
+<script>
       let countdown = 5;
       
       function updateCountdown() {
@@ -280,5 +247,6 @@
             </div>
         </div>
     </div>
+<%- include('../partials/scripts') %>
 </body>
 </html>

@@ -286,7 +286,7 @@ node scripts/migrateRegionalPages.js</code></pre>
     <script src="/js/api.js"></script>
     <script src="/js/notifications.js"></script>
     <script>
-        const API_BASE = 'https://api.banjaramatch.com/api';
+        const API_BASE = '/api';
 
         // Initialize
         window.addEventListener('load', async () => {
@@ -323,11 +323,6 @@ node scripts/migrateRegionalPages.js</code></pre>
             }
         }
 
-        // Logout
-        function logout() {
-            localStorage.removeItem('adminToken');
-            window.location.href = '/login';
-        }
     </script>
 </body>
 </html>

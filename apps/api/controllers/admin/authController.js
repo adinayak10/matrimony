@@ -1,76 +1,43 @@
+'use strict';
 const User = require('../../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { JWT_SECRET } = require('../../config/env');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
+// A real bcrypt hash of a random string: bcrypt.compare always runs against
+// it when the email is unknown or has no password, so timing never reveals
+// whether an admin account exists (A2.5).
+const DUMMY_HASH = bcrypt.hashSync('dummy-' + require('crypto').randomBytes(16).toString('hex'), 10);
+const GENERIC_401 = { status: false, code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' };
 
 /**
- * Admin Login with Email
+ * Admin Login with Email — compare BEFORE the role check, one generic 401.
+ * Signs { _id, email, role:'admin', tv, aud:'admin' } for 8 h. No cookie:
+ * the admin app keeps its own session and reads the token from the body.
  */
 exports.adminLogin = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
 
-    console.log('🔐 [Admin Login] Attempt:', email);
-
-    if (!email || !password) {
-      return res.status(400).json({ 
-        status: false, 
-        message: 'Email and password required' 
-      });
+    if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
+      return res.status(400).json({ status: false, message: 'Email and password required' });
     }
 
-    // Find user by email
-    const user = await User.findOne({ email });
-    
-    if (!user) {
-      console.log('❌ [Admin Login] User not found:', email);
-      return res.status(401).json({ 
-        status: false, 
-        message: 'Invalid email or password' 
-      });
+    const user = await User.findOne({ email: email.trim().toLowerCase() })
+      .select('+password _id email full_name role is_block tokenVersion');
+
+    const isMatch = await bcrypt.compare(password, (user && user.password) || DUMMY_HASH);
+
+    if (!user || !isMatch || user.role !== 'admin' || user.is_block === 1) {
+      return res.status(401).json(GENERIC_401);
     }
 
-    // Check if user is admin
-    if (user.role !== 'admin') {
-      console.log('❌ [Admin Login] User is not admin:', email, 'Role:', user.role);
-      return res.status(403).json({ 
-        status: false, 
-        message: 'Access denied. Admin privileges required.' 
-      });
-    }
-
-    // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      console.log('❌ [Admin Login] Invalid password for:', email);
-      return res.status(401).json({ 
-        status: false, 
-        message: 'Invalid email or password' 
-      });
-    }
-
-    // Generate JWT token
+    const tv = user.tokenVersion || 0;
     const token = jwt.sign(
-      { 
-        _id: user._id, 
-        email: user.email,
-        role: user.role 
-      },
+      { _id: String(user._id), email: user.email, role: 'admin', tv, aud: 'admin' },
       JWT_SECRET,
-      { expiresIn: '7d' }
+      { algorithm: 'HS256', expiresIn: '8h' }
     );
-
-    console.log('✅ [Admin Login] Success:', email);
-
-    // Set cookie
-    res.cookie('token', token, {
-      httpOnly: false,
-      secure: true,
-      sameSite: 'Lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      domain: '.banjaramatch.com'
-    });
 
     return res.status(200).json({
       status: true,
@@ -80,86 +47,69 @@ exports.adminLogin = async (req, res) => {
         _id: user._id,
         email: user.email,
         full_name: user.full_name,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
-
   } catch (err) {
     console.error('❌ [Admin Login] Error:', err.message);
-    return res.status(500).json({ 
-      status: false, 
-      message: 'Server error' 
-    });
+    return res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Get Admin User Info
+ * Get Admin User Info — runs behind adminAuth (routes/admin.js), so the
+ * token has already been verified and req.user is the admin.
  */
 exports.getAdminMe = async (req, res) => {
   try {
-    console.log('🔍 [Admin GetMe] Fetching admin user info');
-
-    // Token already verified by adminAuth middleware
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
-    
-    if (!token) {
-      console.log('❌ [Admin GetMe] No token provided');
-      return res.status(401).json({ 
-        status: false, 
-        message: 'No token provided' 
-      });
-    }
-
-    const decoded = jwt.verify(token, JWT_SECRET);
-    console.log('✅ [Admin GetMe] JWT decoded:', decoded);
-
-    const user = await User.findById(decoded._id).select('-password');
-    
-    if (!user) {
-      console.log('❌ [Admin GetMe] User not found');
-      return res.status(404).json({ 
-        status: false, 
-        message: 'User not found' 
-      });
-    }
-
-    if (user.role !== 'admin') {
-      console.log('❌ [Admin GetMe] User is not admin');
-      return res.status(403).json({ 
-        status: false, 
-        message: 'Access denied. Admin privileges required.' 
-      });
-    }
-
-    console.log('✅ [Admin GetMe] Success:', user.email, 'Role:', user.role);
-
-    return res.status(200).json({
-      status: true,
-      data: user
-    });
-
+    const user = await User.findById(req.userId).select('-password -device_token -firebase_uid -tokenVersion');
+    if (!user) return res.status(404).json({ status: false, message: 'User not found' });
+    return res.status(200).json({ status: true, data: user });
   } catch (err) {
     console.error('❌ [Admin GetMe] Error:', err.message);
-    return res.status(401).json({ 
-      status: false, 
-      message: 'Invalid token' 
-    });
+    return res.status(500).json({ status: false, message: 'Server error' });
   }
 };
 
 /**
- * Admin Logout
+ * POST /api/admin/auth/change-password {currentPassword, newPassword} (C4.8)
+ * bcrypt-verified, >= 12 chars, revokes every other admin session (tokenVersion).
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+      return res.status(400).json({ status: false, message: 'currentPassword and newPassword are required' });
+    }
+    if (newPassword.length < 12) {
+      return res.status(400).json({ status: false, message: 'New password must be at least 12 characters' });
+    }
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ status: false, message: 'New password must differ from the current one' });
+    }
+
+    const user = await User.findById(req.userId).select('+password _id role');
+    if (!user || user.role !== 'admin') return res.status(401).json(GENERIC_401);
+    const ok = await bcrypt.compare(currentPassword, user.password || DUMMY_HASH);
+    if (!ok) return res.status(401).json({ status: false, code: 'INVALID_CREDENTIALS', message: 'Current password is incorrect' });
+
+    const hashed = await bcrypt.hash(newPassword, 12);
+    await User.updateOne({ _id: user._id }, { $set: { password: hashed }, $inc: { tokenVersion: 1 } });
+    require('../../services/auditLog').recordAsync(req, 'admin.changePassword', { type: 'user', id: String(user._id) });
+
+    // The caller's own token is now revoked too: the admin logs in again.
+    return res.status(200).json({ status: true, message: 'Password changed. Please sign in again.', reauth: true });
+  } catch (err) {
+    console.error('[Admin ChangePassword] Error:', err.message);
+    return res.status(500).json({ status: false, message: 'Server error' });
+  }
+};
+
+/**
+ * Admin Logout — the API holds no admin session; clear the legacy cookie the
+ * old panel used to set so stale browsers stop sending it.
  */
 exports.adminLogout = (req, res) => {
-  console.log('🚪 [Admin Logout] Logging out');
-  
-  res.clearCookie('token', {
-    domain: '.banjaramatch.com'
-  });
-  
-  return res.status(200).json({ 
-    status: true, 
-    message: 'Logged out successfully' 
-  });
+  res.clearCookie('token', { domain: '.banjaramatch.com', path: '/' });
+  return res.status(200).json({ status: true, message: 'Logged out successfully' });
 };

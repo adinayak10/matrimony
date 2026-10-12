@@ -7,6 +7,8 @@
   "scripts": {
     "dev": "nodemon app.js",
     "start": "node app.js",
+    "build": "node build/build.js",
+    "lint:ejs": "node scripts/check-ejs-raw-web.js",
     "test": "NODE_ENV=test node --test 'test/**/*.test.js'"
   },
   "dependencies": {

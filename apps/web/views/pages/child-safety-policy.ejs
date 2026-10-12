@@ -1,29 +1,8 @@
 <!doctype html>
-<html lang="en">
+<html lang="<%= site.lang %>">
 <head>
-    <title>Child Safety Policy & Standards | BanjaraMatch - CSAE/CSAM Prevention</title>
-    
-    <!--== META TAGS ==-->
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-    <meta name="theme-color" content="#f6af04">
-    
-    <meta name="description" content="BanjaraMatch Child Safety Policy and Standards. Learn about our comprehensive measures against Child Sexual Abuse and Exploitation (CSAE) and Child Sexual Abuse Material (CSAM). We prioritize child protection and safety.">
-    <meta name="keywords" content="child safety policy, CSAE prevention, CSAM prevention, child protection, safety standards, reporting child abuse">
-    
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://www.banjaramatch.com/child-safety-policy">
-    
-    <!--== FAV ICON ==-->
-    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
-    
-    <!--== CSS FILES ==-->
-    <link rel="stylesheet" href="/css/bootstrap.css">
-    <link rel="stylesheet" href="/css/font-awesome.min.css">
-    <link rel="stylesheet" href="/css/style.min.css">
-    
-    <style>
+<%- include('../partials/head') %>
+<style>
         .child-safety-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -85,6 +64,7 @@
 
     <!--== HEADER ==-->
     <%- include('../partials/header', { user: user || null }) %>
+<%- include('../partials/breadcrumb') %>
 
     <!--== CHILD SAFETY HEADER ==-->
     <div class="child-safety-header">
@@ -118,25 +98,29 @@
 
                     <form id="childSafetyForm" style="max-width: 800px; margin: 0 auto;">
                         <div id="safetyFormMessage" class="alert" style="display: none; margin-bottom: 20px;" role="alert"></div>
+<div class="bm-hp" aria-hidden="true" style="position:absolute;left:-9999px;top:-9999px;height:0;overflow:hidden;">
+  <label for="safetyWebsite">Website</label>
+  <input type="text" id="safetyWebsite" name="website" tabindex="-1" autocomplete="off" value="">
+</div>
 
                         <div class="row">
                             <div class="col-md-6" style="margin-bottom: 20px;">
-                                <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Your Name: <span style="color: red;">*</span></label>
+                                <label for="reporterName" style="font-weight: 600; color: #333; margin-bottom: 8px;">Your Name: <span style="color: red;">*</span></label>
                                 <input type="text" id="reporterName" class="form-control" placeholder="Enter your name" required style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
                             </div>
                             <div class="col-md-6" style="margin-bottom: 20px;">
-                                <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Email: <span style="color: red;">*</span></label>
+                                <label for="reporterEmail" style="font-weight: 600; color: #333; margin-bottom: 8px;">Email: <span style="color: red;">*</span></label>
                                 <input type="email" id="reporterEmail" class="form-control" placeholder="your@email.com" required style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
                             </div>
                         </div>
 
                         <div style="margin-bottom: 20px;">
-                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Phone (Optional):</label>
+                            <label for="reporterPhone" style="font-weight: 600; color: #333; margin-bottom: 8px;">Phone (Optional):</label>
                             <input type="tel" id="reporterPhone" class="form-control" placeholder="Your phone number" style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
                         </div>
 
                         <div style="margin-bottom: 20px;">
-                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Type of Concern: <span style="color: red;">*</span></label>
+                            <label for="concernType" style="font-weight: 600; color: #333; margin-bottom: 8px;">Type of Concern: <span style="color: red;">*</span></label>
                             <select id="concernType" class="form-control" required style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
                                 <option value="">Select type of concern...</option>
                                 <option value="minor_profile">Profile of a minor (under 18)</option>
@@ -149,18 +133,18 @@
                         </div>
 
                         <div style="margin-bottom: 20px;">
-                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Profile ID / Username (if applicable):</label>
+                            <label for="reportedProfile" style="font-weight: 600; color: #333; margin-bottom: 8px;">Profile ID / Username (if applicable):</label>
                             <input type="text" id="reportedProfile" class="form-control" placeholder="e.g., username or profile ID" style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
                         </div>
 
                         <div style="margin-bottom: 20px;">
-                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Detailed Description: <span style="color: red;">*</span></label>
+                            <label for="reportDescription" style="font-weight: 600; color: #333; margin-bottom: 8px;">Detailed Description: <span style="color: red;">*</span></label>
                             <textarea id="reportDescription" class="form-control" rows="6" required placeholder="Please provide as much detail as possible about the concern, including what you saw, when, and where on the platform." style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;"></textarea>
                             <small style="color: #666; display: block; margin-top: 5px;">Include URLs, screenshots descriptions, dates/times, and any other relevant information.</small>
                         </div>
 
                         <div style="margin-bottom: 25px;">
-                            <label style="display: flex; align-items: start; cursor: pointer;">
+                            <label for="urgentReport" style="display: flex; align-items: start; cursor: pointer;">
                                 <input type="checkbox" id="urgentReport" style="margin-top: 4px; margin-right: 10px; width: 18px; height: 18px;">
                                 <span style="color: #333; font-size: 14px;">This is an urgent matter requiring immediate attention</span>
                             </label>
@@ -454,11 +438,11 @@
     <%- include('../partials/footer') %>
 
     <!--== SCRIPTS ==-->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/custom.min.js"></script>
 
-    <script>
+    <%- include('../partials/scripts') %>
+<script>
+// Deferred bundle (partials/scripts.ejs): page code runs once the DOM and the deferred scripts are ready.
+document.addEventListener('DOMContentLoaded', function () {
         $(document).ready(function() {
             $('#childSafetyForm').on('submit', function(e) {
                 e.preventDefault();
@@ -476,7 +460,7 @@
                     email: $('#reporterEmail').val().trim(),
                     phone: $('#reporterPhone').val().trim(),
                     category: 'child_safety',
-                    subject: 'URGENT: Child Safety Report - ' + $('#concernType option:selected').text(),
+                    subject: 'CSAE report',
                     message: `
 TYPE OF CONCERN: ${$('#concernType option:selected').text()}
 REPORTED PROFILE/USER: ${$('#reportedProfile').val().trim() || 'Not specified'}
@@ -493,7 +477,7 @@ This is an automated child safety report submitted via the Child Safety Policy p
 
                 // Submit to API
                 $.ajax({
-                    url: 'https://api.banjaramatch.com/api/feedback/submit',
+                    url: '/api/auth/community-feedback',
                     method: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify(reportData),
@@ -529,7 +513,8 @@ This is an automated child safety report submitted via the Child Safety Policy p
                 function() { $(this).css('background', '#dc3545'); }
             );
         });
-    </script>
+    });
+</script>
 
 </body>
 </html>
