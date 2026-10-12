@@ -4,7 +4,7 @@
             <%# Support Banner %>
             <div class="row foot-supp">
                 <div class="col-md-12">
-                    <h2 style="text-align: center;"><span>Free Support:</span>&nbsp;&nbsp;|&nbsp;&nbsp; <span>Email:</span> <%= site.supportEmail %></h2>
+                    <h2><span>Free Support:</span>&nbsp;&nbsp;|&nbsp;&nbsp; <span>Email:</span> <%= site.supportEmail %></h2>
                 </div>
             </div>
             
@@ -50,24 +50,24 @@
                 <%# Contact %>
                 <div class="col-md-3 col-sm-6">
                     <h4>Get In Touch</h4>
-                    <address style="font-style: normal;">
-                        <p style="margin-bottom: 10px; line-height: 1.6;">
-                            <i class="fa fa-envelope" aria-hidden="true" style="margin-right: 10px; color: #f6af04;"></i> 
-                            <a href="mailto:<%= site.supportEmail %>" title="Email Support" style="color: #fff; text-decoration: none;"><%= site.supportEmail %></a>
+                    <address class="bm-foot-address">
+                        <p class="bm-foot-mail">
+                            <i class="fa fa-envelope" aria-hidden="true"></i>
+                            <a href="mailto:<%= site.supportEmail %>" title="Email Support"><%= site.supportEmail %></a>
                         </p>
                     </address>
-                    <h5 style="font-size: 15px; margin-top: 25px; margin-bottom: 15px; font-weight: 600;">Follow Us</h5>
-                    <ul class="fot-soc" style="display: inline-flex; gap: 10px; list-style: none; padding: 0; margin: 0;">
-                        <li style="margin: 0; padding: 0;"><a href="https://facebook.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Facebook - /banjaramatch" style="display: block; line-height: 0;"><img src="/images/social/1.png" alt="Facebook /banjaramatch" width="35" height="35" loading="lazy" decoding="async" style="width: 35px; height: 35px; display: block;"></a></li><li style="margin: 0; padding: 0;"><a href="https://instagram.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Instagram - /banjaramatch" style="display: block; line-height: 0;"><img src="/images/social/5.png" alt="Instagram /banjaramatch" width="35" height="35" loading="lazy" decoding="async" style="width: 35px; height: 35px; display: block;"></a></li>
+                    <h5 class="bm-foot-follow">Follow Us</h5>
+                    <ul class="fot-soc">
+                        <li><a href="https://facebook.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Facebook - /banjaramatch"><img src="/images/social/3.png" alt="Facebook /banjaramatch" width="35" height="35" loading="lazy" decoding="async"></a></li><li><a href="https://instagram.com/banjaramatch" target="_blank" rel="noopener noreferrer nofollow" title="Follow us on Instagram - /banjaramatch"><i class="fa fa-instagram bm-foot-ig" aria-hidden="true"></i><span class="sr-only">Instagram</span></a></li>
                     </ul>
                 </div>
                 
                 <%# App Download %>
                 <div class="col-md-3 col-sm-6">
                     <h4>Download App</h4>
-                    <p style="color: #333; font-size: 13px; margin-bottom: 15px; line-height: 1.6;">Get our mobile app for better experience</p>
-                    <a href="/banjara-matrimony-app" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-bottom: 10px; transition: all 0.3s ease;">
-                        <i class="fa fa-android" style="margin-right: 8px;"></i> Download Now
+                    <p class="bm-foot-app-note">Get our mobile app for better experience</p>
+                    <a href="/banjara-matrimony-app" class="bm-foot-app-btn">
+                        <i class="fa fa-android" aria-hidden="true"></i> Download Now
                     </a>
                 </div>
             </div>
@@ -82,20 +82,20 @@
             <%# Description %>
             <div class="row foot-count">
                 <div class="col-md-12">
-                    <p style="text-align: center; line-height: 1.8;">BanjaraMatch - India's First Free Banjara Matrimony Platform. <a href="/register" class="btn btn-primary btn-sm" style="margin-left: 10px;">Join us today!</a></p>
+                    <p>BanjaraMatch - India's First Free Banjara Matrimony Platform. <a href="/register" class="btn btn-primary btn-sm">Join us today!</a></p>
                 </div>
             </div>
             
             <%# Matrimonial Purpose Statement %>
-            <div class="row" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2);">
-                <div class="col-md-12" style="text-align: center;">
-                    <p style="color: #fff; font-size: 13px; margin: 10px 0; font-weight: 600;">
-                        <i class="fa fa-info-circle" style="margin-right: 5px;"></i> This website is strictly for matrimonial purposes only and not a dating website.
+            <div class="row bm-foot-legal">
+                <div class="col-md-12">
+                    <p class="bm-foot-legal__purpose">
+                        <i class="fa fa-info-circle" aria-hidden="true"></i> This website is strictly for matrimonial purposes only and not a dating website.
                     </p>
-                    <p style="color: rgba(255,255,255,0.8); font-size: 12px; margin: 8px 0; line-height: 1.6;">
+                    <p class="bm-foot-legal__note">
                         A safe, non-discriminatory, non-exploitative matchmaking service for adults aged 18 years and above seeking committed marriage relationships.
                     </p>
-                    <p style="color: rgba(255,255,255,0.7); font-size: 11px; margin: 15px 0 5px 0;">
+                    <p class="bm-foot-legal__copy">
                         Copyright © <%= new Date().getFullYear() %> BanjaraMatch.com. All rights reserved.
                     </p>
                 </div>

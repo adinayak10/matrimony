@@ -1,0 +1,513 @@
+/*---------------------------------------------------------------
+  BanjaraMatch - responsive / alignment layer
+  Loaded LAST (after style.css): build/build.js appends it to the
+  site bundle, partials/head.ejs links it on the legacy path.
+
+  1. Base safety (overflow, long words, media)
+  2. Header: notice bar, sticky header, logo, mobile icons, drawers
+  3. Breadcrumb
+  4. Containers and section rhythm
+  5. Type scale
+  6. Forms and tap targets
+  7. Components (hero, cards, tables, sliders, blog, auth pages)
+  8. Footer
+  9. Logged-in pages
+  Breakpoints follow style.css: 1100 / 992 / 767 / 480.
+---------------------------------------------------------------*/
+
+/* ---------- 1. BASE SAFETY ---------- */
+/* `clip` hides sideways overflow without turning <body> into a scroll
+   container, which is what stopped position:sticky from working.
+   Browsers without `clip` keep the `hidden` from style.css. */
+html { overflow-x: clip; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body { overflow-x: clip !important; }
+@media screen and (max-width: 992px) { body { overflow-wrap: break-word; } }
+video, iframe, embed, object, canvas, svg { max-width: 100%; }
+pre { max-width: 100%; overflow-x: auto; }
+a[href^="mailto:"], a[href^="http"] { overflow-wrap: anywhere; }
+/* Regional pages: the theme floats the blocks inside each <section>, so a
+   following section used to start at the same spot and paint over them (the
+   hero and "Our Services" were invisible). Every section now starts below the
+   one before it; the banner slider keeps its place behind the hero. */
+.bm-regional > section:not(.bm-noclear) { clear: both; }
+.bm-table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------- 2. HEADER ---------- */
+/* 18+ / matrimonial-purpose notice (was an inline-styled sticky bar). */
+.bm-notice {
+    background: linear-gradient(135deg, #f6af04 0%, #ff8c00 100%);
+    color: #fff;
+    padding: 8px 0;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.5;
+    border-bottom: 2px solid #e69500;
+    position: relative;
+    z-index: 2;
+}
+.bm-notice .container { color: inherit; }
+
+/* The header sits in the page flow and sticks to the top, so nothing can
+   slide underneath it. --mtop was the offset pages used to clear the old
+   absolutely positioned header. */
+:root { --mtop: 0px; --bm-gutter: 16px; }
+.hom-top,
+.hom-top.act {
+    position: -webkit-sticky;
+    position: sticky;
+    top: 0;
+    float: none;
+    z-index: 1000;
+    animation: none;
+}
+.hom-top::after { content: ""; display: table; clear: both; }
+.hom-nav::after { content: ""; display: table; clear: both; }
+.pop-bg { z-index: 1001; }
+.mob-me-all, .menu-pop { z-index: 1002; }
+.pop-search { z-index: 1003; }
+.breadcrumb-section--over { z-index: 2; }
+
+/* logo-b.png carries a wide transparent margin on its right: crop to the artwork. */
+.hom-nav .ic-logo {
+    width: 176px;
+    height: 58px;
+    padding: 0;
+    object-fit: cover;
+    object-position: left center;
+    display: block;
+}
+.logo-brand { display: inline-block; vertical-align: middle; }
+
+@media screen and (min-width: 993px) {
+    .hom-nav { display: flex; align-items: center; }
+    .hom-nav .logo { width: auto; flex: 0 0 auto; display: flex; align-items: center; gap: 12px; float: none; }
+    .hom-nav .logo .menu { float: none; flex: 0 0 auto; }
+    .hom-nav .logo .logo-brand { margin-left: 0; }
+    .hom-nav .bl { width: auto; flex: 1 1 auto; float: none; padding: 0 16px; }
+    .hom-nav .bl ul { display: flex; flex-wrap: nowrap; justify-content: center; margin: 0; }
+    .hom-nav .bl li { float: none; margin-left: 0; white-space: nowrap; }
+    .hom-nav .bl li + li { margin-left: clamp(8px, 1.4vw, 25px); }
+    .hom-nav .al { float: none; flex: 0 0 auto; }
+}
+@media screen and (min-width: 993px) and (max-width: 1250px) {
+    .hom-nav .bl li a { font-size: 13px; padding-left: 0; padding-right: 0; }
+    .hom-nav .ic-logo { width: 152px; height: 50px; }
+}
+
+@media screen and (max-width: 992px) {
+    .hom-top, .hom-top.act { padding: 6px 0; }
+    .hom-top .container { max-width: 100%; padding-left: var(--bm-gutter); padding-right: var(--bm-gutter); }
+    .hom-top .row { margin: 0; }
+    .hom-nav { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+    .hom-nav::after { display: none; }
+    .hom-nav .logo { width: auto; float: none; flex: 0 1 auto; min-width: 0; display: flex; align-items: center; }
+    .hom-nav .ic-logo { width: 152px; height: 50px; }
+    .mob-menu { flex: 0 0 auto; }
+    .mob-me-ic { position: static; display: flex; align-items: center; gap: 4px; }
+    .mob-me-ic span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        cursor: pointer;
+    }
+    .mob-me-ic img, .mob-me-ic i, .mobile-ser img { width: 38px; height: 38px; margin: 0; padding: 6px; }
+
+    /* Drawers */
+    .mob-me-all { padding: 0 20px 28px; max-width: 400px; overscroll-behavior: contain; }
+    .mob-me-clo {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+        right: auto;
+        z-index: 3;
+        display: flex;
+        justify-content: flex-end;
+        background: #fff;
+        padding: 10px 0 6px;
+        margin: 0;
+    }
+    .mob-me-clo img { width: 44px; height: 44px; margin: 0; padding: 8px; cursor: pointer; }
+    .mob-me-all h4 { margin-top: 18px; }
+    .mob-me-all .mv-bus > h4:first-child { margin-top: 4px; }
+    .mob-me-all ul li a { padding: 12px 0; font-size: 15px; line-height: 20px; min-height: 44px; }
+    .mob-me-all .menu-pop-help .user-bio { width: 100%; }
+    .mob-me-all .menu-pop-help .user-bio a,
+    .menu-pop-help .user-bio a { display: inline-block; padding: 10px 18px; min-height: 44px; line-height: 24px; }
+    .menu-pop-soci ul li a i { width: 44px; height: 44px; padding: 13px 8px; }
+    .prof-rhs-help a { display: inline-block; font-size: 12px; padding: 12px 18px; line-height: 20px; }
+    .menu-pop { padding: 56px 20px 28px; }
+    .menu-pop-clo { right: 8px; top: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .menu-pop2.act { right: 0; }
+
+    /* Search overlay */
+    .pop-search .ser-clo { right: 12px; top: 12px; width: 44px; height: 44px; line-height: 40px; text-align: center; font-size: 48px; }
+    .pop-search .inn { padding: 0 20px; margin-top: 72px; }
+    .pop-search .inn::before { left: 20px; }
+    .pop-search .inn input { font-size: 16px; height: 48px; }
+    .pop-search .rel-sear a { font-size: 14px; padding: 9px 14px; margin-top: 8px; }
+}
+@media screen and (max-width: 480px) {
+    .mob-me-all { max-width: none; }
+    .mob-me-ic { top: auto; }
+    .mob-me-ic img, .mob-me-ic i, .mob-me-clo img, .mobile-ser img { margin-left: 0; }
+    .mob-me-ic img, .mob-me-ic i, .mobile-ser img { width: 38px; height: 38px; padding: 6px; }
+    .mob-me-clo img { width: 44px; height: 44px; padding: 8px; }
+}
+@media screen and (max-width: 359px) {
+    .hom-nav .ic-logo { width: 128px; height: 42px; }
+    .mob-me-ic { gap: 0; }
+}
+@media screen and (max-width: 767px) {
+    .bm-notice { padding: 6px 0; line-height: 1.4; }
+    .bm-notice .container { max-width: 100%; padding-left: 12px; padding-right: 12px; }
+}
+
+/* ---------- 3. BREADCRUMB ---------- */
+.breadcrumb-section { position: relative; z-index: 1; }
+.breadcrumb-section .breadcrumb { flex-wrap: wrap; align-items: center; }
+@media screen and (max-width: 992px) {
+    .breadcrumb-section { padding: 4px 0; }
+    .breadcrumb-section .breadcrumb { font-size: 13px; flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .breadcrumb-section .breadcrumb::-webkit-scrollbar { display: none; }
+    .breadcrumb-section .breadcrumb-item { flex: 0 0 auto; }
+    .breadcrumb-section .breadcrumb-item { display: flex; align-items: center; padding-left: 0; min-width: 0; }
+    .breadcrumb-section .breadcrumb-item a,
+    .breadcrumb-section .breadcrumb-item span { display: inline-block; padding: 12px 0; line-height: 20px; }
+    .breadcrumb-section .breadcrumb-item + .breadcrumb-item::before { padding: 0 6px; float: none; }
+}
+
+/* Pages that still carry their own breadcrumb strip: the shared one above
+   (partials/breadcrumb.ejs) is now visible, so the second copy is hidden. */
+.bm-crumb-dup { display: none !important; }
+
+/* ---------- 4. CONTAINERS AND SECTION RHYTHM ---------- */
+@media screen and (max-width: 576px) {
+    .container { max-width: 100%; padding-left: var(--bm-gutter); padding-right: var(--bm-gutter); }
+}
+@media screen and (max-width: 767px) {
+    .container .container { padding-left: 0; padding-right: 0; }
+    /* The theme puts un-padded blocks straight into .row, which left them 6px
+       from the screen edge while real columns sat at 16px. Top-level rows drop
+       the gutter so everything lines up on the container's 16px. */
+    .row { --bs-gutter-x: 1.25rem; }
+    .container > .row, .container-fluid > .row { --bs-gutter-x: 0px; min-width: 100%; }
+    .row > [class*="col-"] { min-width: 0; }
+    .container > .row > .col-6:nth-child(odd), .container > .row > .col-sm-6:nth-child(odd) { padding-right: 6px; }
+    .container > .row > .col-6:nth-child(even), .container > .row > .col-sm-6:nth-child(even) { padding-left: 6px; }
+
+    section[style*="padding: 80px 0"], section[style*="padding:80px 0"],
+    section[style*="padding: 75px 0"], section[style*="padding:75px 0"],
+    section[style*="padding: 60px 0"], section[style*="padding:60px 0"],
+    div[style*="padding: 80px 0"], div[style*="padding:80px 0"],
+    div[style*="padding: 60px 0"], div[style*="padding:60px 0"] { padding-top: 44px !important; padding-bottom: 44px !important; }
+    [style*="padding-top: 80px"], [style*="padding-top:80px"], [style*="padding-top: 60px"], [style*="padding-top:60px"] { padding-top: 40px !important; }
+    [style*="padding-bottom: 60px"], [style*="padding-bottom:60px"] { padding-bottom: 40px !important; }
+    [style*="margin-top: 90px"], [style*="margin-top:90px"] { margin-top: 40px !important; }
+    [style*="margin: 60px 0"], [style*="margin:60px 0"] { margin-top: 36px !important; margin-bottom: 36px !important; }
+    [style*="padding: 60px;"], [style*="padding:60px;"], [style*="padding: 50px;"], [style*="padding:50px;"], [style*="padding: 40px;"], [style*="padding:40px;"] { padding: 24px 18px !important; }
+    [style*="padding: 40px 15px"], [style*="padding:40px 15px"] { padding: 28px 15px !important; }
+
+    .home-tit { padding-top: 40px; }
+    .home-tit .leaf1 { margin-bottom: 8px; }
+    .ab-wel { padding: 44px 0; }
+    .ab-sec2 { padding-bottom: 40px; }
+    .str.count { padding-bottom: 40px; }
+    .wed-hom-ser { padding-top: 24px; }
+    .wed-hom-footer { margin-top: 56px; }
+}
+
+/* ---------- 5. TYPE SCALE ---------- */
+/* 58px on a 44px line only worked for the one-line "Welcome to": longer titles overlapped themselves. */
+.ab-wel-tit h2 { line-height: 1.15; }
+.ab-wel-tit h2 em { line-height: 1.6; }
+@media screen and (min-width: 768px) { .ab-wel-tit h2 { font-size: clamp(34px, 3.7vw, 58px); } }
+
+@media screen and (max-width: 767px) {
+    h1 { font-size: clamp(1.625rem, 7.2vw, 2.125rem); line-height: 1.22; }
+    .ban-tit h1 { font-size: clamp(1.75rem, 7.6vw, 2.125rem); line-height: 1.22; margin-bottom: 14px; }
+    .ban-tit h1 b, .ban-tit h1 strong { font-size: inherit; line-height: inherit; }
+    .ban-tit h2 { font-size: clamp(1.625rem, 7vw, 2rem); line-height: 1.25; }
+    .ban-tit span { font-size: 14px; line-height: 1.5; display: inline-block; letter-spacing: .3px; }
+    .ban-tit span i.no1 { font-size: 24px; }
+    .ban-tit p { font-size: 15px; line-height: 1.6; }
+    .home-tit h2, .home-tit h2 span, .ab-wel-tit h2, .sub-tit-caps h2 { font-size: clamp(1.5rem, 6.4vw, 1.75rem); line-height: 1.25; }
+    .home-tit p, .sub-tit-caps p { letter-spacing: 3px; font-size: 13px; line-height: 1.6; }
+    .tline-inn div h5 { font-size: 20px; }
+    .tline-inn div p { font-size: 15px; line-height: 1.6; padding: 10px 0; }
+
+    /* inline font sizes written for desktop */
+    [style*="font-size: 80px"], [style*="font-size:80px"], [style*="font-size: 64px"], [style*="font-size:64px"], [style*="font-size: 60px"], [style*="font-size:60px"], [style*="font-size: 56px"], [style*="font-size:56px"] { font-size: 40px !important; line-height: 1.15 !important; }
+    [style*="font-size: 48px"], [style*="font-size:48px"] { font-size: 32px !important; line-height: 1.2 !important; }
+    [style*="font-size: 42px"], [style*="font-size:42px"], [style*="font-size: 40px"], [style*="font-size:40px"], [style*="font-size: 38px"], [style*="font-size:38px"] { font-size: 28px !important; line-height: 1.25 !important; }
+    [style*="font-size: 36px"], [style*="font-size:36px"], [style*="font-size: 34px"], [style*="font-size:34px"], [style*="font-size: 2.2rem"], [style*="font-size:2.2rem"] { font-size: 26px !important; line-height: 1.25 !important; }
+    [style*="font-size: 32px"], [style*="font-size:32px"], [style*="font-size: 30px"], [style*="font-size:30px"], [style*="font-size: 2rem"], [style*="font-size:2rem"] { font-size: 24px !important; line-height: 1.3 !important; }
+    [style*="font-size: 28px"], [style*="font-size:28px"] { font-size: 22px !important; }
+    [style*="font-size: 26px"], [style*="font-size:26px"] { font-size: 21px !important; }
+    i[style*="font-size"], .fa[style*="font-size"] { line-height: 1 !important; }
+}
+@media screen and (max-width: 992px) {
+    /* nothing under 12px on touch screens */
+    [style*="font-size: 9px"], [style*="font-size:9px"], [style*="font-size: 10px"], [style*="font-size:10px"], [style*="font-size: 11px"], [style*="font-size:11px"] { font-size: 12px !important; }
+    .head-pro b, .blog-cate, .blog-home-box .txt span.blog-cate, .blog-pro-info h5 span, .feat-tag, .beta-badge,
+    .pro-info-status span, .pro-info-status span b, .wedd-rel-con span, .wedd-rel-con span b, .action-btn-label,
+    .db-new-pro div span, .clan-count-badge, .gl-stat-label, .hierarchy-step-desc, .hierarchy-step-desc strong, .hierarchy-step-eg { font-size: 12px !important; }
+}
+
+/* ---------- 6. FORMS AND TAP TARGETS (touch widths) ---------- */
+@media screen and (max-width: 992px) {
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="submit"]):not([type="button"]):not([type="color"]):not([type="hidden"]),
+    select,
+    textarea { font-size: 16px !important; }
+    input.form-control, select.form-control, .form-select, select, .form-group select, .chosen-select,
+    .form-login .form-group select.chosen-select { min-height: 44px; }
+    textarea.form-control { min-height: 96px; }
+    input[type="file"], .form-control-file { max-width: 100%; width: 100%; min-height: 44px; font-size: 14px; }
+    input[type="submit"], input[type="button"], button, .btn { min-height: 44px; }
+    .btn { padding-top: .55rem; padding-bottom: .55rem; }
+    .btn-sm { padding-left: 14px; padding-right: 14px; }
+    input[type="checkbox"], input[type="radio"] { min-width: 18px; min-height: 18px; }
+    label { max-width: 100%; }
+    .cta-dark, .cta-full-wid a.cta, .cta, .cta-5, a.cta-link { display: inline-block; min-height: 44px; }
+    .cta-dark, .cta-5 { padding-top: 10px; padding-bottom: 10px; line-height: 24px; }
+    .share-btn { min-width: 44px; min-height: 44px; display: inline-flex !important; align-items: center; justify-content: center; }
+    .card-header .card-link { display: block; padding: 10px 0; }
+    .forgot-password a, a.back-btn, .visitor-tabs a { display: inline-block; padding: 10px 4px; min-height: 44px; }
+    .db .dropdown button { width: 44px; height: 44px; line-height: 38px; }
+    .page-link { min-width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+}
+
+/* ---------- 7. COMPONENTS ---------- */
+/* Hero */
+@media screen and (max-width: 992px) {
+    .hom-head { padding: 44px 0 40px; }
+    .ban-search ul { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; }
+    .ban-search ul li { width: calc(50% - 6px); float: none; padding: 0; margin: 0; }
+    .ban-search ul li.sr-btn { width: 100%; }
+    .ban-search ul li .chosen-select, .ban-search ul li select { height: 48px; width: 100%; }
+    .ban-search ul li input[type="submit"] { width: 100%; height: 48px; }
+}
+@media screen and (max-width: 480px) {
+    .hom-head { padding: 32px 0 32px; }
+    .ban-search ul li { width: 100%; }
+    .ban-search { padding: 16px; margin-top: 8px; }
+}
+
+/* Home promo strip (was a fixed 728x90 block) */
+@media screen and (max-width: 767px) {
+    .bm-promo-wrap { display: block !important; }
+    .bm-promo { width: 100% !important; height: auto !important; padding: 14px 16px !important; flex-wrap: wrap; justify-content: center !important; gap: 12px !important; }
+    .bm-promo__body { flex: 1 1 100% !important; justify-content: center; flex-wrap: wrap; gap: 8px 12px !important; }
+    .bm-promo__body img { height: 34px !important; }
+    .bm-promo__body > div { text-align: center !important; }
+    .bm-promo__title { white-space: normal !important; font-size: 16px !important; }
+    .bm-promo__sub { white-space: normal !important; }
+    .bm-promo__cta span { display: inline-block; padding: 11px 22px !important; }
+}
+
+/* Two-up inline grids: let the tracks shrink instead of pushing the page wide. */
+@media screen and (max-width: 767px) {
+    [style*="grid-template-columns:1fr 1fr"], [style*="grid-template-columns: 1fr 1fr"] { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important; gap: 10px !important; }
+    [style*="grid-template-columns:1fr 1fr"] > *, [style*="grid-template-columns: 1fr 1fr"] > * { min-width: 0; overflow-wrap: anywhere; padding: 12px 8px !important; }
+    [style*="grid-template-columns:1fr 1fr"] [style*="font-size:22px"], [style*="grid-template-columns: 1fr 1fr"] [style*="font-size: 22px"] { font-size: 17px !important; }
+    [style*="padding:36px 28px"], [style*="padding: 36px 28px"] { padding: 24px 16px !important; }
+}
+
+/* Any table that is wider than its column scrolls inside it. */
+@media screen and (max-width: 992px) {
+    .table-responsive, .comparison-table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* Flip-in cards may not push the page wide while they animate. */
+.ab-sec2 { overflow-x: clip; }
+
+/* Cards in a row share a height on tablet and up. */
+@media screen and (min-width: 768px) {
+    .bm-equal > [class*="col-"] { display: flex; }
+    .bm-equal > [class*="col-"] > * { width: 100%; }
+}
+
+/* Blog cards (partials/blog-section.ejs): the button rule `.blog-box a` also hit the image and title links. */
+.blog-box > a:first-child { display: block; padding: 0; float: none; }
+.blog-box h2 a { display: inline; padding: 0; float: none; font-size: inherit; font-weight: inherit; text-transform: none; color: inherit; }
+/* Blog cards on content pages (partials/blog-section.ejs): three floats at 33% squeezed the text to a sliver. */
+@media screen and (max-width: 991px) {
+    .blog ul { display: flex; flex-wrap: wrap; }
+    .blog ul li { float: none; width: 50%; }
+    .blog-box img { height: auto; aspect-ratio: 16 / 10; margin-bottom: 16px; }
+    .blog-box h2 { font-size: 19px; line-height: 1.35; }
+    .blog-box a.cta-dark { float: none; }
+}
+@media screen and (max-width: 767px) {
+    .blog ul li { width: 100%; }
+    .blog-box { padding: 12px 0 20px; }
+    .blog-section .head h2 { font-size: clamp(1.5rem, 6.4vw, 1.75rem); }
+}
+
+/* Features page: icon above the text on phones instead of a narrow text column beside it. */
+@media screen and (max-width: 767px) {
+    .bm-feat-row { flex-direction: column; gap: 4px !important; }
+    .bm-feat-row > .feat-icon-wrap { width: 60px; height: 60px; border-radius: 16px; font-size: 26px; margin-bottom: 10px; }
+    .bm-feat-row > div { min-width: 0; width: 100%; }
+    .feat-tag { margin-bottom: 6px; }
+}
+
+/* App page: trust strip wraps instead of running off the screen. */
+@media screen and (max-width: 767px) {
+    .bm-trust-strip { display: flex !important; flex-wrap: wrap; justify-content: center; gap: 10px 16px !important; padding: 12px 14px !important; border-radius: 20px !important; }
+    .bm-trust-strip > div[style*="width: 2px"] { display: none; }
+}
+
+/* Gotra page: each rule is one sentence again (the flex row split it at the <strong>). */
+.rule-box .rule-list li { display: block; position: relative; padding-left: 22px; }
+.rule-box .rule-list li::before { position: absolute; left: 0; top: 0; margin: 0; }
+
+/* Child-safety header: light text on the purple band (inherited brown was unreadable). */
+.child-safety-header h1, .child-safety-header p, .child-safety-header p strong { color: #fff; }
+
+/* Biodata builder: nested card padding left 230px for the inputs on a 390px phone. */
+@media screen and (max-width: 767px) {
+    .biodata-builder-section .biodata-form-container,
+    .biodata-builder-section .biodata-preview-container,
+    .biodata-builder-section .template-selection { padding: 20px 14px; }
+    .biodata-builder-section .form-section { padding: 16px 12px; margin-bottom: 22px; }
+    .biodata-builder-section .biodata-form-container h3 { font-size: 21px; }
+    .biodata-builder-section .form-section h4 { font-size: 18px; }
+    .biodata-builder-section .biodata-builder-header h1 { font-size: 27px; }
+    .biodata-builder-section .preview-placeholder { padding: 48px 16px; }
+}
+
+/* Article body (CMS HTML): the global reset removed list markers and spacing, so lists read as loose lines. */
+.blog-content-section ul, .blog-content-section ol { padding-left: 22px; margin: 0 0 16px; }
+.blog-content-section ul li { list-style: disc; }
+.blog-content-section ol li { list-style: decimal; }
+.blog-content-section li { margin-bottom: 6px; }
+.blog-content-section img { max-width: 100%; height: auto; }
+.blog-content-section table { display: block; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.blog-content-section iframe, .blog-content-section video { max-width: 100%; }
+.blog-content-section pre { white-space: pre-wrap; }
+@media screen and (max-width: 767px) {
+    .blog-content-section h2 { font-size: 21px; line-height: 1.35; }
+    .blog-content-section h3 { font-size: 18px; line-height: 1.4; }
+    .blog-nav .com h4 { font-size: 16px; line-height: 1.35; }
+    .blog-nav .com span { font-size: 13px; }
+}
+
+/* Blog */
+@media screen and (max-width: 767px) {
+    .blog-home-box .txt { padding: 20px 18px; }
+    .inn-ban { padding: 36px 0 44px; }
+    .blog-detail img, .blog-content img, .blog-main img { height: auto; }
+    .blog-content table, .blog-detail table { display: block; max-width: 100%; overflow-x: auto; }
+    .blog-content iframe, .blog-detail iframe { width: 100%; }
+}
+
+/* Login / register / contact split card */
+@media screen and (max-width: 767px) {
+    .login { padding: 28px 0 40px; }
+    .login .rhs, .login .inn .rhs { padding: 28px 20px; }
+    .login .lhs, .login .inn .lhs { padding: 28px 20px 70px; }
+    .form-login .btn { width: 100%; padding-left: 16px; padding-right: 16px; }
+}
+
+/* Legal pages */
+@media screen and (max-width: 767px) {
+    .privacy-container, .terms-container { padding: 24px 18px; }
+    .privacy-container h1, .terms-container h1 { font-size: 26px; }
+}
+
+/* ---------- 8. FOOTER ---------- */
+/* The footer is light: text that was hard-coded white is brought back to the footer ink. */
+.wed-hom-footer .regional-links { border-top-color: #b9c6cf; }
+.wed-hom-footer .regional-links__title { color: #415764; }
+.wed-hom-footer .regional-links a { color: #415764; }
+.wed-hom-footer .regional-links a:hover { color: #a16304; }
+.wed-hom-footer .regional-links__state > a { font-weight: 600; }
+.bm-foot-address { font-style: normal; }
+.bm-foot-mail { margin-bottom: 10px; line-height: 1.6; }
+.bm-foot-mail i { margin-right: 10px; color: #c78a00; }
+.wed-hom-footer .bm-foot-mail a { color: #415764; text-decoration: none; }
+.bm-foot-follow { font-size: 15px; margin-top: 25px; margin-bottom: 15px; font-weight: 600; }
+.wed-hom-footer .fot-soc { display: inline-flex; gap: 10px; list-style: none; padding: 0; margin: 0; }
+.wed-hom-footer .fot-soc li { margin: 0; padding: 0; width: auto; float: none; }
+.wed-hom-footer .fot-soc li a { display: block; line-height: 0; }
+.wed-hom-footer .fot-soc li a img { width: 35px; height: 35px; display: block; }
+.bm-foot-app-note { font-size: 13px; margin-bottom: 15px; line-height: 1.6; }
+.wed-hom-footer a.bm-foot-app-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 12px 25px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+.wed-hom-footer a.bm-foot-app-btn i { margin-right: 8px; color: #fff; }
+.bm-foot-legal { margin-top: 20px; padding-top: 20px; border-top: 1px solid #b9c6cf; text-align: center; }
+.wed-hom-footer .bm-foot-legal__purpose { font-size: 13px; margin: 10px 0; font-weight: 600; }
+.wed-hom-footer .bm-foot-legal__purpose i { margin-right: 5px; }
+.wed-hom-footer .bm-foot-legal__note { font-size: 12px; margin: 8px 0; line-height: 1.6; }
+.wed-hom-footer .bm-foot-legal__copy { font-size: 12px; margin: 15px 0 5px; }
+.wed-hom-footer .foot-count p { line-height: 1.8; }
+.wed-hom-footer .foot-count p a.btn { margin-left: 10px; }
+
+@media screen and (max-width: 992px) {
+    .wed-foot-link ul li a { display: inline-block; padding: 10px 4px; line-height: 24px; min-width: 44px; }
+    .wed-hom-footer .bm-foot-mail a { display: inline-block; padding: 10px 0; line-height: 24px; }
+    .wed-foot-link ul li { margin-bottom: 0; }
+    .wed-hom-footer .fot-soc li a img { width: 44px; height: 44px; }
+    .wed-hom-footer .regional-links a { display: inline-block; padding: 11px 4px; line-height: 22px; min-width: 44px; text-align: center; }
+    .wed-foot-link ul { display: flex; flex-wrap: wrap; width: 100%; margin: 0; }
+    .wed-foot-link ul li { float: none; width: 50%; padding-right: 8px; }
+    .db-nav-list ul li a { padding-top: 11px; padding-bottom: 11px; }
+    .blog-com-tit a { display: inline-block; padding-top: 10px; padding-bottom: 10px; }
+    .wed-hom-footer .regional-links__state { line-height: 1.4; }
+    .wed-hom-footer .regional-links__state > a { display: block; text-align: center; }
+    .wed-hom-footer p a.btn { padding: 9px 18px; line-height: 24px; }
+}
+/* Tablet: four footer columns of 180px wrapped every link; two columns of two. */
+@media screen and (min-width: 768px) and (max-width: 991px) {
+    .wed-foot-link > [class*="col-md-3"] { flex: 0 0 50%; width: 50%; max-width: 50%; padding: 24px 30px; border-right: 0; }
+    .wed-foot-link { text-align: left; }
+    .wed-foot-link ul { display: flex; margin: 0; }
+}
+@media screen and (max-width: 767px) {
+    .wed-hom-footer { padding-bottom: 32px; }
+    .wed-hom-footer .container { padding-left: var(--bm-gutter); padding-right: var(--bm-gutter); }
+    .foot-supp { width: 100%; padding: 22px 16px 16px; }
+    .foot-supp h2, .foot-supp h2 span { overflow-wrap: anywhere; }
+    .wed-foot-link { padding: 40px 0 16px; }
+    .wed-foot-link div { padding: 24px 4px; }
+    .wed-foot-link ul li { text-align: center; }
+    .wed-hom-footer .fot-soc { display: flex; justify-content: center; width: auto; }
+    .wed-hom-footer .fot-soc li { width: auto; }
+    .wed-hom-footer .regional-links__states { gap: 6px 16px; }
+    .wed-hom-footer .regional-links__state { width: 100%; }
+    .foot-count { padding: 24px 0 0; }
+    .wed-hom-footer .foot-count p a.btn { margin: 10px 0 0; }
+}
+
+/* ---------- 9. LOGGED-IN PAGES ---------- */
+@media screen and (max-width: 767px) {
+    .db { padding: 24px 0 40px; }
+    /* Ice-breaker promo: room for the "Featured" badge, icon above the text. */
+    .bm-ib-row { padding: 54px 16px 22px !important; }
+    .bm-ib-head { flex-direction: column; text-align: center; gap: 12px !important; }
+    .bm-ib-row > [class*="col-"] { text-align: center !important; }
+    .bm-ib-row > [class*="col-"] + [class*="col-"] { margin-top: 16px; }
+    /* Sidebar becomes a compact strip: small avatar, menu as a swipeable row. */
+    .db-nav { margin: 0 0 24px; padding: 14px 14px 10px; }
+    .db-nav-pro { margin-bottom: 12px; text-align: center; }
+    .db-nav-pro img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; }
+    .db-nav-list ul { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; padding: 2px 2px 8px; -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+    .db-nav-list ul li { flex: 0 0 auto; margin: 0; }
+    .db-nav-list ul li a { white-space: nowrap; padding: 10px 14px; min-height: 44px; line-height: 22px; border: 1px solid #ebe5d8; border-radius: 22px; font-size: 14px; }
+    .db-nav-list ul li a i { margin-right: 8px; width: auto; }
+    .db-nav-list ul li a.act { background: #e4f1fc; border-color: #b9dcf7; }
+    .db-nav-list ul li a.act:before { display: none; }
+}
+
+/* footer Instagram glyph (no image asset exists for it) */
+.bm-foot-ig{display:inline-flex;align-items:center;justify-content:center;width:35px;height:35px;border-radius:50%;background:#c13584;color:#fff;font-size:18px}

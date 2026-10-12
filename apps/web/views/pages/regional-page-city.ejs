@@ -22,7 +22,7 @@
     %>
 </head>
 
-<body>
+<body class="bm-regional">
     <%- include('../partials/header') %>
 
     <%- include('../partials/breadcrumb', { breadcrumbOver: true }) %>
@@ -123,7 +123,7 @@
     <!-- END -->
 
     <!-- BANNER SLIDER -->
-    <section style="position: relative; z-index: 1;">
+    <section class="bm-noclear" style="position: relative; z-index: 1;">
         <div class="hom-ban-sli">
             <div>
                 <ul class="ban-sli">
@@ -294,13 +294,6 @@
                                 <img src="/images/icon/trust.png" alt="Trusted Platform" loading="lazy" width="128" height="128" decoding="async">
                                 <h4>Trusted by <%= cityName %> Community</h4>
                                 <p>The pioneering platform exclusively for the Banjara community, trusted by hundreds in <%= cityName %> for secure matchmaking.</p>
-                            </div>
-                        </li>
-                        <li>
-                            <div class="animate animate__animated animate__slower" data-ani="animate__flipInX" data-dely="0.6">
-                                <img src="/images/icon/rings.png" alt="Success Stories" loading="lazy" width="512" height="512" decoding="async">
-                                <h4>Successful Weddings</h4>
-                                <p>We've proudly helped Banjara couples from <%= cityName %> start their love journey at no cost, preserving our cultural heritage.</p>
                             </div>
                         </li>
                     </ul>

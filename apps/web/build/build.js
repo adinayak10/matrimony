@@ -8,6 +8,7 @@
 //   fonts    public/build/fonts/<name>.<hash>.woff2   Poppins 300-600 + Playfair Display (variable)
 //   css      public/build/css/site.<hash>.css    @font-face + purged bootstrap + font-awesome
 //                                                + purged animate.css + purged style.css
+//                                                + purged responsive.css (mobile layer, last)
 //   js       public/build/js/site.<hash>.js      jquery, popper, bootstrap, chosen, slick, custom, esc
 //            public/build/js/<extra>.<hash>.js   per-page extras, kept separate
 //   manifest public/build/manifest.json          read by utils/assets.js
@@ -176,9 +177,13 @@ async function buildCss(manifest, fontFiles) {
   let style = stripLeafRules(stripImports(read('css/style.css')));
   try { style = stripLiveDeadRules(style, postcss); } catch (err) { warn(`live-parity pass skipped: ${err.message}`); }
   style = await purge(purgecss, style, 'style.css');
+  // Mobile/tablet layer (public/css/responsive.css): loaded last so it wins the
+  // cascade over style.css, like the last <link> on the legacy path (partials/head.ejs).
+  // dynamicAttributes keeps its [style*="..."] rules, which tame inline styles on phones.
+  const responsive = exists('css/responsive.css') ? await purge(purgecss, read('css/responsive.css'), 'responsive.css', { dynamicAttributes: ['style'] }) : '';
 
   // Same order as the legacy <link> tags: bootstrap, font-awesome, animate, site.
-  let combined = rebaseUrls(`${fontFaceCss(fontFiles)}${bootstrap}\n${fa}\n${animate}\n${style}`, cssImages);
+  let combined = rebaseUrls(`${fontFaceCss(fontFiles)}${bootstrap}\n${fa}\n${animate}\n${style}\n${responsive}`, cssImages);
   if (CleanCSS) {
     const out = new CleanCSS({ level: 1, rebase: false }).minify(combined);
     if (out.errors && out.errors.length) warn(`clean-css: ${out.errors.join('; ')}`);
