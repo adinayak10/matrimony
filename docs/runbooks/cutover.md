@@ -105,3 +105,10 @@ rm -f /root/.pm2/logs/banjaramatch-*                     # old-tree logs (pm2 no
 ## 6. After 24–48 h green
 
 `mv /var/www/banjaramatch.com /var/www/banjaramatch.com.bak` (same for api./admin.), rotate the Firebase service-account key (replace `shared/secrets/serviceAccountKey.json`), revoke the APNs key, archive `adinayak10/matrimony-api` on GitHub, delete the `.bak` dirs once `ls /var/www/banjaramatch-shared/backups/mongo | wc -l` ≥ 14.
+
+## Notes added after the code was finished
+
+- **Index builds are off for the first boot.** `api.env` has `MONGOOSE_AUTO_INDEX=false`. Run each `apps/api/tools/cleanup/*.js` as a dry run, review, then `--apply --yes-i-know --prod` (take a `mongodump` first). After that set `MONGOOSE_AUTO_INDEX=true` and run `bash deploy/deploy.sh --reload-only`. The TTL indexes then purge old search/activity/notification/visitor rows.
+- **Regional sitemap shrinks from 24 to 8 URLs once.** The 16 city pages are `noindex` until each has 300 unique words. `web.env` has `SITEMAP_ALLOW_SHRINK=1` so the first regeneration is accepted; set it to `0` after the first successful run.
+- **The API refuses to boot with a JWT secret shorter than 32 characters.** Do step 5 (rotation) *before* M1, not after: the bridge processes need the new secret too. Everyone is logged out once at cutover instead of twice.
+- **Admin, API and web must go live together.** The API no longer sets cookies; the web and admin servers own their sessions.

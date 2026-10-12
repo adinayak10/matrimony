@@ -15,7 +15,7 @@
   },
   "scripts": {
     "dev": "concurrently -n web,api,admin -c blue,green,magenta \"npm:dev -w apps/web\" \"npm:dev -w apps/api\" \"npm:dev -w apps/admin\"",
-    "lint": "eslint .",
+    "lint": "eslint . && node apps/web/scripts/check-ejs-raw-web.js && node scripts/check-admin-raw.js",
     "test": "npm test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "check:env": "node deploy/check-env.js",

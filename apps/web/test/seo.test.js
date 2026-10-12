@@ -81,6 +81,19 @@ test('head.ejs: brand suffix is added only when absent; noindex pages', () => {
   assert.doesNotMatch(d, /googletagmanager\.com\/gtag/, 'reset-password must not load analytics');
 });
 
+test('head.ejs: live titles stay verbatim (brandSuffix: false, "Banjara Match" counts as the brand)', () => {
+  const home = render('partials/head.ejs', { meta: pageMeta('home', { canonical: '/' }) });
+  assert.match(home, /<title>Banjara Matrimony - Free Matrimonial Site \| Find Banjara Brides &amp; Grooms<\/title>/);
+  const app = render('partials/head.ejs', { meta: pageMeta('app') });
+  assert.match(app, /<title>Banjara Matrimony App - Find Lambadi Brides &amp; Grooms \| Free Download<\/title>/);
+  const lambadi = render('partials/head.ejs', { meta: pageMeta('lambadi') });
+  assert.match(lambadi, /<title>Lambadi Matrimony \| Find Lambadi Brides &amp; Grooms — BanjaraMatch<\/title>/);
+  assert.doesNotMatch(lambadi, /&amp;amp;/);
+  const dash = render('partials/head.ejs', { meta: pageMeta('dashboard') });
+  assert.match(dash, /<title>Dashboard - Banjara Match<\/title>/);
+  assert.doesNotMatch(JSON.stringify(PAGES), /&amp;|&#\d+;/, 'page meta is plain text; head.ejs escapes it');
+});
+
 test('pageMeta: account-deletion has a real title/description/canonical; nested orgs are @id refs', () => {
   const m = pageMeta('accountDeletion');
   assert.equal(m.title, 'Account & Data Deletion Request | BanjaraMatch');
@@ -149,6 +162,42 @@ test('sitemapFiles: SITEMAP_DIR, atomic write, empty and shrunken outputs refuse
     if (prev === undefined) delete process.env.SITEMAP_DIR; else process.env.SITEMAP_DIR = prev;
     fs.rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test('sitemapFiles: a symlinked target is written through, the link survives', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bm-sitemaps-link-'));
+  const shared = path.join(dir, 'shared');
+  const pub = path.join(dir, 'public');
+  fs.mkdirSync(shared);
+  fs.mkdirSync(pub);
+  fs.writeFileSync(path.join(shared, 'sitemap-main.xml'), '<urlset><url></url></urlset>');
+  fs.symlinkSync(path.join(shared, 'sitemap-main.xml'), path.join(pub, 'sitemap-main.xml'));
+  fs.symlinkSync(path.join(shared, 'sitemap-blogs.xml'), path.join(pub, 'sitemap-blogs.xml')); // dangling
+  const prev = process.env.SITEMAP_DIR;
+  process.env.SITEMAP_DIR = pub;
+  try {
+    const sm = require('../utils/sitemapFiles');
+    const xml = '<urlset><url></url><url></url></urlset>';
+    assert.equal(sm.writeSitemap('sitemap-main.xml', xml, { count: 2 }), true);
+    assert.equal(sm.writeSitemap('sitemap-blogs.xml', xml, { count: 2 }), true);
+    for (const f of ['sitemap-main.xml', 'sitemap-blogs.xml']) {
+      assert.ok(fs.lstatSync(path.join(pub, f)).isSymbolicLink(), f + ' must stay a symlink');
+      assert.equal(fs.readFileSync(path.join(shared, f), 'utf8'), xml);
+    }
+    assert.deepEqual(fs.readdirSync(shared).sort(), ['sitemap-blogs.xml', 'sitemap-main.xml'], 'no temp file left behind');
+    assert.deepEqual(fs.readdirSync(pub).sort(), ['sitemap-blogs.xml', 'sitemap-main.xml']);
+  } finally {
+    if (prev === undefined) delete process.env.SITEMAP_DIR; else process.env.SITEMAP_DIR = prev;
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('index rule: the API contentWords wins; hero/CTA text is not owner prose', () => {
+  assert.equal(robotsFor({ pageType: 'city', city: { name: 'X' }, contentWords: 300 }), 'index, follow, max-image-preview:large');
+  assert.equal(robotsFor({ pageType: 'city', city: { name: 'X' }, contentWords: 299 }), 'noindex, follow');
+  const words = Array.from({ length: 320 }, (_, i) => 'word' + i).join(' ');
+  assert.equal(uniqueCmsWords({ pageType: 'city', heroSection: { title: words }, ctaSection: { text: words } }), 0);
+  assert.equal(uniqueCmsWords({ pageType: 'city', faqSection: { faqs: [{ question: 'alpha beta', answer: 'beta gamma' }] } }), 3);
 });
 
 test('main sitemap list: account-deletion priority 0.1, biodata-builder is a view, no logged-in pages', () => {

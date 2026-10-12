@@ -12228,8 +12228,10 @@ h2.db-tit{
     }
 }
 
-/* Breadcrumb partial (views/partials/breadcrumb.ejs, D3.25) */
-.breadcrumb-section{background:#f8f9fa;padding:15px 0;border-bottom:1px solid #e9ecef;position:relative;z-index:5}
+/* Breadcrumb partial (views/partials/breadcrumb.ejs, D3.25).
+   Stacking is what was live before the partial: in normal flow on ordinary pages (the absolute
+   .hom-top header paints over it), and above the header only on the regional pages (--over). */
+.breadcrumb-section{background:#f8f9fa;padding:15px 0;border-bottom:1px solid #e9ecef}.breadcrumb-section--over{position:relative;z-index:5}
 .breadcrumb-section .breadcrumb{background:transparent;margin-bottom:0;padding:0;font-size:14px}
 .breadcrumb-section .breadcrumb-item a{color:#667eea;text-decoration:none}
 .breadcrumb-section .breadcrumb-item a:hover{color:#f6af04;text-decoration:underline}

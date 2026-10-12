@@ -12,19 +12,16 @@
 
 const MIN_UNIQUE_WORDS = Number(process.env.CITY_INDEX_MIN_WORDS) || 300;
 
-// Fields that are not owner-written prose: identifiers, meta, counters, media,
-// relations and anything the API computes per request.
-const SKIP_KEYS = new Set([
-  '_id', 'id', 'slug', 'pageType', 'canonicalUrl', 'metaTitle', 'metaDescription', 'metaKeywords',
-  'bannerImages', 'stats', 'statsSection', 'featuredMembers', 'topCities', 'citiesSection',
-  'relatedCityPages', 'sameStateCities', 'breadcrumbs', 'interlinking', 'statePage',
-  'createdAt', 'updatedAt', 'createdBy', 'updatedBy', 'views', 'registrationsFromPage',
-  'isActive', 'isPublished', 'state', 'city', 'icon', 'image', 'url', 'link', 'ctaText',
-  'primaryButtonText', 'secondaryButtonText', 'buttonText', 'showStats', 'showTestimonials',
-  'showInsights', 'showLocalities', 'showNearbyCities', 'showFaq', 'customStatsLabels',
-  'communityInsights', 'stateDemographics', 'cityDemographics', 'nearbyCities', 'popularLocalities',
-  '__v',
-]);
+// Owner-written prose fields. Same list and same tokenizer as the API's
+// contentWords() (apps/api/services/sanitize.js DEFAULT_CONTENT_FIELDS), so the
+// number computed here from GET /api/{city,state}-pages/:slug matches the
+// `contentWords` the API puts on its responses. Hero/CTA/"why choose" blocks
+// are templated per city and are deliberately not counted.
+const CONTENT_FIELDS = [
+  'introSection', 'aboutSection', 'localitiesSection', 'faqSection',
+  'introContent', 'aboutContent', 'faqs', 'customContentBlocks',
+  'communityInsights', 'cityDemographics', 'stateInfo', 'heritageSection',
+];
 
 const stripHtml = (s) => String(s).replace(/<[^>]*>/g, ' ').replace(/&[a-z#0-9]+;/gi, ' ');
 
@@ -32,22 +29,33 @@ function collectStrings(value, out) {
   if (typeof value === 'string') { out.push(value); return; }
   if (Array.isArray(value)) { for (const v of value) collectStrings(v, out); return; }
   if (value && typeof value === 'object') {
-    for (const [k, v] of Object.entries(value)) {
-      if (SKIP_KEYS.has(k)) continue;
-      collectStrings(v, out);
-    }
+    // Populated refs and leaked ObjectIds/Dates carry no prose.
+    if (value instanceof Date || value._bsontype || value.buffer) return;
+    for (const v of Object.values(value)) collectStrings(v, out);
   }
 }
 
-function uniqueCmsWords(page) {
-  if (!page || typeof page !== 'object') return 0;
+// Local count, used while the API in production does not send `contentWords` yet.
+function countContentWords(page) {
   const parts = [];
-  collectStrings(page, parts);
+  for (const f of CONTENT_FIELDS) if (page[f] !== undefined) collectStrings(page[f], parts);
   const words = new Set();
   for (const part of parts) {
-    for (const w of stripHtml(part).toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || []) words.add(w);
+    // eslint-disable-next-line no-misleading-character-class -- whole Devanagari block on purpose
+    for (const w of stripHtml(part).toLowerCase().split(/[^a-z0-9ऀ-ॿ]+/iu)) {
+      if (w && w.length > 1) words.add(w);
+    }
   }
   return words.size;
+}
+
+// The API's own `contentWords` wins when present (list rows and full pages of
+// the current API carry it), so the catch-all and the sitemap generator always
+// decide from the same number; otherwise the page is counted here.
+function uniqueCmsWords(page) {
+  if (!page || typeof page !== 'object') return 0;
+  if (Number.isFinite(page.contentWords)) return page.contentWords;
+  return countContentWords(page);
 }
 
 function isStatePage(page) {
@@ -65,4 +73,4 @@ function robotsFor(page) {
   return isIndexable(page) ? 'index, follow, max-image-preview:large' : 'noindex, follow';
 }
 
-module.exports = { MIN_UNIQUE_WORDS, uniqueCmsWords, isIndexable, isStatePage, robotsFor };
+module.exports = { MIN_UNIQUE_WORDS, CONTENT_FIELDS, uniqueCmsWords, isIndexable, isStatePage, robotsFor };

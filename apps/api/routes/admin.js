@@ -282,11 +282,11 @@ router.post('/broadcast-email/send', adminAuth, rl.broadcastLimiter, async (req,
       .then((result) =>
         BroadcastJob.updateOne(
           { _id: job._id },
-          { $set: { status: 'completed', sent: result.sent, failed: result.failed, errors: result.errors.slice(0, 50), finishedAt: new Date() } }
+          { $set: { status: 'completed', sent: result.sent, failed: result.failed, errorMessages: result.errors.slice(0, 50), finishedAt: new Date() } }
         )
       )
       .catch((err) =>
-        BroadcastJob.updateOne({ _id: job._id }, { $set: { status: 'failed', errors: [String(err.message).slice(0, 500)], finishedAt: new Date() } })
+        BroadcastJob.updateOne({ _id: job._id }, { $set: { status: 'failed', errorMessages: [String(err.message).slice(0, 500)], finishedAt: new Date() } })
       )
       .catch(() => {});
   } catch (err) {

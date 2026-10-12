@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const blogCategories = require('../config/blogCategories');
-const { DOMAIN, writeSitemap, escapeXml } = require('./sitemapFiles');
+const { DOMAIN, writeSitemap, escapeXml, countUrls, realTarget, sitemapPath } = require('./sitemapFiles');
 
 const API_URL = process.env.API_URL || 'http://127.0.0.1:4002';
 const rootDir = path.join(__dirname, '..');
@@ -56,12 +56,18 @@ async function fetchCategoryPages() {
       .map((slug) => ({ loc: 'blogs/' + slug, lastmod: today, priority: '0.6', changefreq: 'weekly' }));
   } catch (err) {
     console.warn('⚠️ Blog categories unavailable for the sitemap:', err.message);
-    return [];
+    return null;
   }
 }
 
 const generateSitemap = async () => {
-  const categoryPages = await fetchCategoryPages();
+  const fetched = await fetchCategoryPages();
+  if (fetched === null && countUrls(realTarget(sitemapPath('sitemap-main.xml'))) > 0) {
+    // Without the API the category URLs would silently drop out; keep the file as it is.
+    console.warn('⚠️ sitemap-main.xml: keeping the previous file');
+    return null;
+  }
+  const categoryPages = fetched || [];
   const all = [...pages, ...categoryPages].map((page) => ({
     ...page,
     lastmod: page.lastmod || getLastmodFromFile(page.sourceFile),

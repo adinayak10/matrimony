@@ -4,7 +4,7 @@
 // rule the catch-all uses for its robots meta, so the sitemap never lists a
 // noindex URL.
 const axios = require('axios');
-const { DOMAIN, writeSitemap, escapeXml, dateOnly } = require('./sitemapFiles');
+const { DOMAIN, writeSitemap, escapeXml, dateOnly, countUrls, realTarget, sitemapPath } = require('./sitemapFiles');
 const { isIndexable } = require('./regionalIndexing');
 
 const API_URL = process.env.API_URL || 'http://127.0.0.1:4002';
@@ -24,20 +24,29 @@ async function fetchWithRetry(url, retries = 3) {
 
 const rows = (res) => (res && res.data && Array.isArray(res.data.data) ? res.data.data : []);
 
-// The list endpoint carries no CMS content; each city page is loaded in full.
+// A list row that carries the API's `contentWords` is decided from it (no
+// extra request). An API build without that field returns no CMS content on
+// the list, so each city page is loaded in full and counted by the same rule.
+// `failed` counts cities that could not be checked.
 async function indexableCityPages(cityList) {
   const out = [];
+  let failed = 0;
   for (const row of cityList) {
     if (!row || !row.slug) continue;
+    if (Number.isFinite(row.contentWords)) {
+      if (isIndexable({ ...row, pageType: 'city' })) out.push(row);
+      continue;
+    }
     try {
       const res = await axios.get(`${API_URL}/api/city-pages/${encodeURIComponent(row.slug)}`, { timeout: 5000 });
       const page = res.data && res.data.data;
-      if (page && isIndexable(page)) out.push({ ...row, updatedAt: page.updatedAt || row.updatedAt, createdAt: page.createdAt || row.createdAt });
+      if (page && isIndexable({ ...page, pageType: 'city' })) out.push({ ...row, updatedAt: page.updatedAt || row.updatedAt, createdAt: page.createdAt || row.createdAt });
     } catch (err) {
-      console.warn(`⚠️ ${row.slug}: skipped (${err.message})`);
+      failed += 1;
+      console.warn(`⚠️ ${row.slug}: could not be checked (${err.message})`);
     }
   }
-  return out;
+  return { pages: out, failed };
 }
 
 const generateRegionalSitemap = async () => {
@@ -48,7 +57,12 @@ const generateRegionalSitemap = async () => {
   ]);
   const statePages = rows(stateResponse).filter((p) => p && p.slug);
   const cityList = rows(cityResponse);
-  const cityPages = await indexableCityPages(cityList);
+  const { pages: cityPages, failed } = await indexableCityPages(cityList);
+  if (failed > 0 && countUrls(realTarget(sitemapPath('sitemap-regional.xml'))) > 0) {
+    // A city that could not be checked would silently drop out of the sitemap.
+    console.warn(`⚠️ sitemap-regional.xml: ${failed} city pages could not be checked, keeping the previous file`);
+    return null;
+  }
 
   const pages = [
     ...statePages.map((page) => ({ ...page, pageType: 'state' })),

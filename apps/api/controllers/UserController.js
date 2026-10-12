@@ -1128,7 +1128,7 @@ let roomObj = null;
 if (room) {
   // Find the other user (not the current viewer)
   const otherUser = room.participants.find(
-    (u) => u._id.toString() !== viewerId
+    (u) => u._id.toString() !== String(viewerId)
   );
 
   // Build room object
@@ -2656,10 +2656,11 @@ exports.sendInterestRequest = async (req, res) => {
       const expiryDate = new Date();
       expiryDate.setDate(startDate.getDate() + plan.duration_days);
 
+      const previousPlan = user.membershipPlan ? String(user.membershipPlan) : null;
       user.membershipPlan = plan._id;
 
-
       await user.save();
+      require('../services/auditLog').recordAsync(req, 'user.membership', { type: 'user', id: String(user._id) }, { before: { membershipPlan: previousPlan }, after: { membershipPlan: String(plan._id), plan: plan.name } });
 
       res.json({
         status: true,
@@ -3777,7 +3778,7 @@ exports.fetchTrendingProfiles = async (req, res) => {
 
   exports.fetchBanner = async (req, res) => {
     try {
-      const banners = await Banner.find({ isActive: true }).sort({ order: 1, createdAt: -1 }).lean(); // C4.9
+      const banners = await Banner.find({ isActive: { $ne: false } }).sort({ order: 1, createdAt: -1 }).lean(); // C4.9 (rows saved before the field existed count as active)
       res.json({
         status: true,
         message: 'Banner list fetched successfully',

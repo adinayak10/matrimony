@@ -76,6 +76,7 @@ const applyClanSuggestions = async (req, res) => {
     }
 
     const result = await Gotra.bulkWrite(ops);
+    require('../../services/auditLog').recordAsync(req, 'constant.aiApplyClans', { type: 'Gotra', id: null }, { after: { assignments: assignments.slice(0, 100), modifiedCount: result.modifiedCount } });
     res.json({ status: true, message: 'Applied successfully', modifiedCount: result.modifiedCount });
     triggerSitemapRegeneration('ai-apply gotra clan assignments');
   } catch (error) {

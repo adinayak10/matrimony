@@ -102,6 +102,80 @@ function defineSuite() {
     const ids = harness.collectIds(res.body);
     assert.ok(!ids.has(String(C._id).toLowerCase()), "C (B's visitor) must not appear in A's summary");
   });
+
+  // B-C room shared by the tests below (one room per pair: pairKey is unique)
+  async function bcRoom() {
+    const ChatRoom = require('../models/ChatRoom');
+    const key = [String(B._id), String(C._id)].sort().join(':');
+    return (await ChatRoom.findOne({ pairKey: key })) || factory.makeRoom(B, C, 'accepted');
+  }
+
+  test('fetchProfile of a blocked pair -> 404 both ways, and no visitor row is written', async () => {
+    const RecentVisitor = require('../models/RecentVisitor');
+    const X = await factory.makeUser({ full_name: 'Xavier X', gender: 'Male' });
+    await factory.makeBlock(X, A); // X blocked A
+    const asA = await harness.request().post('/api/fetchProfile').set(factory.bearer(tokenA)).send({ user_id: String(X._id) });
+    assert.equal(asA.status, 404);
+    const asX = await harness.request().post('/api/fetchProfile').set(factory.bearer(factory.tokenFor(X))).send({ user_id: String(A._id) });
+    assert.equal(asX.status, 404);
+    assert.equal(await RecentVisitor.countDocuments({ $or: [{ visitor: A._id, visited: X._id }, { visitor: X._id, visited: A._id }] }), 0);
+  });
+
+  test('fetchProfile of an admin-banned member -> 404', async () => {
+    const banned = await factory.makeUser({ gender: 'Male', is_block: 1 });
+    const res = await harness.request().post('/api/fetchProfile').set(factory.bearer(tokenA)).send({ user_id: String(banned._id) });
+    assert.equal(res.status, 404);
+  });
+
+  test('fetchProfile: one visitor row per pair (deduped), chat partner email never returned', async () => {
+    const RecentVisitor = require('../models/RecentVisitor');
+    const P = await factory.makeUser({ full_name: 'Partner P', gender: 'Male', email: `partner_${Date.now()}@secret.test` });
+    await factory.makeRequest(A, P, 'accepted');
+    await factory.makeRoom(A, P, 'accepted');
+    const first = await harness.request().post('/api/fetchProfile').set(factory.bearer(tokenA)).send({ user_id: String(P._id) });
+    assert.equal(first.status, 200, JSON.stringify(first.body).slice(0, 200));
+    const second = await harness.request().post('/api/fetchProfile').set(factory.bearer(tokenA)).send({ user_id: String(P._id) });
+    assert.equal(second.status, 200);
+    const rows = await RecentVisitor.find({ visitor: A._id, visited: P._id }).lean();
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].count, 1, 'a second view within the hour does not bump the counter');
+    const text = JSON.stringify(second.body);
+    assert.ok(!text.includes('@secret.test'), "partner's email leaked");
+    assert.ok(second.body.data.chatRoom, 'accepted room is described');
+    assert.equal(String(second.body.data.chatRoom.userId), String(P._id), 'chatRoom describes the OTHER participant');
+    assert.equal(second.body.data.reportStatus, false);
+    for (const key of ['"password"', '"device_token"', '"firebase_uid"']) assert.ok(!text.includes(key), `${key} leaked`);
+  });
+
+  test('fetchOrGenerateRoom with a blocked user -> 403; userA_id in the body is ignored', async () => {
+    const Y = await factory.makeUser({ gender: 'Male' });
+    await factory.makeBlock(A, Y);
+    const blocked = await harness.request().post('/api/fetchOrGenerateRoom').set(factory.bearer(tokenA)).send({ userA_id: String(A._id), userB_id: String(Y._id) });
+    assert.equal(blocked.status, 403);
+    const room = await bcRoom();
+    const spoof = await harness.request().post('/api/fetchOrGenerateRoom').set(factory.bearer(tokenA)).send({ userA_id: String(B._id), userB_id: String(C._id) });
+    assert.ok(!harness.collectIds(spoof.body).has(String(room._id)), "B-C's room must not be returned to A");
+  });
+
+  test('deleteRoom hides the room for the caller only and never for a non-participant', async () => {
+    const ChatRoom = require('../models/ChatRoom');
+    const Q = await factory.makeUser({ gender: 'Male' });
+    const mine = await factory.makeRoom(A, Q, 'accepted');
+    const res = await harness.request().post('/api/deleteRoom').set(factory.bearer(tokenA)).send({ user_id: String(Q._id) });
+    assert.equal(res.status, 200);
+    const after = await ChatRoom.findById(mine._id).lean();
+    assert.ok(after, 'the room document still exists for the other member');
+    assert.deepEqual((after.hiddenFor || []).map(String), [String(A._id)]);
+    const rooms = await harness.request().post('/api/fetchUserRooms').set(factory.bearer(tokenA)).send({});
+    assert.ok(!harness.collectIds(rooms.body).has(String(mine._id)), 'hidden room is not listed for the caller');
+    const theirs = await harness.request().post('/api/fetchUserRooms').set(factory.bearer(factory.tokenFor(Q))).send({});
+    assert.ok(harness.collectIds(theirs.body).has(String(mine._id)), 'the other member still sees it');
+
+    const other = await bcRoom();
+    await harness.request().post('/api/deleteRoom').set(factory.bearer(tokenA)).send({ my_user_id: String(B._id), user_id: String(C._id) });
+    const untouched = await ChatRoom.findById(other._id).lean();
+    assert.ok(untouched && !(untouched.hiddenFor || []).length, "B-C's room untouched");
+  });
 }
 
 if (harness.suiteReady(test, 'idor')) defineSuite();

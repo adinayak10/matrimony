@@ -94,6 +94,67 @@ function defineSuite() {
     assert.equal(await FriendShipRequest.countDocuments({ requester: F._id, recipient: A._id }), 0);
     assert.ok(!JSON.stringify(res.body).includes('"email"'), 'block response carries no contact data');
   });
+
+  test('interest to the same gender -> 400; to a banned member -> 404', async () => {
+    const M = await factory.makeUser({ gender: 'Male' });
+    assert.equal((await send(tokenA, { user_id: String(M._id) })).status, 400);
+    const banned = await factory.makeUser({ gender: 'Female', is_block: 1 });
+    assert.equal((await send(tokenA, { user_id: String(banned._id) })).status, 404);
+  });
+
+  test("allowConnections 'onlyPremium' is treated as everyone (product is free)", async () => {
+    const F = await factory.makeUser({ gender: 'Female', settings: { allowConnections: 'onlyPremium' } });
+    const res = await send(tokenA, { user_id: String(F._id) });
+    assert.equal(res.status, 200, JSON.stringify(res.body).slice(0, 200));
+  });
+
+  test('a sent interest row carries pairKey and timestamps', async () => {
+    const FriendShipRequest = require('../models/FriendShipRequest');
+    const F = await factory.makeUser({ gender: 'Female' });
+    assert.equal((await send(tokenA, { user_id: String(F._id) })).status, 200);
+    const row = await FriendShipRequest.findOne({ requester: A._id, recipient: F._id }).lean();
+    assert.equal(row.pairKey, [String(A._id), String(F._id)].sort().join(':'));
+    assert.ok(row.createdAt instanceof Date && row.updatedAt instanceof Date);
+    // the reverse direction hits the same pair -> 409, never a second row
+    const back = await send(factory.tokenFor(F), { user_id: String(A._id) });
+    assert.equal(back.status, 409);
+    assert.equal(await FriendShipRequest.countDocuments({ pairKey: row.pairKey }), 1);
+  });
+
+  test('reportUser: self 400, unknown reason 400, ok 200, duplicate 409, reportStatus reflects the row', async () => {
+    const ReportReason = require('../models/ReportReason');
+    const UserReport = require('../models/UserReport');
+    await ReportReason.create({ title: 'Fake profile' });
+    const F = await factory.makeUser({ gender: 'Female' });
+    const report = (body) => harness.request().post('/api/reportUser').set(factory.bearer(tokenA)).send(body);
+
+    assert.equal((await report({ user_id: String(A._id), reason: 'Fake profile' })).status, 400);
+    assert.equal((await report({ user_id: String(F._id), reason: 'Not a configured reason' })).status, 400);
+    // reportedBy in the body is ignored: the row is written for the token user
+    const ok = await report({ user_id: String(F._id), reason: 'Fake profile', my_user_id: String(F._id), reportedBy: String(F._id) });
+    assert.equal(ok.status, 200, JSON.stringify(ok.body).slice(0, 200));
+    assert.equal(await UserReport.countDocuments({ reportedBy: A._id, reportedUser: F._id }), 1);
+    assert.equal((await report({ user_id: String(F._id), reason: 'Fake profile' })).status, 409);
+    assert.equal(await UserReport.countDocuments({ reportedUser: F._id }), 1);
+
+    const profile = await harness.request().post('/api/fetchProfile').set(factory.bearer(tokenA)).send({ user_id: String(F._id) });
+    assert.equal(profile.status, 200);
+    assert.equal(profile.body.data.reportStatus, true);
+    assert.equal(require('../controllers/UserController').reportStatus, undefined, 'exports.reportStatus was removed');
+  });
+
+  test('reportUser: 11th report within 24 h -> 429', async () => {
+    const ReportReason = require('../models/ReportReason');
+    const UserReport = require('../models/UserReport');
+    await ReportReason.updateOne({ title: 'Spam' }, { $set: { title: 'Spam' } }, { upsert: true });
+    const R = await factory.makeUser({ gender: 'Male' });
+    for (let i = 0; i < 10; i++) {
+      await UserReport.create({ reportedBy: R._id, reportedUser: factory.oid(), reason: 'Spam' });
+    }
+    const F = await factory.makeUser({ gender: 'Female' });
+    const res = await harness.request().post('/api/reportUser').set(factory.bearer(factory.tokenFor(R))).send({ user_id: String(F._id), reason: 'Spam' });
+    assert.equal(res.status, 429);
+  });
 }
 
 if (harness.suiteReady(test, 'interest')) defineSuite();

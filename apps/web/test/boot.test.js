@@ -2,7 +2,7 @@
 // Boot test: every server-side module of the web app must require() cleanly
 // without the API or network. app.js itself is skipped because it binds a port
 // and schedules sitemap generation; routes/index.js only needs
-// express/jsonwebtoken/axios at require time.
+// express/axios at require time.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

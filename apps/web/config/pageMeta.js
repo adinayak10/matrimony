@@ -17,6 +17,7 @@
 const PAGES = {
   home: {
     title: "Banjara Matrimony - Free Matrimonial Site | Find Banjara Brides & Grooms",
+    brandSuffix: false,
     description: "Banjara Matrimony made free on BanjaraMatch.com. Find Banjara brides & grooms across India. Register free today!",
     keywords: [
       "banjara matrimony",
@@ -528,6 +529,7 @@ const PAGES = {
   },
   app: {
     title: "Banjara Matrimony App - Find Lambadi Brides & Grooms | Free Download",
+    brandSuffix: false,
     description: "Download free Banjara matrimony app to find verified Lambadi & Lambani brides and grooms. Advanced matchmaking, video calls & instant chat. Available for Android.",
     keywords: [
       "banjara matrimony",
@@ -622,7 +624,7 @@ const PAGES = {
     ]
   },
   lambadi: {
-    title: "Lambadi Matrimony | Find Lambadi Brides &amp; Grooms — BanjaraMatch",
+    title: "Lambadi Matrimony | Find Lambadi Brides & Grooms — BanjaraMatch",
     description: "India's first free Lambadi matrimony platform. Find verified Lambadi brides & grooms from Telangana, Andhra Pradesh, Karnataka & across India.",
     keywords: [
       "Lambadi matrimony",
@@ -686,7 +688,7 @@ const PAGES = {
     ]
   },
   gormati: {
-    title: "Gormati Matrimony | Find Gormati Brides &amp; Grooms — BanjaraMatch",
+    title: "Gormati Matrimony | Find Gormati Brides & Grooms — BanjaraMatch",
     description: "India's first free Gormati matrimony platform. Find verified Gormati brides and grooms from Maharashtra, Karnataka, and across India — 100% free.",
     keywords: [
       "Gormati matrimony",

@@ -514,6 +514,7 @@ router.get('/register', redirectIfAuthenticated, (req, res) => {
   res.render('pages/register', {
     title: 'Register Free - Banjara Matrimony | BanjaraMatch.com',
     meta: pageMeta('register', { canonical: '/register' }),
+    breadcrumbs: [{ name: 'Register Free', url: '/register' }],
     user: null
   });
 });
@@ -673,6 +674,11 @@ router.get('/blogs/:category', optionalUser, async (req, res, next) => {
   }
 });
 
+const blogTitle = (blog) => {
+  const t = String(blog.metaTitle || blog.title || 'Blog Post').trim();
+  return /banjaramatch/i.test(t) ? t : `${t} - BanjaraMatch`;
+};
+
 // Individual blog post: /blogs/:category/:slug
 router.get('/blogs/:category/:slug', optionalUser, async (req, res, next) => {
   const { category, slug } = req.params;
@@ -699,9 +705,9 @@ router.get('/blogs/:category/:slug', optionalUser, async (req, res, next) => {
     const postUrl = `${SITE_URL}/blogs/${blogCategory}/${slug}`;
     res.render('pages/blog-detail', {
       title: `${blog.title} - BanjaraMatch Blog`,
-      // Brand suffix is appended by head.ejs only when metaTitle lacks "BanjaraMatch" (D3.24).
+      // Brand suffix only when metaTitle lacks "BanjaraMatch" (D3.24), in the " - BanjaraMatch" form the posts were live with.
       meta: {
-        title: blog.metaTitle || blog.title,
+        title: blogTitle(blog),
         description: blog.metaDescription || blog.description || '',
         keywords: blog.metaKeywords && blog.metaKeywords.length ? blog.metaKeywords : undefined,
         canonical: `/blogs/${blogCategory}/${slug}`,
@@ -1095,6 +1101,7 @@ function regionalMeta(page, pageType, slug) {
     description,
     keywords,
     canonical: '/' + slug,
+    brandSuffix: false, // CMS/meta titles stay exactly as they were live
     robots,
     ogImage: banner || site.defaultImage,
     pageCategory: 'regional',

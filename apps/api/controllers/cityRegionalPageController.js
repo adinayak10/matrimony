@@ -21,7 +21,6 @@ function sanitizeCmsBody(body) {
   delete out.stats; delete out.views; delete out.createdBy; delete out.updatedBy; delete out._id;
   return out;
 }
-const { getCityEnhancedData, generateUniqueIntro } = require('../utils/citySpecificData');
 const { 
   generateCityPrefillTemplate, 
   processObjectPlaceholders, 
@@ -50,7 +49,7 @@ async function buildCityPrefillData(cityId) {
 
   // Get top professions
   const topProfessions = await User.aggregate([
-    { $match: { 'location.city': cityId, isActive: true, profession: { $exists: true } } },
+    { $match: { 'location.city': cityId, is_block: { $ne: 1 }, profession: { $exists: true } } },
     { $group: { _id: '$profession', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 8 }
@@ -58,7 +57,7 @@ async function buildCityPrefillData(cityId) {
 
   // Get popular gotras
   const popularGotras = await User.aggregate([
-    { $match: { 'location.city': cityId, isActive: true, gotra: { $exists: true } } },
+    { $match: { 'location.city': cityId, is_block: { $ne: 1 }, gotra: { $exists: true } } },
     { $group: { _id: '$gotra', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 8 }
@@ -66,7 +65,7 @@ async function buildCityPrefillData(cityId) {
 
   // Get popular castes
   const popularCastes = await User.aggregate([
-    { $match: { 'location.city': cityId, isActive: true, caste: { $exists: true } } },
+    { $match: { 'location.city': cityId, is_block: { $ne: 1 }, caste: { $exists: true } } },
     { $group: { _id: '$caste', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 5 }
@@ -74,7 +73,7 @@ async function buildCityPrefillData(cityId) {
 
   // Get top qualifications
   const topQualifications = await User.aggregate([
-    { $match: { 'location.city': cityId, isActive: true, qualification: { $exists: true } } },
+    { $match: { 'location.city': cityId, is_block: { $ne: 1 }, qualification: { $exists: true } } },
     { $group: { _id: '$qualification', count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: 8 }
@@ -228,10 +227,11 @@ exports.bulkCreateCityPages = async (req, res) => {
         const cityPage = new CityRegionalPage({
           city,
           state,
-          ...pageData,
-          createdBy: req.user?._id
+          ...sanitizeCmsBody(pageData),
+          createdBy: req.userId
         });
         await cityPage.save();
+        audit(req, 'regionalPage.create', { type: 'cityPage', id: cityPage._id }, { after: { slug: cityPage.slug, isPublished: cityPage.isPublished, bulk: true } });
 
         if (cityPage.isPublished) {
           triggerSitemapRegeneration();
@@ -401,6 +401,7 @@ exports.deleteCityPage = async (req, res) => {
     if (page.isPublished) {
       triggerSitemapRegeneration();
     }
+    audit(req, 'regionalPage.delete', { type: 'cityPage', id }, { before: { slug: page.slug, isPublished: page.isPublished } });
 
     res.status(200).json({ status: true, message: 'City page deleted successfully' });
   } catch (error) {
@@ -425,6 +426,7 @@ exports.refreshCityPageStats = async (req, res) => {
     page.stats = stats;
     page.lastStatsUpdate = new Date();
     await page.save();
+    audit(req, 'regionalPage.refreshStats', { type: 'cityPage', id });
 
     res.status(200).json({ status: true, message: 'Stats refreshed successfully', data: page.stats });
   } catch (error) {

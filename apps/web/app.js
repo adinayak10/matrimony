@@ -252,7 +252,13 @@ app.use(require('./middleware/errorHandler'));
 // ---------- START SERVER ----------
 const PORT = Number(process.env.PORT) || 4000;
 const HOST = process.env.HOST || '127.0.0.1';
-app.listen(PORT, HOST, () => {
+app.listen(PORT, HOST, (err) => {
+  // Express 5 hands a failed bind (EADDRINUSE) to this callback instead of
+  // throwing: exit so pm2 never gets 'ready' from a process that is not listening.
+  if (err) {
+    console.error(`BanjaraMatch could not listen on ${HOST}:${PORT}:`, err.code || err.message);
+    process.exit(1);
+  }
   console.log(`BanjaraMatch is running on http://${HOST}:${PORT}`);
   // pm2 wait_ready: the old process is kept until this is sent.
   if (process.send) process.send('ready');

@@ -4,7 +4,8 @@
   so a route (or the regional API's page.breadcrumbs) that already starts with
   Home is not listed twice. Renders nothing without crumbs. The JSON-LD is the
   only BreadcrumbList on a page: templates carry no copies of their own.
-  Styles live in public/css/style.css (.breadcrumb-section).
+  Styles live in public/css/style.css (.breadcrumb-section). `breadcrumbOver: true`
+  (regional pages) stacks the strip above the header, as those pages did before.
 %>
 <%
   const _given = Array.isArray(locals.breadcrumbs) ? locals.breadcrumbs.filter((c) => c && c.name) : [];
@@ -13,7 +14,7 @@
   const _absUrl = (u) => (!u ? '' : /^https?:\/\//i.test(u) ? u : _siteUrl + (String(u).startsWith('/') ? u : '/' + u));
 %>
 <% if (_crumbs.length) { %>
-<section class="breadcrumb-section">
+<section class="breadcrumb-section<%= locals.breadcrumbOver ? ' breadcrumb-section--over' : '' %>">
   <div class="container">
     <nav aria-label="Breadcrumb">
       <ol class="breadcrumb">

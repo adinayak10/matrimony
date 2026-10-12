@@ -122,6 +122,28 @@ function defineSuite() {
       assert.ok(!text.includes(key), `${key} leaked`);
     }
   });
+
+  test('an admin-banned member is absent from every list endpoint', async () => {
+    const banned = await factory.makeUser({ gender: 'Female', full_name: 'Banned Member', is_block: 1 });
+    for (const ep of LIST_ENDPOINTS) {
+      const res = await post(ep, token, { limit: 50 });
+      assert.ok(res.status < 500, `${ep} -> ${res.status}`);
+      assert.ok(!harness.collectIds(res.body).has(String(banned._id)), `${ep} lists a banned member`);
+    }
+  });
+
+  test('fetchBanner hides inactive banners and keeps rows saved before isActive existed', async () => {
+    const Banner = require('../models/Banner');
+    const on = await Banner.create({ title: 'on', imageUrl: 'uploads/a.jpg', isActive: true });
+    const off = await Banner.create({ title: 'off', imageUrl: 'uploads/b.jpg', isActive: false });
+    const legacy = await Banner.collection.insertOne({ title: 'legacy', imageUrl: 'uploads/c.jpg', createdAt: new Date() });
+    const res = await harness.request().post('/api/fetchBanner').send({});
+    assert.equal(res.status, 200);
+    const ids = harness.collectIds(res.body);
+    assert.ok(ids.has(String(on._id)));
+    assert.ok(ids.has(String(legacy.insertedId)), 'legacy banner without isActive must stay visible');
+    assert.ok(!ids.has(String(off._id)));
+  });
 }
 
 if (harness.suiteReady(test, 'filters')) defineSuite();

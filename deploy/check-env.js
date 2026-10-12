@@ -57,7 +57,7 @@ function exampleKeys(app) {
 function checkUrls(app, env) {
   for (const [k, v] of env) {
     if (!/(_URL|_URI)$/.test(k) || !v) continue;
-    if (/PUBLIC/.test(k)) {
+    if (/PUBLIC|^UNSUBSCRIBE_URL$/.test(k)) { // browser-facing URLs
       if (!/^https:\/\//.test(v)) fail(`${app}.env ${k} must be a public https:// URL`);
       else ok(`${app}.env ${k} is https`);
       continue;

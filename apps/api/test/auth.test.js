@@ -86,6 +86,47 @@ function defineSuite() {
     assert.equal(res.status, 401);
     assert.equal(res.body.code, 'AUTH_REQUIRED');
   });
+
+  test('all 11 legacy auth routes answer 410 Gone', async () => {
+    const { LEGACY_PATHS } = require('../routes/legacyAuth');
+    assert.equal(LEGACY_PATHS.length, 11);
+    for (const p of LEGACY_PATHS) {
+      const res = await harness.request().post(`/api/auth${p}`).send({ phone: '9999999999', otp: '123456' });
+      assert.equal(res.status, 410, `${p} -> ${res.status}`);
+      assert.equal(res.body.code, 'GONE');
+    }
+  });
+
+  test('the legacy handlers and otpStore are gone from the controller', () => {
+    const AuthController = require('../controllers/AuthController');
+    for (const name of ['checkUser', 'verifyFirebaseOtp', 'verifyFirebaseOtpWithName', 'loginWithEmail', 'registerWithEmail', 'sendOtp', 'requestOtp', 'verifyOtp', 'completeProfile', 'otpStore']) {
+      assert.equal(AuthController[name], undefined, `${name} still exported`);
+    }
+  });
+
+  test('firebase-email-register and firebase-google-login without firebaseToken -> 400', async () => {
+    for (const p of ['/api/auth/firebase-email-register', '/api/auth/firebase-google-login']) {
+      const res = await harness.request().post(p).send({});
+      assert.equal(res.status, 400, `${p} -> ${res.status}`);
+    }
+  });
+
+  test('a body email/firebaseUid alone never logs anyone in or rewrites the account', async () => {
+    const User = require('../models/User');
+    const victim = await factory.makeUser({ full_name: 'Real Name', phone: '9000000001', firebase_uid: 'real-uid' });
+    for (const p of ['/api/auth/firebase-email-login', '/api/auth/firebase-email-register', '/api/auth/firebase-google-login']) {
+      const res = await harness
+        .request()
+        .post(p)
+        .send({ email: victim.email, firebaseUid: 'attacker-uid', firebaseToken: 'not-a-real-token', full_name: 'Hacked', phone: '9111111111' });
+      assert.ok([400, 401].includes(res.status), `${p} -> ${res.status}`);
+      assert.equal(res.body.token, undefined);
+    }
+    const after = await User.findById(victim._id).select('firebase_uid full_name phone').lean();
+    assert.equal(after.full_name, 'Real Name');
+    assert.equal(after.phone, '9000000001');
+    assert.equal(after.firebase_uid, 'real-uid');
+  });
 }
 
 if (harness.suiteReady(test, 'auth')) defineSuite();

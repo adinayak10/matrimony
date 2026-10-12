@@ -11,7 +11,8 @@ const broadcastJobSchema = new mongoose.Schema({
   total: { type: Number, default: 0 },
   sent: { type: Number, default: 0 },
   failed: { type: Number, default: 0 },
-  errors: { type: [String], default: [] },
+  // not `errors`: that name is reserved on mongoose documents (validation errors)
+  errorMessages: { type: [String], default: [] },
   startedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   startedAt: { type: Date, default: null },
   finishedAt: { type: Date, default: null },

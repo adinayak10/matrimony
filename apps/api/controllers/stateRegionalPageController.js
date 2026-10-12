@@ -47,7 +47,7 @@ exports.getPrefillDataForState = async (req, res) => {
 
     // Get top professions state-wide
     const topProfessions = await User.aggregate([
-      { $match: { 'location.state': stateId, isActive: true, profession: { $exists: true } } },
+      { $match: { 'location.state': stateId, is_block: { $ne: 1 }, profession: { $exists: true } } },
       { $group: { _id: '$profession', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 }
@@ -55,7 +55,7 @@ exports.getPrefillDataForState = async (req, res) => {
 
     // Get popular gotras state-wide
     const popularGotras = await User.aggregate([
-      { $match: { 'location.state': stateId, isActive: true, gotra: { $exists: true } } },
+      { $match: { 'location.state': stateId, is_block: { $ne: 1 }, gotra: { $exists: true } } },
       { $group: { _id: '$gotra', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 }
@@ -63,7 +63,7 @@ exports.getPrefillDataForState = async (req, res) => {
 
     // Get popular castes state-wide
     const popularCastes = await User.aggregate([
-      { $match: { 'location.state': stateId, isActive: true, caste: { $exists: true } } },
+      { $match: { 'location.state': stateId, is_block: { $ne: 1 }, caste: { $exists: true } } },
       { $group: { _id: '$caste', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 8 }
@@ -71,7 +71,7 @@ exports.getPrefillDataForState = async (req, res) => {
 
     // Get top qualifications state-wide
     const topQualifications = await User.aggregate([
-      { $match: { 'location.state': stateId, isActive: true, qualification: { $exists: true } } },
+      { $match: { 'location.state': stateId, is_block: { $ne: 1 }, qualification: { $exists: true } } },
       { $group: { _id: '$qualification', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 }
@@ -79,8 +79,7 @@ exports.getPrefillDataForState = async (req, res) => {
 
     // Get cities with users
     const citiesWithUsers = await City.find({
-      state: stateId,
-      isActive: true
+      state: stateId
     }).select('_id name').limit(25);
 
     // Generate prefill template with placeholders (using ${state}, ${stats.*}, etc.)
@@ -332,6 +331,7 @@ exports.deleteStatePage = async (req, res) => {
     if (page.isPublished) {
       triggerSitemapRegeneration();
     }
+    audit(req, 'regionalPage.delete', { type: 'statePage', id }, { before: { slug: page.slug, isPublished: page.isPublished } });
 
     res.status(200).json({ status: true, message: 'State page deleted successfully' });
   } catch (error) {
@@ -356,6 +356,7 @@ exports.refreshStatePageStats = async (req, res) => {
     page.stats = stats;
     page.lastStatsUpdate = new Date();
     await page.save();
+    audit(req, 'regionalPage.refreshStats', { type: 'statePage', id });
 
     res.status(200).json({ status: true, message: 'Stats refreshed successfully', data: page.stats });
   } catch (error) {
