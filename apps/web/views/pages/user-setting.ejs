@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'Privacy Settings - Banjara Match' %></title>
+    <!--== META TAGS ==-->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Manage your privacy and notification settings">
+    <meta name="robots" content="noindex, nofollow">
+    <!--== FAV ICON(BROWSER TAB ICON) ==-->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <!--== PERFORMANCE: Resource Hints ==-->
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    
+    <!--== CSS FILES ==-->
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+    
+    <style>
+    .settings-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .settings-card h4 {
+        color: #f6af04;
+        margin-bottom: 20px;
+        font-size: 18px;
+        font-weight: 600;
+        border-bottom: 2px solid #f6af04;
+        padding-bottom: 10px;
+    }
+    .setting-item {
+        padding: 15px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .setting-item:last-child {
+        border-bottom: none;
+    }
+    .setting-label {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    .setting-description {
+        font-size: 13px;
+        color: #777;
+        margin-bottom: 10px;
+    }
+    .form-switch {
+        padding-left: 2.5em;
+    }
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: #f6af04;
+        border-color: #f6af04;
+    }
+    .btn-save-settings {
+        background: #f6af04;
+        color: #fff;
+        padding: 12px 40px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-save-settings:hover {
+        background: #e09f04;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(246, 175, 4, 0.3);
+    }
+    .blocked-users-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .blocked-user-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        background: #f9f9f9;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+    .blocked-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .blocked-user-info img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <!-- SETTINGS -->
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <div class="db-nav">
+                            <div class="db-nav-pro">
+                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="db-nav-list">
+                                <ul>
+                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                                    <li><a href="/user-setting" class="act"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit">Privacy & Settings</h2>
+                        
+                        <!-- Privacy Settings -->
+                        <div class="settings-card">
+                            <h4><i class="fa fa-lock"></i> Privacy Settings</h4>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Show My Location</div>
+                                <div class="setting-description">Allow others to see your city and state</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="showLocation" <%= user?.settings?.showLocation ? 'checked' : '' %>>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Show My Income</div>
+                                <div class="setting-description">Display income range on your profile</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="showIncome" <%= user?.settings?.showIncome ? 'checked' : '' %>>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Profile Picture Visibility</div>
+                                <div class="setting-description">Who can see your profile picture</div>
+                                <select class="form-select" id="profilePicVisibility">
+                                    <option value="everyone" <%= user?.settings?.profilePicVisibility === 'everyone' ? 'selected' : '' %>>Everyone</option>
+                                    <option value="onlyPremium" <%= user?.settings?.profilePicVisibility === 'onlyPremium' ? 'selected' : '' %>>Only Premium Members</option>
+                                    <option value="onlyAccepted" <%= user?.settings?.profilePicVisibility === 'onlyAccepted' ? 'selected' : '' %>>Only Accepted Connections</option>
+                                    <option value="nobody" <%= user?.settings?.profilePicVisibility === 'nobody' ? 'selected' : '' %>>Nobody (Private)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Profile Picture Request Required</div>
+                                <div class="setting-description">Users need to request to view your profile picture</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="profilePicRequestRequired" <%= user?.settings?.profilePicRequestRequired ? 'checked' : '' %>>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Allow Connections From</div>
+                                <div class="setting-description">Who can send you interest requests</div>
+                                <select class="form-select" id="allowConnections">
+                                    <option value="everyone" <%= user?.settings?.allowConnections === 'everyone' ? 'selected' : '' %>>Everyone</option>
+                                    <option value="onlyPremium" <%= user?.settings?.allowConnections === 'onlyPremium' ? 'selected' : '' %>>Only Premium Members</option>
+                                    <option value="onlyAccepted" <%= user?.settings?.allowConnections === 'onlyAccepted' ? 'selected' : '' %>>Only Accepted Connections</option>
+                                    <option value="nobody" <%= user?.settings?.allowConnections === 'nobody' ? 'selected' : '' %>>Nobody</option>
+                                </select>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Allow Messages From</div>
+                                <div class="setting-description">Who can send you messages</div>
+                                <select class="form-select" id="allowMessages">
+                                    <option value="everyone" <%= user?.settings?.allowMessages === 'everyone' ? 'selected' : '' %>>Everyone</option>
+                                    <option value="onlyAccepted" <%= user?.settings?.allowMessages === 'onlyAccepted' ? 'selected' : '' %>>Only Accepted Connections</option>
+                                    <option value="nobody" <%= user?.settings?.allowMessages === 'nobody' ? 'selected' : '' %>>Nobody</option>
+                                </select>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Email Visibility</div>
+                                <div class="setting-description">Control who can see your email address</div>
+                                <select class="form-select" id="emailVisibility">
+                                    <option value="private" <%= user?.settings?.emailVisibility === 'private' ? 'selected' : '' %>>Private (Hidden)</option>
+                                    <option value="public" <%= user?.settings?.emailVisibility === 'public' ? 'selected' : '' %>>Public (Visible to all)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Mobile Number Visibility</div>
+                                <div class="setting-description">Control who can see your mobile number</div>
+                                <select class="form-select" id="mobileVisibility">
+                                    <option value="private" <%= user?.settings?.mobileVisibility === 'private' ? 'selected' : '' %>>Private (Hidden)</option>
+                                    <option value="public" <%= user?.settings?.mobileVisibility === 'public' ? 'selected' : '' %>>Public (Visible to all)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Notification Settings -->
+                        <div class="settings-card">
+                            <h4><i class="fa fa-bell"></i> Notification Settings</h4>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Enable Notifications</div>
+                                <div class="setting-description">Master switch for all notifications</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="allowNotifications" <%= user?.settings?.allowNotifications ? 'checked' : '' %>>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Interest Request Notifications</div>
+                                <div class="setting-description">Get notified when someone sends you an interest</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyOnInterest" <%= user?.settings?.notifyOnInterest ? 'checked' : '' %>>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Message Notifications</div>
+                                <div class="setting-description">Get notified for new messages</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyOnMessage" <%= user?.settings?.notifyOnMessage ? 'checked' : '' %>>
+                                </div>
+                            </div>
+                            
+                            <div class="setting-item">
+                                <div class="setting-label">Profile Visit Notifications</div>
+                                <div class="setting-description">Get notified when someone views your profile</div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="notifyOnProfileVisit" <%= user?.settings?.notifyOnProfileVisit ? 'checked' : '' %>>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Blocked Users -->
+                        <div class="settings-card">
+                            <h4><i class="fa fa-ban"></i> Blocked Users</h4>
+                            <p class="text-muted" style="margin-bottom: 15px;">Manage the profiles you've blocked from a dedicated page.</p>
+                            <a href="/blocked-users" class="btn-save-settings" style="display:inline-block; text-decoration:none;">
+                                <i class="fa fa-list"></i> View Blocked Users
+                            </a>
+                        </div>
+                        
+                        <!-- Save Button -->
+                        <div class="text-center mb-4">
+                            <button type="button" class="btn-save-settings" id="saveSettingsBtn">
+                                <i class="fa fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END -->
+
+    <!-- FOOTER -->
+    <%- include('../partials/footer') %>
+
+    <!-- END -->
+    
+    <!-- JavaScript -->
+    <script defer src="/js/jquery.min.js"></script>
+    <script defer src="/js/popper.min.js"></script>
+    <script defer src="/js/bootstrap.min.js"></script>
+    <script defer src="/js/custom.min.js"></script>
+    
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const API_BASE_URL = 'https://api.banjaramatch.com/api';
+    const MY_USER_ID = '<%= user?._id %>';
+
+    // Helper function to get auth token
+    function getAuthToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('token='))
+            ?.split('=')[1];
+    }
+
+    // Save settings
+    $('#saveSettingsBtn').on('click', async function() {
+        const btn = $(this);
+        btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+        const settings = {
+            showLocation: $('#showLocation').is(':checked'),
+            showIncome: $('#showIncome').is(':checked'),
+            profilePicVisibility: $('#profilePicVisibility').val(),
+            profilePicRequestRequired: $('#profilePicRequestRequired').is(':checked'),
+            allowConnections: $('#allowConnections').val(),
+            allowMessages: $('#allowMessages').val(),
+            emailVisibility: $('#emailVisibility').val(),
+            mobileVisibility: $('#mobileVisibility').val(),
+            allowNotifications: $('#allowNotifications').is(':checked'),
+            notifyOnInterest: $('#notifyOnInterest').is(':checked'),
+            notifyOnMessage: $('#notifyOnMessage').is(':checked'),
+            notifyOnProfileVisit: $('#notifyOnProfileVisit').is(':checked')
+        };
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/editProfile`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getAuthToken()}`
+                },
+                body: JSON.stringify({
+                    user_id: MY_USER_ID,
+                    settings: settings
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.status) {
+                alert('Settings saved successfully!');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert(data.message || 'Failed to save settings');
+                btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save Settings');
+            }
+        } catch (error) {
+            console.error('Error saving settings:', error);
+            alert('An error occurred. Please try again.');
+            btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save Settings');
+        }
+    });
+
+    // Logout confirmation
+    $('a[href="/logout"]').on('click', function(e) {
+        if (!confirm('Are you sure you want to log out?')) {
+            e.preventDefault();
+        }
+    });
+});
+    </script>
+</body>
+</html>

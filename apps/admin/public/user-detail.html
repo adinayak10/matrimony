@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Detail - Banjara Match Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">📊 Dashboard</a></li>
+                <li><a href="/users" class="active">👥 Users</a></li>
+                <li><a href="/reports">🚩 Reports</a></li>
+                <li><a href="/photo-moderation">🖼️ Photo Moderation</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="/constants">⚙️ Constants</a></li>
+                <li><a href="/settings">🔧 Settings</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <h1>User Details</h1>
+                <div class="topbar-right">
+                    <a href="/users" class="btn btn-secondary btn-sm">← Back to Users</a>
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div id="userDetailContent">
+                    <div class="loading" style="padding: 100px;">
+                        <div class="spinner"></div>
+                        Loading user details...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/auth.js?v=1764497821"></script>
+    <script src="/js/api.js?v=1764497821"></script>
+    <script>
+        let currentUser = null;
+        let editMode = false;
+
+        async function loadUserDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userId = urlParams.get('id');
+
+            if (!userId) {
+                window.location.href = '/users';
+                return;
+            }
+
+            try {
+                const response = await apiRequest(`/api/admin/users/${userId}`);
+                currentUser = response.data;
+                displayUserDetails();
+                loadBlockedUsers(userId);
+            } catch (error) {
+                console.error('Error loading user:', error);
+                document.getElementById('userDetailContent').innerHTML = `
+                    <div class="alert alert-danger">Failed to load user details</div>
+                `;
+            }
+        }
+
+        function displayUserDetails() {
+            const user = currentUser;
+            const age = user.dob ? calculateAge(user.dob) : 'N/A';
+
+            document.getElementById('userDetailContent').innerHTML = `
+                <div class="user-detail-container">
+                    <!-- Left Column: Profile Card -->
+                    <div>
+                        <div class="card user-profile-card">
+                            <div class="card-body">
+                                <img src="${user.profile || 'https://via.placeholder.com/120'}" 
+                                     class="profile-img-large"
+                                     onerror="this.src='https://via.placeholder.com/120'">
+                                <h2 style="margin: 15px 0 5px; text-align: center;">${user.full_name || 'N/A'}</h2>
+                                <p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px;">
+                                    ${user.bio || 'No bio available'}
+                                </p>
+                                
+                                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                                    <span class="badge ${user.is_block ? 'badge-danger' : 'badge-success'}">
+                                        ${user.is_block ? 'Blocked' : 'Active'}
+                                    </span>
+                                    <span class="badge ${user.is_verified ? 'badge-success' : 'badge-warning'}">
+                                        ${user.is_verified ? 'Verified' : 'Not Verified'}
+                                    </span>
+                                    <span class="badge badge-primary">
+                                        ${user.login_type === 1 ? 'Phone Login' : 'Email Login'}
+                                    </span>
+                                </div>
+
+                                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border);">
+                                    <button class="btn btn-primary btn-block" onclick="toggleEditMode()">
+                                        ${editMode ? '✖️ Cancel Edit' : '✏️ Edit User'}
+                                    </button>
+                                    <button class="btn btn-${user.is_verified ? 'warning' : 'success'} btn-block" 
+                                            onclick="toggleVerification()" style="margin-top: 10px;">
+                                        ${user.is_verified ? '✗ Unverify' : '✓ Verify'}
+                                    </button>
+                                    <button class="btn btn-${user.is_block ? 'success' : 'warning'} btn-block" 
+                                            onclick="toggleBlock()" style="margin-top: 10px;">
+                                        ${user.is_block ? '✓ Unblock' : '🚫 Block'}
+                                    </button>
+                                    <button class="btn btn-danger btn-block" onclick="deleteUser()" style="margin-top: 10px;">
+                                        🗑️ Delete User
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        ${user.background_image ? `
+                        <div class="card" style="margin-top: 20px;">
+                            <div class="card-header">
+                                <h3>Background Image</h3>
+                            </div>
+                            <div class="card-body">
+                                <img src="${user.background_image}" style="width: 100%; border-radius: 8px;">
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <div class="card" style="margin-top: 20px;">
+                            <div class="card-header">
+                                <h3>🚫 Blocked by this user</h3>
+                            </div>
+                            <div class="card-body" id="blockedUsersPanel">
+                                <p style="color: var(--text-secondary);">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Details -->
+                    <div>
+                        <form id="userForm" onsubmit="saveUser(event)">
+                            <!-- Basic Information -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>📋 Basic Information</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Full Name</label>
+                                            <input type="text" name="full_name" value="${user.full_name || ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Username</label>
+                                            <input type="text" name="username" value="${user.username || ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Email</label>
+                                            <input type="email" name="email" value="${user.email || ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Phone</label>
+                                            <input type="text" name="phone" value="${user.phone || ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Gender</label>
+                                            <select name="gender" ${editMode ? '' : 'disabled'}>
+                                                <option value="Male" ${user.gender === 'Male' ? 'selected' : ''}>Male</option>
+                                                <option value="Female" ${user.gender === 'Female' ? 'selected' : ''}>Female</option>
+                                                <option value="Other" ${user.gender === 'Other' ? 'selected' : ''}>Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Date of Birth</label>
+                                            <input type="date" name="dob" value="${user.dob ? user.dob.split('T')[0] : ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Age</label>
+                                            <input type="text" value="${age} years" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label>Height (cm)</label>
+                                            <input type="number" name="height" value="${user.height || ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Weight (kg)</label>
+                                            <input type="number" name="weight" value="${user.weight || ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Marital Status</label>
+                                            <input type="text" name="maritalStatus" value="${user.maritalStatus || ''}" ${editMode ? '' : 'readonly'}>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Bio</label>
+                                        <textarea name="bio" rows="3" ${editMode ? '' : 'readonly'}>${user.bio || ''}</textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>About</label>
+                                        <textarea name="about" rows="4" ${editMode ? '' : 'readonly'}>${user.about || ''}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Location -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>📍 Location</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Country</span>
+                                            <span class="info-value">${user.location?.country?.name || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">State</span>
+                                            <span class="info-value">${user.location?.state?.name || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">City</span>
+                                            <span class="info-value">${user.location?.city?.name || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">PIN Code</span>
+                                            <span class="info-value">${user.pinCode || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                    ${user.presentAddress ? `
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label>Present Address</label>
+                                        <textarea readonly rows="2">${user.presentAddress}</textarea>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <!-- Professional Info -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>💼 Professional Information</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Profession</span>
+                                            <span class="info-value">${user.profession?.name || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Qualification</span>
+                                            <span class="info-value">${user.qualification?.name || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Education Field</span>
+                                            <span class="info-value">${user.educationField || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">College</span>
+                                            <span class="info-value">${user.collegeName || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Income Range</span>
+                                            <span class="info-value">${user.incomeRange?.range || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Family Details -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>👨‍👩‍👧‍👦 Family Information</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Father's Name</span>
+                                            <span class="info-value">${user.family?.fatherName || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Father's Profession</span>
+                                            <span class="info-value">${user.family?.father?.profession || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Mother's Name</span>
+                                            <span class="info-value">${user.family?.motherName || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Mother's Profession</span>
+                                            <span class="info-value">${user.family?.mother?.profession || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Brothers</span>
+                                            <span class="info-value">${user.family?.brothers?.total || 0}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Sisters</span>
+                                            <span class="info-value">${user.family?.sisters?.total || 0}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Family Type</span>
+                                            <span class="info-value">${user.family?.familyType || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Family Status</span>
+                                            <span class="info-value">${user.family?.familyStatus || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cultural & Religious -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>🕌 Cultural & Religious</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Caste</span>
+                                            <span class="info-value">${user.caste?.name || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Gotra</span>
+                                            <span class="info-value">${user.gotra?.name || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Mother Tongue</span>
+                                            <span class="info-value">${user.motherTongue || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Manglik Status</span>
+                                            <span class="info-value">${user.manglikStatus || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lifestyle -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>🧘 Lifestyle</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">Diet</span>
+                                            <span class="info-value">${user.diet || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Smoking</span>
+                                            <span class="info-value">${user.smoke || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Drinking</span>
+                                            <span class="info-value">${user.drink || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Complexion</span>
+                                            <span class="info-value">${user.complexion || 'N/A'}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Body Type</span>
+                                            <span class="info-value">${user.bodyType || 'N/A'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Info -->
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>⚙️ System Information</h3>
+                                </div>
+                                <div class="card-body">
+                                    <div class="info-grid">
+                                        <div class="info-item">
+                                            <span class="info-label">User ID</span>
+                                            <span class="info-value">${user._id}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Profile Completion</span>
+                                            <span class="info-value">${user.profileCompletion?.percentage || 0}%</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Created At</span>
+                                            <span class="info-value">${formatDateTime(user.createdAt)}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Last Updated</span>
+                                            <span class="info-value">${formatDateTime(user.updatedAt)}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Last Seen</span>
+                                            <span class="info-value">${formatDateTime(user.lastSeen)}</span>
+                                        </div>
+                                        <div class="info-item">
+                                            <span class="info-label">Online Status</span>
+                                            <span class="info-value">${user.isOnline ? '🟢 Online' : '⚫ Offline'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            ${editMode ? `
+                            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                                <button type="button" class="btn btn-secondary" onclick="toggleEditMode()">Cancel</button>
+                                <button type="submit" class="btn btn-success">💾 Save Changes</button>
+                            </div>
+                            ` : ''}
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadBlockedUsers(userId) {
+            const panel = document.getElementById('blockedUsersPanel');
+            if (!panel) return;
+            try {
+                const response = await apiRequest(`/api/admin/users/${userId}/blocks`);
+                const blocks = response.data || [];
+
+                if (blocks.length === 0) {
+                    panel.innerHTML = '<p style="color: var(--text-secondary);">This user hasn\'t blocked anyone.</p>';
+                    return;
+                }
+
+                panel.innerHTML = `
+                    <ul style="list-style:none; padding:0; margin:0;">
+                        ${blocks.map(b => `
+                            <li style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border-color, #eee);">
+                                <span>
+                                    ${b.blocked?.full_name || 'Unknown user'}
+                                    ${b.blocked?.is_block ? ' <span class="badge badge-danger">also blocked by admin</span>' : ''}
+                                </span>
+                                <small style="color: var(--text-secondary);">${new Date(b.createdAt).toLocaleDateString()}</small>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } catch (error) {
+                console.error('Error loading blocked users:', error);
+                panel.innerHTML = '<p style="color:#dc3545;">Failed to load blocked-users list.</p>';
+            }
+        }
+
+        function toggleEditMode() {
+            editMode = !editMode;
+            displayUserDetails();
+        }
+
+        async function saveUser(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const updates = Object.fromEntries(formData);
+
+            try {
+                await apiRequest(`/api/admin/users/${currentUser._id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify(updates)
+                });
+                
+                showNotification('User updated successfully', 'success');
+                editMode = false;
+                await loadUserDetails();
+            } catch (error) {
+                console.error('Error updating user:', error);
+                showNotification('Failed to update user', 'danger');
+            }
+        }
+
+        async function toggleVerification() {
+            try {
+                await apiRequest(`/api/admin/users/${currentUser._id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ is_verified: currentUser.is_verified ? 0 : 1 })
+                });
+                
+                showNotification('Verification status updated', 'success');
+                await loadUserDetails();
+            } catch (error) {
+                showNotification('Failed to update verification', 'danger');
+            }
+        }
+
+        async function toggleBlock() {
+            try {
+                await apiRequest(`/api/admin/users/${currentUser._id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ is_block: currentUser.is_block ? 0 : 1 })
+                });
+                
+                showNotification('Block status updated', 'success');
+                await loadUserDetails();
+            } catch (error) {
+                showNotification('Failed to update block status', 'danger');
+            }
+        }
+
+        async function deleteUser() {
+            if (!window.confirm('Are you sure you want to DELETE this user? This action cannot be undone!')) return;
+            
+            const confirmText = prompt('Type "DELETE" to confirm:');
+            if (confirmText !== 'DELETE') return;
+
+            try {
+                await apiRequest(`/api/admin/users/${currentUser._id}`, { method: 'DELETE' });
+                showNotification('User deleted successfully', 'success');
+                setTimeout(() => window.location.href = '/users', 1500);
+            } catch (error) {
+                showNotification('Failed to delete user', 'danger');
+            }
+        }
+
+        function calculateAge(dob) {
+            const birthDate = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        window.addEventListener('load', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadUserDetails();
+            }
+        });
+    </script>
+</body>
+</html>

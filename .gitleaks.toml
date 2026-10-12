@@ -1,0 +1,15 @@
+# gitleaks configuration for the `secrets` CI job (.github/workflows/ci.yml).
+# Keep the default rule set; only tell it which committed files are known not
+# to be secrets.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Committed client configuration that trips the generic API-key rules"
+paths = [
+  # Firebase client config. The API key in it is a public identifier
+  # restricted to the app's package + signing certificate, not a credential.
+  '''apps/mobile/android/app/google-services\.json''',
+  '''apps/mobile/ios/Runner/GoogleService-Info\.plist''',
+]

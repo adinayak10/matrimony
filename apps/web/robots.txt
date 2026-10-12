@@ -1,0 +1,283 @@
+# robots.txt for BanjaraMatch.com
+# Updated: April 2, 2026
+# Purpose: SEO optimization, bandwidth saving, private content protection
+
+# ========================================
+# GOOGLE BOT (Primary Search Engine)
+# ========================================
+User-agent: Googlebot
+Allow: /
+Allow: /css/
+Allow: /js/
+Allow: /images/
+Allow: /uploads/
+
+# Disallow private/user areas
+Disallow: /dashboard
+Disallow: /all-profiles
+Disallow: /profile/*
+Disallow: /update-profile
+Disallow: /user-interests
+Disallow: /user-chat
+Disallow: /user-setting
+Disallow: /onboarding
+Disallow: /logout
+
+# Allow authentication pages for SEO (register, signup)
+# Note: /login is intentionally NOT allowed here — it carries its own
+# <meta name="robots" content="noindex, follow"> and has no unique
+# indexable content, so it's disallowed consistently below and in the
+# Bingbot/Yandex/default sections rather than carved out for Googlebot only.
+Allow: /register
+Allow: /signup
+Disallow: /login
+
+# Disallow hidden admin authentication pages
+Disallow: /admin-email-register
+
+# Disallow API endpoints (no content for indexing)
+Disallow: /api/
+
+# Disallow legacy .html URLs (all redirect to clean URLs - prevents duplicate crawling)
+Disallow: /*.html
+
+# Allow important SEO pages
+Allow: /about
+Allow: /contact
+Allow: /blogs
+Allow: /blog/*
+Allow: /banjara-matrimony-*
+Allow: /terms-conditions
+Allow: /privacy-policy
+
+# Crawl delay (respect Google's default)
+# No crawl-delay needed for Googlebot
+
+# ========================================
+# GOOGLE IMAGE BOT
+# ========================================
+User-agent: Googlebot-Image
+Allow: /images/
+Allow: /uploads/
+Disallow: /uploads/private/
+
+# ========================================
+# BING BOT
+# ========================================
+User-agent: Bingbot
+Allow: /
+Allow: /css/
+Allow: /js/
+Allow: /images/
+Allow: /uploads/
+Disallow: /dashboard
+Disallow: /update-profile
+Disallow: /user-interests
+Disallow: /user-chat
+Disallow: /user-setting
+Disallow: /onboarding
+Disallow: /logout
+Disallow: /login
+Disallow: /register
+Disallow: /api/
+Disallow: /*.html
+Crawl-delay: 5
+
+# ========================================
+# YANDEX (Russian Search Engine)
+# ========================================
+User-agent: Yandex
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /*.html
+Crawl-delay: 10
+
+# ========================================
+# BAIDU (Chinese Search Engine - if needed)
+# ========================================
+User-agent: Baiduspider
+Allow: /
+Disallow: /dashboard
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+Disallow: /*.html
+Crawl-delay: 10
+
+# ========================================
+# SOCIAL MEDIA BOTS (for link previews)
+# ========================================
+
+# Facebook Bot (for Open Graph previews)
+User-agent: facebookexternalhit
+Allow: /
+Allow: /blog/*
+Allow: /profile/*
+Allow: /banjara-matrimony-*
+
+# Twitter Bot (for Twitter Cards)
+User-agent: Twitterbot
+Allow: /
+Allow: /blog/*
+Allow: /profile/*
+
+# LinkedIn Bot
+User-agent: LinkedInBot
+Allow: /
+Allow: /blog/*
+Allow: /about
+Allow: /contact
+
+# WhatsApp Bot (for link previews)
+User-agent: WhatsApp
+Allow: /
+Allow: /blog/*
+Allow: /profile/*
+
+# ========================================
+# BAD BOTS & SCRAPERS (Block malicious crawlers)
+# ========================================
+
+# Block SEMrush bot (aggressive crawler)
+User-agent: SemrushBot
+Disallow: /
+
+# Block Ahrefs bot (aggressive crawler)
+User-agent: AhrefsBot
+Crawl-delay: 30
+Disallow: /dashboard
+Disallow: /api/
+
+# Block MJ12bot (Majestic - can be aggressive)
+User-agent: MJ12bot
+Crawl-delay: 60
+
+# Block DotBot (can be aggressive)
+User-agent: DotBot
+Crawl-delay: 30
+
+# Block AI scrapers (protect content from AI training)
+User-agent: CCBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: Claude-Web
+Disallow: /
+
+# Block common spam bots
+User-agent: WebReaper
+Disallow: /
+
+User-agent: WebCopier
+Disallow: /
+
+User-agent: Offline Explorer
+Disallow: /
+
+User-agent: HTTrack
+Disallow: /
+
+User-agent: Microsoft.URL.Control
+Disallow: /
+
+User-agent: EmailCollector
+Disallow: /
+
+User-agent: EmailSiphon
+Disallow: /
+
+User-agent: EmailWolf
+Disallow: /
+
+# ========================================
+# ALL OTHER BOTS (Default Rules)
+# ========================================
+User-agent: *
+Allow: /
+
+# Allow public content
+Allow: /about
+Allow: /contact
+Allow: /blogs
+Allow: /blog/*
+Allow: /banjara-matrimony-*
+Allow: /terms-conditions
+Allow: /privacy-policy
+
+# Allow static assets
+Allow: /css/
+Allow: /js/
+Allow: /images/
+Allow: /uploads/
+
+# Disallow user-specific areas
+Disallow: /dashboard
+Disallow: /update-profile
+Disallow: /user-interests
+Disallow: /user-chat
+Disallow: /user-setting
+Disallow: /onboarding
+Disallow: /logout
+
+# Disallow authentication (duplicate content)
+Disallow: /login
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Disallow admin areas
+Disallow: /admin
+Disallow: /private/
+
+# Disallow search result pages (to prevent duplicate content)
+Disallow: /*?page=*
+Disallow: /*?search=*
+Disallow: /*?filter=*
+Disallow: /*?sort=*
+Disallow: /*?gender=*
+Disallow: /*?category=*
+
+# Disallow temporary/test pages
+Disallow: /test/
+Disallow: /temp/
+Disallow: /dev/
+
+# Crawl delay for other bots (prevent server overload)
+Crawl-delay: 10
+
+# ========================================
+# SITEMAPS (Help search engines discover content)
+# ========================================
+Sitemap: https://www.banjaramatch.com/sitemap.xml
+Sitemap: https://www.banjaramatch.com/sitemap-main.xml
+Sitemap: https://www.banjaramatch.com/sitemap-blogs.xml
+Sitemap: https://www.banjaramatch.com/sitemap-regional.xml
+
+# ========================================
+# NOTES FOR DEVELOPERS
+# ========================================
+# - This file protects user privacy while allowing SEO
+# - Login/register pages blocked to avoid duplicate content
+# - API endpoints blocked (no indexable content)
+# - User dashboards blocked (private content)
+# - Bad bots blocked to save bandwidth
+# - AI scrapers blocked to protect content
+# - Social bots allowed for link previews
+# - Crawl delays prevent server overload
+# 
+# Last updated: December 2, 2025
+# Maintained by: BanjaraMatch Development Team

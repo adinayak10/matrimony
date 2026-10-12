@@ -1,0 +1,21 @@
+<%
+// Server-rendered windowed pagination (first / last / ±2 / ellipsis).
+// locals: page (Number), pages (Number), baseUrl (String, e.g. '/users?status=1')
+var pg = Math.max(1, Number(page) || 1);
+var total = Math.max(1, Number(pages) || 1);
+var base = String(typeof baseUrl === 'string' ? baseUrl : '');
+var join = base.includes('?') ? '&' : '?';
+var hrefFor = function (n) { return base + join + 'page=' + n; };
+if (total > 1) { %>
+<nav class="pagination" aria-label="Pagination">
+  <a class="pagination__btn<%= pg <= 1 ? ' is-disabled' : '' %>" href="<%= hrefFor(Math.max(1, pg - 1)) %>"<% if (pg <= 1) { %> aria-disabled="true" tabindex="-1"<% } %> aria-label="Previous page">&lsaquo;</a>
+  <% for (var i = 1; i <= total; i++) {
+       if (i === 1 || i === total || (i >= pg - 2 && i <= pg + 2)) { %>
+    <a class="pagination__btn<%= i === pg ? ' is-active' : '' %>" href="<%= hrefFor(i) %>"<% if (i === pg) { %> aria-current="page"<% } %>><%= i %></a>
+  <%   } else if (i === pg - 3 || i === pg + 3) { %>
+    <span class="pagination__ellipsis" aria-hidden="true">&hellip;</span>
+  <%   }
+     } %>
+  <a class="pagination__btn<%= pg >= total ? ' is-disabled' : '' %>" href="<%= hrefFor(Math.min(total, pg + 1)) %>"<% if (pg >= total) { %> aria-disabled="true" tabindex="-1"<% } %> aria-label="Next page">&rsaquo;</a>
+</nav>
+<% } %>

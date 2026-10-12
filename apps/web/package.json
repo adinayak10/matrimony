@@ -1,0 +1,30 @@
+{
+  "name": "@banjaramatch/web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "www.banjaramatch.com - Express 5 + EJS site",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon app.js",
+    "start": "node app.js",
+    "test": "NODE_ENV=test node --test 'test/**/*.test.js'"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "http-proxy-middleware": "^3.0.5",
+    "clean-css": "^5.3.3",
+    "uglify-js": "^3.19.3",
+    "purgecss": "^7.0.2",
+    "sharp": "^0.34.3",
+    "@fontsource/poppins": "^5.2.6"
+  },
+  "devDependencies": {}
+}

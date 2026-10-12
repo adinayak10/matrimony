@@ -1,0 +1,35 @@
+<aside id="sidebar" class="sidebar" data-sidebar>
+  <div class="sidebar__header">
+    <a class="sidebar__brand" href="/dashboard">
+      <img class="sidebar__logo" src="/img/logo.svg?v=<%= assetVersion %>" width="36" height="36" alt="">
+      <span class="sidebar__brand-text">
+        <span class="sidebar__brand-name">Banjara Match</span>
+        <span class="sidebar__brand-sub">Admin</span>
+      </span>
+    </a>
+    <button type="button" class="btn btn--icon btn--ghost sidebar__close" data-sidebar-close aria-label="Close menu">
+      <%- icon('x', { size: 20 }) %>
+    </button>
+  </div>
+  <nav class="sidebar__nav" aria-label="Admin">
+    <% nav.forEach(function (group) { %>
+      <div class="sidebar__group">
+        <div class="sidebar__group-title"><%= group.group %></div>
+        <ul class="sidebar__list">
+          <% group.items.forEach(function (item) { var active = item.key === activeKey; %>
+            <li>
+              <a class="sidebar__link<%= active ? ' is-active' : '' %>" href="<%= item.href %>"<% if (active) { %> aria-current="page"<% } %>>
+                <%- icon(item.icon, { size: 18, cls: 'sidebar__icon' }) %>
+                <span class="sidebar__label"><%= item.label %></span>
+                <% if (item.pending) { %><span class="tag tag--muted sidebar__tag">soon</span><% } %>
+              </a>
+            </li>
+          <% }); %>
+        </ul>
+      </div>
+    <% }); %>
+  </nav>
+  <div class="sidebar__footer">
+    <span class="sidebar__release" title="Release"><%= releaseSha ? releaseSha.slice(0, 7) : 'v' + appVersion %></span>
+  </div>
+</aside>

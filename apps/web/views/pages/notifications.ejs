@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'Notifications - Banjara Match' %></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Your notifications on Banjara Match">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+
+    <style>
+    .settings-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .notif-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    .notif-item {
+        display: flex;
+        gap: 14px;
+        padding: 14px 10px;
+        border-bottom: 1px solid #f0f0f0;
+        align-items: flex-start;
+    }
+    .notif-item:last-child { border-bottom: none; }
+    .notif-item.unread { background: #fff8e1; border-radius: 6px; }
+    .notif-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+        background: #f6af04;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 16px;
+    }
+    .notif-icon img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; }
+    .notif-content { flex: 1; }
+    .notif-time { font-size: 12px; color: #999; margin-top: 3px; }
+    .notif-pagination { text-align: center; margin-top: 20px; }
+    .notif-pagination button { margin: 0 4px; }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <div class="db-nav">
+                            <div class="db-nav-pro">
+                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="db-nav-list">
+                                <ul>
+                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                                    <li><a href="/notifications" class="act"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <div class="notif-header">
+                            <h2 class="db-tit" style="margin:0;"><i class="fa fa-bell"></i> Notifications</h2>
+                            <button class="btn btn-sm btn-outline-secondary" id="markAllReadBtn">Mark all as read</button>
+                        </div>
+
+                        <div class="settings-card">
+                            <div id="notifList">
+                                <p class="text-center text-muted">Loading notifications...</p>
+                            </div>
+                            <div class="notif-pagination" id="notifPagination"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+    <script src="/js/esc.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+        const MY_USER_ID = '<%= user?._id %>';
+        let currentPage = 1;
+
+        function getAuthToken() {
+            return document.cookie.split('; ')
+                .find(row => row.startsWith('token='))
+                ?.split('=')[1];
+        }
+
+        const TYPE_ICONS = {
+            chat_accepted: 'fa-comments',
+            chat_declined: 'fa-comment-slash',
+            interest_request: 'fa-heart',
+            friend_accept: 'fa-user-plus',
+            interest_accept: 'fa-heart',
+            interest_detected: 'fa-eye',
+            profile_search_alert: 'fa-search',
+            profile_updated: 'fa-user',
+            add_to_gallery: 'fa-image'
+        };
+
+        function timeAgo(dateStr) {
+            const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+            if (diff < 60) return 'just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+            if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        async function loadNotifications(page) {
+            currentPage = page;
+            const list = document.getElementById('notifList');
+            list.innerHTML = '<p class="text-center text-muted">Loading notifications...</p>';
+            try {
+                const res = await fetch(`${API_BASE_URL}/fetchUserNotification`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify({ my_user_id: MY_USER_ID, page, limit: 20 })
+                });
+                const data = await res.json();
+
+                if (data.status && data.data && data.data.length > 0) {
+                    list.innerHTML = data.data.map(n => {
+                        const icon = TYPE_ICONS[n.type] || 'fa-bell';
+                        const avatarImg = n.fromUser?.profile
+                            ? `<img src="${esc(n.fromUser.profile.startsWith('http') ? n.fromUser.profile : 'https://api.banjaramatch.com/' + n.fromUser.profile)}" onerror="this.style.display='none'">`
+                            : `<i class="fa ${icon}"></i>`;
+                        return `
+                            <div class="notif-item ${n.isRead ? '' : 'unread'}">
+                                <div class="notif-icon">${avatarImg}</div>
+                                <div class="notif-content">
+                                    <div>${esc(n.content)}</div>
+                                    <div class="notif-time">${timeAgo(n.createdAt)}</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    const pag = document.getElementById('notifPagination');
+                    if (data.totalPages > 1) {
+                        let html = '';
+                        for (let i = 1; i <= data.totalPages; i++) {
+                            html += `<button class="btn btn-sm ${i === page ? 'btn-warning' : 'btn-outline-secondary'}" onclick="window.__loadNotifPage(${i})">${i}</button>`;
+                        }
+                        pag.innerHTML = html;
+                    } else {
+                        pag.innerHTML = '';
+                    }
+                } else {
+                    list.innerHTML = '<p class="text-center text-muted py-5">No notifications yet.</p>';
+                    document.getElementById('notifPagination').innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                list.innerHTML = '<p class="text-center text-danger">Failed to load notifications</p>';
+            }
+        }
+        window.__loadNotifPage = loadNotifications;
+
+        document.getElementById('markAllReadBtn').addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+            try {
+                await fetch(`${API_BASE_URL}/markNotificationsRead`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify({ my_user_id: MY_USER_ID })
+                });
+                loadNotifications(currentPage);
+            } catch (error) {
+                console.error('Error marking notifications read:', error);
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
+        loadNotifications(1);
+    });
+    </script>
+</body>
+</html>

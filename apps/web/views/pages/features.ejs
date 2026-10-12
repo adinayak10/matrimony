@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>BanjaraMatch Features – India's First Free AI-Powered Banjara Matrimony Platform</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f6af04" />
+  <meta name="robots" content="index, follow" />
+  <meta name="description" content="Discover why BanjaraMatch is India's first free Banjara matrimony platform — AI matching, verified profiles, real-time chat, nearby matches, and more." />
+  <meta name="keywords" content="banjara matrimony features, free banjara matrimony, ai matrimony, banjara match ai, free matrimony website, banjara matrimony app features, lambani matrimony, smart matching banjara" />
+  <link rel="canonical" href="https://www.banjaramatch.com/features" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="BanjaraMatch Features – Free AI-Powered Banjara Matrimony" />
+  <meta property="og:description" content="India's first completely free AND AI-powered Banjara matrimony platform. Discover all features that make BanjaraMatch the smartest way to find your Banjara life partner." />
+  <meta property="og:url" content="https://www.banjaramatch.com/features" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg" />
+  <meta property="og:site_name" content="BanjaraMatch - Banjara Matrimony" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="BanjaraMatch Features – Free AI Banjara Matrimony" />
+  <meta name="twitter:description" content="India's first free AI-powered Banjara matrimony platform. See all smart features designed for the Banjara community." />
+  <meta name="twitter:image" content="https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg" />
+
+  <!-- Structured Data: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "BanjaraMatch – Banjara Matrimony Platform",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "Web, Android",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "INR" },
+    "description": "India's first completely free Banjara matrimony platform and app. Smart AI matching, verified profiles, real-time chat, nearby GPS matching, Ice Breaker game, Match Radar, and more – all free.",
+    "featureList": "Smart Match Scoring, Manual Profile Verification, Real-Time Chat, Advanced Search Filters, Daily AI Matches, Privacy Controls, Nearby GPS Matches, Ice Breaker Game, AI Match Radar, Push Notifications, Mobile App",
+    "author": { "@type": "Organization", "name": "BanjaraMatch", "url": "https://www.banjaramatch.com" }
+  }
+  </script>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon" />
+
+  <!-- Google Analytics -->
+  <%- include('../partials/analytics') %>
+
+  <!-- CSS FILES -->
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <link rel="stylesheet" href="/css/font-awesome.min.css">
+  <link rel="stylesheet" href="/css/animate.min.css">
+  <link rel="stylesheet" href="/css/style.min.css">
+
+  <style>
+    /* ===== PAGE-SPECIFIC STYLES ===== */
+    .feat-hero {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+      padding: 90px 0 70px;
+      position: relative;
+      overflow: hidden;
+    }
+    .feat-hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; right: -100px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(246,175,4,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .feat-hero::after {
+      content: '';
+      position: absolute;
+      bottom: -80px; left: -80px;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .feat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(246,175,4,0.15);
+      border: 1px solid rgba(246,175,4,0.4);
+      color: #f6af04;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 25px;
+    }
+    .feat-hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 768px) {
+      .feat-hero h1 { font-size: 30px; }
+      .feat-hero { padding: 60px 0 50px; }
+    }
+    .feat-hero p {
+      font-size: 18px;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.8;
+      max-width: 700px;
+      margin: 0 auto 35px;
+    }
+    .feat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 600;
+      margin: 5px;
+    }
+    .pill-free { background: #22c55e; color: #fff; }
+    .pill-ai   { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+    .pill-first{ background: #f6af04; color: #1a1a2e; }
+
+    /* Feature sections */
+    .feat-section {
+      padding: 80px 0;
+      scroll-margin-top: 80px;
+    }
+    .feat-section:nth-child(even) { background: #f8f9fa; }
+    .feat-section:nth-child(odd)  { background: #fff; }
+
+    .feat-icon-wrap {
+      width: 80px; height: 80px;
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 34px;
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .fi-ai    { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+    .fi-free  { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+    .fi-chat  { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+    .fi-video { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+    .fi-search{ background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; }
+    .fi-verify{ background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+    .fi-privacy{ background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff; }
+    .fi-app   { background: linear-gradient(135deg, #f6af04, #ff8c00); color: #fff; }
+    .fi-bio   { background: linear-gradient(135deg, #ec4899, #be185d); color: #fff; }
+    .fi-daily { background: linear-gradient(135deg, #14b8a6, #0d9488); color: #fff; }
+    .fi-horoscope { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; }
+    .fi-community  { background: linear-gradient(135deg, #f97316, #ea580c); color: #fff; }
+
+    .feat-tag {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+    .tag-ai      { background: rgba(102,126,234,0.15); color: #667eea; border: 1px solid rgba(102,126,234,0.3); }
+    .tag-free    { background: rgba(34,197,94,0.15); color: #16a34a; border: 1px solid rgba(34,197,94,0.3); }
+    .tag-core    { background: rgba(246,175,4,0.15); color: #d97706; border: 1px solid rgba(246,175,4,0.3); }
+    .tag-new     { background: rgba(239,68,68,0.15); color: #dc2626; border: 1px solid rgba(239,68,68,0.3); }
+
+    .check-list { list-style: none; padding: 0; margin: 0 0 25px; }
+    .check-list li {
+      display: flex; align-items: flex-start; gap: 10px;
+      color: #555; font-size: 15px; line-height: 1.6; margin-bottom: 10px;
+    }
+    .check-list li i { color: #22c55e; font-size: 16px; flex-shrink: 0; margin-top: 3px; }
+
+    .feat-cta-strip {
+      background: linear-gradient(135deg, #f6af04 0%, #ff8c00 100%);
+      padding: 60px 0;
+    }
+
+    /* Sticky TOC sidebar */
+    .feat-toc {
+      position: sticky; top: 90px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+    .feat-toc h4 {
+      font-size: 14px; font-weight: 700; color: #2c3e50;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 15px; padding-bottom: 10px;
+      border-bottom: 2px solid #f6af04;
+    }
+    .feat-toc ul { list-style: none; padding: 0; margin: 0; }
+    .feat-toc ul li a {
+      display: flex; align-items: center; gap: 8px;
+      color: #555; text-decoration: none; font-size: 13px;
+      padding: 7px 10px; border-radius: 8px;
+      transition: all 0.2s;
+    }
+    .feat-toc ul li a:hover,
+    .feat-toc ul li a.active {
+      background: #f8f9fa; color: #667eea; font-weight: 600;
+    }
+    @media (max-width: 991px) {
+      .feat-toc { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+  <%- include('../partials/header') %>
+
+  <%- include('../partials/breadcrumb', {
+    breadcrumbs: [
+      { name: 'Home', url: '/' },
+      { name: 'Features', url: '/features' }
+    ]
+  }) %>
+
+  <!-- ===== HERO ===== -->
+  <section class="feat-hero">
+    <div class="container" style="position: relative; z-index: 2;">
+      <div class="row">
+        <div class="col-lg-12 text-center">
+          <div>
+            <span class="feat-pill pill-first"><i class="fa fa-trophy"></i> India's First</span>
+            <span class="feat-pill pill-free"><i class="fa fa-check-circle"></i> 100% Free</span>
+            <span class="feat-pill pill-ai"><i class="fa fa-magic"></i> AI-Powered</span>
+          </div>
+          <h1>BanjaraMatch Features – <span style="color: #f6af04;">Free Banjara Matrimony</span></h1>
+          <p>BanjaraMatch is India's first <strong style="color:#f6af04;">completely free</strong> and <strong style="color:#a78bfa;">AI-powered</strong> Banjara matrimony platform. No subscriptions. No hidden charges. No pay-to-message walls — just smart, genuine matchmaking for the Banjara community.</p>
+          <div>
+            <a href="/register" style="background: #f6af04; color: #1a1a2e; padding: 14px 40px; border-radius: 30px; font-weight: 700; font-size: 16px; text-decoration: none; display: inline-block; margin: 8px;">
+              <i class="fa fa-heart" style="margin-right: 8px;"></i> Start Free – No Card Needed
+            </a>
+            <a href="/banjara-matrimony-app" style="background: rgba(255,255,255,0.12); color: #fff; padding: 14px 40px; border-radius: 30px; font-weight: 600; font-size: 16px; text-decoration: none; display: inline-block; margin: 8px; border: 1px solid rgba(255,255,255,0.25);">
+              <i class="fa fa-android" style="margin-right: 8px;"></i> Download App
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUICK STATS ===== -->
+  <section style="background: #fff; padding: 45px 0; border-bottom: 1px solid #eeee;">
+    <div class="container">
+      <div class="row text-center">
+        <div class="col-6 col-md-3" style="padding: 15px;">
+          <h3 style="font-size: 36px; font-weight: 800; color: #f6af04; margin: 0;">100%</h3>
+          <p style="color: #666; margin: 5px 0 0; font-size: 14px;">Free Forever</p>
+        </div>
+        <div class="col-6 col-md-3" style="padding: 15px;">
+          <h3 style="font-size: 36px; font-weight: 800; color: #667eea; margin: 0;">AI</h3>
+          <p style="color: #666; margin: 5px 0 0; font-size: 14px;">Smart Matching Engine</p>
+        </div>
+        <div class="col-6 col-md-3" style="padding: 15px;">
+          <h3 style="font-size: 36px; font-weight: 800; color: #ef4444; margin: 0;">10+</h3>
+          <p style="color: #666; margin: 5px 0 0; font-size: 14px;">Platform Features</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MAIN FEATURES CONTENT ===== -->
+  <div class="container" style="padding-top: 60px; padding-bottom: 60px;">
+    <div class="row">
+
+      <!-- STICKY TABLE OF CONTENTS -->
+      <div class="col-lg-3 d-none d-lg-block">
+        <nav class="feat-toc" aria-label="Feature Navigation">
+          <h4><i class="fa fa-list" style="color: #f6af04; margin-right: 6px;"></i> All Features</h4>
+          <ul>
+            <li><a href="#ai-matching"><i class="fa fa-magic" style="color: #667eea;"></i> Smart Matching</a></li>
+            <li><a href="#free-forever"><i class="fa fa-gift" style="color: #22c55e;"></i> 100% Free Forever</a></li>
+            <li><a href="#verified-profiles"><i class="fa fa-shield" style="color: #10b981;"></i> Verified Profiles</a></li>
+            <li><a href="#realtime-chat"><i class="fa fa-comments" style="color: #f59e0b;"></i> Real-Time Chat</a></li>
+            <li><a href="#advanced-search"><i class="fa fa-search" style="color: #3b82f6;"></i> Advanced Search</a></li>
+            <li><a href="#daily-matches"><i class="fa fa-calendar" style="color: #14b8a6;"></i> Daily Matches</a></li>
+            <li><a href="#nearby-matches"><i class="fa fa-map-marker" style="color: #ef4444;"></i> Nearby Matches</a></li>
+            <li><a href="#icebreaker-game"><i class="fa fa-gamepad" style="color: #f97316;"></i> Ice Breaker Game</a></li>
+            <li><a href="#match-radar"><i class="fa fa-wifi" style="color: #667eea;"></i> AI Match Radar</a></li>
+            <li><a href="#privacy-controls"><i class="fa fa-lock" style="color: #6366f1;"></i> Privacy Controls</a></li>
+            <li><a href="#mobile-app"><i class="fa fa-mobile" style="color: #f6af04;"></i> Mobile App</a></li>
+          </ul>
+        </nav>
+      </div>
+
+      <!-- FEATURES LIST -->
+      <div class="col-lg-9">
+
+        <!-- ===== 01: AI MATCHING ===== -->
+        <div id="ai-matching" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-ai"><i class="fa fa-magic"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-ai"><i class="fa fa-magic" style="margin-right: 4px;"></i> AI Feature</span>
+              <span class="feat-tag tag-first" style="background:rgba(246,175,4,0.15);color:#b45309;border:1px solid rgba(246,175,4,0.3); margin-left:6px;">India's First</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Smart Compatibility Matching</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                BanjaraMatch uses an intelligent multi-factor scoring engine built specifically for the Banjara community. When you browse profiles or get daily suggestions, the platform calculates a compatibility score for each match based on your profile details and preferences — not generic popularity rankings.
+              </p>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                The scoring considers caste and sub-community alignment (Lambani, Gormati, Sugali, Gor Banjara), age range preference, gotra compatibility, education level, profession, income bracket, shared hobbies and personality traits, location proximity, and lifestyle preferences like diet and values. The result: every suggestion is genuinely relevant to you.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Compatibility score on every profile — based on your actual preferences</li>
+                <li><i class="fa fa-check-circle"></i> Sub-community-aware: caste, gotra, and Banjara dialect considered</li>
+                <li><i class="fa fa-check-circle"></i> Factors in age, education, profession, income, location, and lifestyle</li>
+                <li><i class="fa fa-check-circle"></i> Personality and hobby match (tone, traits, values, goals)</li>
+                <li><i class="fa fa-check-circle"></i> Available on both web platform and mobile app</li>
+              </ul>
+              <a href="/all-profiles" style="background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">
+                <i class="fa fa-magic" style="margin-right: 8px;"></i> See Your AI Matches
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 02: FREE FOREVER ===== -->
+        <div id="free-forever" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-free"><i class="fa fa-gift"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-free"><i class="fa fa-check-circle" style="margin-right: 4px;"></i> 100% Free</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Completely Free — No Tricks, No Walls</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Every other matrimony site eventually hits you with a paywall — paid membership to view contact details, premium subscriptions to send messages, charges to appear in search results. BanjaraMatch was built differently from day one. We believe that finding a life partner is a basic community need, not a premium service.
+              </p>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                <strong>Every single feature on BanjaraMatch is free.</strong> Create your profile, browse verified Banjara profiles, send unlimited interests, chat freely, and use AI matching — all without spending a single rupee.
+              </p>
+              <div class="row" style="margin-bottom: 25px;">
+                <div class="col-6 col-md-4" style="margin-bottom: 15px;">
+                  <div style="background: #f0fff4; border-radius: 10px; padding: 15px; text-align: center;">
+                    <i class="fa fa-user-plus" style="font-size: 24px; color: #22c55e; margin-bottom: 8px; display: block;"></i>
+                    <strong style="font-size: 13px; color: #2c3e50;">Registration</strong>
+                    <p style="font-size: 12px; color: #22c55e; margin: 4px 0 0; font-weight: 700;">₹0 Free</p>
+                  </div>
+                </div>
+                <div class="col-6 col-md-4" style="margin-bottom: 15px;">
+                  <div style="background: #f0fff4; border-radius: 10px; padding: 15px; text-align: center;">
+                    <i class="fa fa-search" style="font-size: 24px; color: #22c55e; margin-bottom: 8px; display: block;"></i>
+                    <strong style="font-size: 13px; color: #2c3e50;">Browse Profiles</strong>
+                    <p style="font-size: 12px; color: #22c55e; margin: 4px 0 0; font-weight: 700;">₹0 Unlimited</p>
+                  </div>
+                </div>
+                <div class="col-6 col-md-4" style="margin-bottom: 15px;">
+                  <div style="background: #f0fff4; border-radius: 10px; padding: 15px; text-align: center;">
+                    <i class="fa fa-heart" style="font-size: 24px; color: #22c55e; margin-bottom: 8px; display: block;"></i>
+                    <strong style="font-size: 13px; color: #2c3e50;">Send Interests</strong>
+                    <p style="font-size: 12px; color: #22c55e; margin: 4px 0 0; font-weight: 700;">₹0 Unlimited</p>
+                  </div>
+                </div>
+                <div class="col-6 col-md-4" style="margin-bottom: 15px;">
+                  <div style="background: #f0fff4; border-radius: 10px; padding: 15px; text-align: center;">
+                    <i class="fa fa-comments" style="font-size: 24px; color: #22c55e; margin-bottom: 8px; display: block;"></i>
+                    <strong style="font-size: 13px; color: #2c3e50;">Chat</strong>
+                    <p style="font-size: 12px; color: #22c55e; margin: 4px 0 0; font-weight: 700;">₹0 Free</p>
+                  </div>
+                </div>
+                <div class="col-6 col-md-4" style="margin-bottom: 15px;">
+                  <div style="background: #f0fff4; border-radius: 10px; padding: 15px; text-align: center;">
+                    <i class="fa fa-magic" style="font-size: 24px; color: #22c55e; margin-bottom: 8px; display: block;"></i>
+                    <strong style="font-size: 13px; color: #2c3e50;">AI Matching</strong>
+                    <p style="font-size: 12px; color: #22c55e; margin: 4px 0 0; font-weight: 700;">₹0 Free</p>
+                  </div>
+                </div>
+                <div class="col-6 col-md-4" style="margin-bottom: 15px;">
+                  <div style="background: #f0fff4; border-radius: 10px; padding: 15px; text-align: center;">
+                    <i class="fa fa-mobile" style="font-size: 24px; color: #22c55e; margin-bottom: 8px; display: block;"></i>
+                    <strong style="font-size: 13px; color: #2c3e50;">Mobile App</strong>
+                    <p style="font-size: 12px; color: #22c55e; margin: 4px 0 0; font-weight: 700;">₹0 Free</p>
+                  </div>
+                </div>
+              </div>
+              <a href="/register" style="background: #22c55e; color: #fff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">
+                <i class="fa fa-user-plus" style="margin-right: 8px;"></i> Register Free Now
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 03: VERIFIED PROFILES ===== -->
+        <div id="verified-profiles" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-verify"><i class="fa fa-shield"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-core"><i class="fa fa-shield" style="margin-right: 4px;"></i> Core Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Manually Verified Genuine Profiles</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Every profile on BanjaraMatch goes through a manual verification process before it becomes visible in search results. Our team reviews profile information, photographs, and community affiliations to ensure authenticity. We do this to protect the Banjara community from fake profiles and scammers that plague general matrimony platforms.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Human-reviewed verification for every new profile</li>
+                <li><i class="fa fa-check-circle"></i> Verified badge displayed on approved profiles</li>
+                <li><i class="fa fa-check-circle"></i> Push notification and email sent to you when your profile gets verified</li>
+                <li><i class="fa fa-check-circle"></i> Filter search results to show only verified profiles</li>
+                <li><i class="fa fa-check-circle"></i> Easy in-app reporting system to flag suspicious profiles</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 04: REAL-TIME CHAT ===== -->
+        <div id="realtime-chat" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-chat"><i class="fa fa-comments"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-free"><i class="fa fa-check-circle" style="margin-right: 4px;"></i> Free Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Real-Time Chat with Matches</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Once you both exchange interest, you can start chatting directly within the BanjaraMatch platform — no need to share personal phone numbers until you're comfortable. Our real-time messaging is end-to-end and completely free. No message limits, no chat credits, no waiting periods.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Instant messaging — no delay, no credits needed</li>
+                <li><i class="fa fa-check-circle"></i> Chat history stored securely in your account</li>
+                <li><i class="fa fa-check-circle"></i> Read receipts and online status indicators</li>
+                <li><i class="fa fa-check-circle"></i> Block and report options for your safety</li>
+                <li><i class="fa fa-check-circle"></i> Share photos securely within the chat</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 05: NEARBY MATCHES ===== -->
+        <div id="nearby-matches" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;"><i class="fa fa-map-marker"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-core"><i class="fa fa-map-marker" style="margin-right: 4px;"></i> Core Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Nearby Banjara Matches — GPS-Based</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Families often prefer matches from the same region for proximity and cultural familiarity. BanjaraMatch uses real GPS coordinates stored on each profile to find Banjara members who are physically near you — within a configurable radius. You can browse nearby profiles even before applying any other filter.
+              </p>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                This works using geospatial indexing on our server, so results are accurate to your actual distance — not just your state or district. Whether you want someone from the same town or within 100 km, you can set the range and see real nearby Banjara profiles.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> GPS-based geospatial search — accurate to real distance</li>
+                <li><i class="fa fa-check-circle"></i> Set your preferred radius (10 km, 50 km, 100 km, etc.)</li>
+                <li><i class="fa fa-check-circle"></i> Distance shown on each nearby profile card</li>
+                <li><i class="fa fa-check-circle"></i> Works on both web and Android app</li>
+                <li><i class="fa fa-check-circle"></i> Combined with all other search filters simultaneously</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 06: ADVANCED SEARCH ===== -->
+        <div id="advanced-search" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-search"><i class="fa fa-search"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-core"><i class="fa fa-search" style="margin-right: 4px;"></i> Core Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Advanced Banjara-Specific Search Filters</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                We built our search filters specifically for the Banjara community. Beyond the basic age, height, and location filters, you can search by Banjara sub-community (Lambani, Gormati, Sugali, Gor Banjara, Vanjari), gotra, dialect, and traditional preferences that matter to Banjara families.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Banjara sub-community filter (Lambani, Gormati, Sugali, etc.)</li>
+                <li><i class="fa fa-check-circle"></i> State and city-level location search</li>
+                <li><i class="fa fa-check-circle"></i> Age range, height, marital status, and education filters</li>
+                <li><i class="fa fa-check-circle"></i> Gotra and family background filters</li>
+                <li><i class="fa fa-check-circle"></i> Profession and income preferences</li>
+                <li><i class="fa fa-check-circle"></i> Diet and lifestyle compatibility filters</li>
+              </ul>
+              <a href="/all-profiles" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: #fff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">
+                <i class="fa fa-search" style="margin-right: 8px;"></i> Browse & Search Profiles
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 07: ICE BREAKER GAME ===== -->
+        <div id="icebreaker-game" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap" style="background: linear-gradient(135deg, #f97316, #ea580c); color: #fff;"><i class="fa fa-gamepad"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag" style="background:rgba(249,115,22,0.15);color:#c2410c;border:1px solid rgba(249,115,22,0.3);"><i class="fa fa-gamepad" style="margin-right: 4px;"></i> Unique Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Ice Breaker Matching Game</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Starting a conversation with someone you haven't met is nerve-wracking. BanjaraMatch's Ice Breaker Game makes it natural. When you and a match are both online, the platform can pair you anonymously into a fun Q&amp;A round — you each answer the same questions, and at the end your answers are compared and your identities revealed if the match looks strong.
+              </p>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                With over 30 thoughtful questions covering values, family, lifestyle, and goals, the Ice Breaker game is a completely organic way to discover compatibility before committing to a direct conversation — a feature no other Banjara matrimony platform has.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Anonymous Q&amp;A round — no awkward first messages needed</li>
+                <li><i class="fa fa-check-circle"></i> 30+ questions covering values, family, lifestyle, and goals</li>
+                <li><i class="fa fa-check-circle"></i> Answers compared side-by-side after the game</li>
+                <li><i class="fa fa-check-circle"></i> Identity revealed only if both sides agree to connect</li>
+                <li><i class="fa fa-check-circle"></i> Real-time multiplayer via live socket connection</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 08: DAILY MATCHES ===== -->
+        <div id="daily-matches" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-daily"><i class="fa fa-calendar"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-ai"><i class="fa fa-magic" style="margin-right: 4px;"></i> AI Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Daily AI-Curated Match Suggestions</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Every morning, our AI engine refreshes your personalised match list based on new profiles that joined, your recent activity, and updated compatibility signals. You don't have to search every day — smart suggestions land in your inbox so you never miss a good match, and never feel overwhelmed.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Fresh AI-curated matches every day in your dashboard</li>
+                <li><i class="fa fa-check-circle"></i> Push notification on app when new compatible profiles join</li>
+                <li><i class="fa fa-check-circle"></i> Compatibility percentage shown on each suggestion</li>
+                <li><i class="fa fa-check-circle"></i> Improves over time as AI learns your preferences</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 09: AI MATCH RADAR ===== -->
+        <div id="match-radar" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-ai"><i class="fa fa-wifi"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-ai"><i class="fa fa-magic" style="margin-right: 4px;"></i> AI Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">AI Match Radar — Live Alerts</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Timing matters in matchmaking. The BanjaraMatch AI Match Radar watches for high-compatibility profiles and alerts you the moment they come online — so you can reach out when they're active and your message won't get buried.
+              </p>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                The radar only triggers for profiles scoring 85% or above compatibility with your preferences, and only if they are within 50 km of your location. This means every alert is meaningful — not noise.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Real-time alert when a strong match (≥85% score) comes online</li>
+                <li><i class="fa fa-check-circle"></i> Location-aware — only triggered for matches within 50 km</li>
+                <li><i class="fa fa-check-circle"></i> Delivered as instant push notification on app</li>
+                <li><i class="fa fa-check-circle"></i> Works silently in background — no manual checking needed</li>
+                <li><i class="fa fa-check-circle"></i> One-tap to open that profile directly from the alert</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 10: PRIVACY CONTROLS ===== -->
+        <div id="privacy-controls" style="scroll-margin-top: 90px; padding: 50px 0 40px; border-bottom: 1px solid #eeee;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-privacy"><i class="fa fa-lock"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-core"><i class="fa fa-lock" style="margin-right: 4px;"></i> Privacy Feature</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Advanced Privacy & Safety Controls</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                Privacy is especially important in traditional communities. BanjaraMatch gives you full control over who can see your photo, who can contact you, and what details are visible on your profile. You can also hide your profile temporarily during sensitive family discussions.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> Photo privacy — show photos only to interests you accept</li>
+                <li><i class="fa fa-check-circle"></i> Contact number hidden until you choose to share</li>
+                <li><i class="fa fa-check-circle"></i> Block any user with one tap</li>
+                <li><i class="fa fa-check-circle"></i> Hide profile temporarily without deleting</li>
+                <li><i class="fa fa-check-circle"></i> GDPR &amp; IT Act compliant data protection</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 11: MOBILE APP ===== -->
+        <div id="mobile-app" style="scroll-margin-top: 90px; padding: 50px 0 20px;">
+          <div style="display: flex; align-items: flex-start; gap: 25px;">
+            <div class="feat-icon-wrap fi-app"><i class="fa fa-mobile"></i></div>
+            <div style="flex: 1;">
+              <span class="feat-tag tag-new"><i class="fa fa-android" style="margin-right: 4px;"></i> Android App</span>
+              <h2 style="font-size: 28px; font-weight: 700; color: #1a1a2e; margin-bottom: 15px;">Free Banjara Matrimony Mobile App</h2>
+              <p style="font-size: 16px; color: #555; line-height: 1.8; margin-bottom: 20px;">
+                The BanjaraMatch app brings the full power of the platform to your pocket. Browse profiles, chat with matches, receive AI match notifications, and manage your account from anywhere — all on a fast, lightweight Android app that works even on slow connections. iOS version is coming soon.
+              </p>
+              <ul class="check-list">
+                <li><i class="fa fa-check-circle"></i> All web features available on mobile</li>
+                <li><i class="fa fa-check-circle"></i> Push notifications for new matches, messages &amp; interests</li>
+                <li><i class="fa fa-check-circle"></i> Works on low-data connections (optimised for rural areas)</li>
+                <li><i class="fa fa-check-circle"></i> Lightweight — under 20MB download size</li>
+                <li><i class="fa fa-check-circle"></i> Dark mode and accessibility support</li>
+              </ul>
+              <a href="/banjara-matrimony-app" style="background: linear-gradient(135deg, #f6af04, #ff8c00); color: #fff; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: 600; font-size: 14px; display: inline-block;">
+                <i class="fa fa-android" style="margin-right: 8px;"></i> Download the App
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /col-lg-9 -->
+    </div><!-- /row -->
+  </div><!-- /container -->
+
+  <!-- CTA STRIP -->
+  <section class="feat-cta-strip">
+    <div class="container">
+      <div class="row text-center">
+        <div class="col-lg-8 col-md-10" style="margin: 0 auto;">
+          <h2 style="font-size: 36px; font-weight: 800; color: #1a1a2e; margin-bottom: 15px;">
+            All of This. For Free. Forever.
+          </h2>
+          <p style="font-size: 18px; color: rgba(26,26,46,0.8); margin-bottom: 35px; line-height: 1.7;">
+            No subscriptions. No hidden fees. No paywalls.  Just India's smartest free Banjara matrimony platform waiting for you.
+          </p>
+          <a href="/register" style="background: #1a1a2e; color: #f6af04; padding: 16px 50px; border-radius: 35px; font-weight: 800; font-size: 18px; text-decoration: none; display: inline-block; box-shadow: 0 8px 30px rgba(26,26,46,0.25);">
+            <i class="fa fa-rocket" style="margin-right: 10px;"></i> Join Free Today
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+
+  <!-- JS -->
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/popper.min.js"></script>
+  <script src="/js/bootstrap.min.js"></script>
+  <script src="/js/select-opt.min.js"></script>
+  <script src="/js/slick.min.js"></script>
+  <script src="/js/custom.min.js"></script>
+
+  <!-- Smooth scroll + TOC highlight -->
+  <script>
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+
+    // Highlight active TOC item on scroll
+    const sections = document.querySelectorAll('[id]');
+    const tocLinks = document.querySelectorAll('.feat-toc a');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          tocLinks.forEach(l => l.classList.remove('active'));
+          const active = document.querySelector('.feat-toc a[href="#' + entry.target.id + '"]');
+          if (active) active.classList.add('active');
+        }
+      });
+    }, { threshold: 0.4 });
+    sections.forEach(s => observer.observe(s));
+  </script>
+</body>
+</html>

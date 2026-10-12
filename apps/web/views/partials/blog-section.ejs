@@ -1,0 +1,72 @@
+<%
+// Blog section partial - can be included in any page
+// Usage: include('../partials/blog-section', { sectionTitle: 'Latest Articles', blogs: featuredBlogs || [] })
+const displayBlogs = blogs && blogs.length > 0 ? blogs.slice(0, 3) : null;
+const mockBlogs = [
+  {
+    image: '/images/blog/1.jpg',
+    category: 'Wedding',
+    author: 'BanjaraMatch',
+    title: 'Wedding arrangements',
+    description: 'Discover essential tips for planning your perfect Banjara wedding ceremony and celebration.',
+    link: '/blogs'
+  },
+  {
+    image: '/images/blog/2.jpg',
+    category: 'Relationship',
+    author: 'BanjaraMatch',
+    title: 'Building strong relationships',
+    description: 'Learn how to build and maintain a healthy relationship in Banjara matrimony.',
+    link: '/blogs'
+  },
+  {
+    image: '/images/blog/3.jpg',
+    category: 'Events',
+    author: 'BanjaraMatch',
+    title: 'Traditional invitation cards',
+    description: 'Explore beautiful Banjara wedding invitation card designs and traditions.',
+    link: '/blogs'
+  }
+];
+const blogsToDisplay = displayBlogs || mockBlogs;
+-%>
+
+<section class="blog-section" style="padding: 60px 0; background: #f8f9fa;">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="head">
+                    <h2><span><%= sectionTitle || 'Blog & Articles' %></span></h2>
+                    <span class="leaf1"></span>
+                    <span class="tit-ani-"></span>
+                </div>
+                <div class="blog">
+                    <ul>
+                        <% blogsToDisplay.forEach(blog => { %>
+                            <li>
+                                <div class="blog-box">
+                                    <% if (displayBlogs) { %>
+                                        <img src="/<%= blog.featuredImage %>" alt="<%= blog.title %>" loading="lazy">
+                                        <span><%= blog.category %> - <%= blog.author.name %></span>
+                                        <h2><%= blog.title %></h2>
+                                        <p><%= blog.description %></p>
+                                        <a href="/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>" class="cta-dark"><span>Read more</span></a>
+                                    <% } else { %>
+                                        <img src="<%= blog.image %>" alt="<%= blog.title %>" loading="lazy">
+                                        <span><%= blog.category %> - <%= blog.author %></span>
+                                        <h2><%= blog.title %></h2>
+                                        <p><%= blog.description %></p>
+                                        <a href="<%= blog.link %>" class="cta-dark"><span>Read more</span></a>
+                                    <% } %>
+                                </div>
+                            </li>
+                        <% }); %>
+                    </ul>
+                </div>
+                <div class="cta-full-wid" style="text-align: center; margin-top: 30px;">
+                    <a href="/blogs" class="cta">View all articles</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Thank You - Registration Successful | BanjaraMatch</title>
+    <!--== META TAGS ==-->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Thank you for registering with BanjaraMatch. Your journey to find your perfect match starts now!">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Prevent caching to avoid showing on back button -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!--== FAV ICON ==-->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <!-- Prevent duplicate views on browser back -->
+    <script>
+      // Check if this page was already shown in this browser session
+      if (sessionStorage.getItem('thankYouShown') === 'true') {
+        // Already shown, redirect immediately
+        window.location.replace('/dashboard');
+      } else {
+        // Mark as shown for this browser session
+        sessionStorage.setItem('thankYouShown', 'true');
+      }
+    </script>
+    
+    <!-- Google Analytics & Ads Conversion Tracking -->
+    <%- include('../partials/analytics', { pageCategory: 'conversion' }) %>
+    
+    <!-- Google Ads Conversion Tracking -->
+    <script>
+      // Track conversion event immediately on page load
+      if (typeof gtag !== 'undefined') {
+        // Google Ads - Other conversion
+        gtag('event', 'conversion', {
+          'send_to': 'AW-357336842/3N9aCIbm68obEIqOsqoB',
+          'transaction_id': '<%= userId || "" %>'
+        });
+        
+        // Google Ads - Form submission conversion
+        gtag('event', 'conversion', {
+          'send_to': 'AW-357336842/q-YJCIvsq8obEIqOsqoB',
+          'transaction_id': '<%= userId || "" %>'
+        });
+        
+        // GA4 - Track as sign_up event
+        gtag('event', 'sign_up', {
+          'event_category': 'engagement',
+          'event_label': 'registration_complete',
+          'value': 1,
+          'currency': 'INR',
+          'transaction_id': '<%= userId || "" %>'
+        });
+        
+        // GA4 - Track as generate_lead event
+        gtag('event', 'generate_lead', {
+          'event_category': 'form',
+          'event_label': 'registration',
+          'value': 1,
+          'currency': 'INR'
+        });
+      }
+    </script>
+
+
+
+
+    
+    <!--== CSS FILES ==-->
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+    
+    <style>
+      .thank-you-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f6af04 0%, #ff8c00 100%);
+        padding: 20px;
+      }
+      
+      .thank-you-box {
+        background: white;
+        border-radius: 20px;
+        padding: 60px 40px;
+        max-width: 600px;
+        width: 100%;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        animation: slideUp 0.6s ease-out;
+      }
+      
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      
+      .success-icon {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 30px;
+        animation: scaleIn 0.5s ease-out 0.3s both;
+      }
+      
+      @keyframes scaleIn {
+        from {
+          transform: scale(0);
+        }
+        to {
+          transform: scale(1);
+        }
+      }
+      
+      .success-icon i {
+        color: white;
+        font-size: 50px;
+      }
+      
+      .thank-you-box h1 {
+        color: #333;
+        font-size: 32px;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+      
+      .thank-you-box p {
+        color: #666;
+        font-size: 16px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+      }
+      
+      .redirect-info {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+      
+      .redirect-info p {
+        margin: 0;
+        color: #555;
+        font-size: 14px;
+      }
+      
+      .countdown {
+        font-size: 24px;
+        font-weight: 700;
+        color: #f6af04;
+        margin: 10px 0;
+      }
+      
+      .manual-link {
+        display: inline-block;
+        background: linear-gradient(135deg, #f6af04 0%, #ff8c00 100%);
+        color: white;
+        padding: 15px 40px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: transform 0.3s ease;
+        margin-top: 20px;
+      }
+      
+      .manual-link:hover {
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+        box-shadow: 0 5px 15px rgba(246, 175, 4, 0.3);
+      }
+      
+      .features {
+        text-align: left;
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+      }
+      
+      .features h3 {
+        color: #333;
+        font-size: 18px;
+        margin-bottom: 15px;
+        text-align: center;
+      }
+      
+      .features ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      
+      .features li {
+        padding: 8px 0;
+        color: #666;
+        font-size: 14px;
+      }
+      
+      .features li i {
+        color: #4caf50;
+        margin-right: 10px;
+      }
+    </style>
+    
+    <!-- Auto-redirect script -->
+    <script>
+      let countdown = 5;
+      
+      function updateCountdown() {
+        const countdownEl = document.getElementById('countdown');
+        if (countdownEl) {
+          countdownEl.textContent = countdown;
+        }
+        
+        if (countdown <= 0) {
+          window.location.href = '/dashboard';
+        } else {
+          countdown--;
+          setTimeout(updateCountdown, 1000);
+        }
+      }
+      
+      // Start countdown when page loads
+      window.addEventListener('load', updateCountdown);
+    </script>
+</head>
+
+<body>
+    <div class="thank-you-container">
+        <div class="thank-you-box">
+            <div class="success-icon">
+                <i class="fa fa-check"></i>
+            </div>
+            
+            <h1>Welcome to BanjaraMatch! 🎉</h1>
+            
+            <p>
+                Thank you for registering with us! Your account has been created successfully. 
+                You're now part of a trusted community dedicated to helping you find your perfect life partner.
+            </p>
+            
+            <div class="redirect-info">
+                <p>Redirecting you to your dashboard in</p>
+                <div class="countdown" id="countdown">5</div>
+                <p>seconds...</p>
+            </div>
+            
+            <a href="/dashboard" class="manual-link">
+                Go to Dashboard Now <i class="fa fa-arrow-right"></i>
+            </a>
+            
+            <div class="features">
+                <h3>What's Next?</h3>
+                <ul>
+                    <li><i class="fa fa-check-circle"></i> Complete your profile to get better matches</li>
+                    <li><i class="fa fa-check-circle"></i> Upload your best photos</li>
+                    <li><i class="fa fa-check-circle"></i> Browse through verified profiles</li>
+                    <li><i class="fa fa-check-circle"></i> Send interests to profiles you like</li>
+                    <li><i class="fa fa-check-circle"></i> Download our app for the best experience</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

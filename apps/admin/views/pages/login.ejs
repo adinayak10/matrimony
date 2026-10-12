@@ -1,0 +1,13 @@
+<h1 class="auth-title">Sign in</h1>
+<form method="post" action="/auth/login" class="auth-form" novalidate>
+  <input type="hidden" name="next" value="<%= next || '' %>">
+  <div class="form-group">
+    <label class="form-label" for="login-email">Email</label>
+    <input class="form-control" type="email" id="login-email" name="email" value="<%= email || '' %>" autocomplete="username" required autofocus maxlength="200" inputmode="email">
+  </div>
+  <div class="form-group">
+    <label class="form-label" for="login-password">Password</label>
+    <input class="form-control" type="password" id="login-password" name="password" autocomplete="current-password" required maxlength="200">
+  </div>
+  <button type="submit" class="btn btn--primary btn--block">Sign in</button>
+</form>

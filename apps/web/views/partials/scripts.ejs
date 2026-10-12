@@ -1,0 +1,27 @@
+<%#
+  Script bundle for the end of <body> (D4.36). Everything is `defer`, so inline
+  page scripts that use `$` must run from DOMContentLoaded:
+    document.addEventListener('DOMContentLoaded', function () { ... });
+  Per-page extras: meta.scripts = ['js/Chart.js', 'js/jquery.validate.min.js'] (hashed through asset(), legacy path before the build).
+  Loads window.esc (public/js/esc.js) for every innerHTML sink (D1.14).
+%>
+<%
+  const _sm = Object.assign({}, (typeof metaDefaults !== 'undefined' && metaDefaults) || {}, (typeof meta !== 'undefined' && meta) || {});
+  const _sa = (typeof asset === 'function') ? asset : (p) => '/' + String(p).replace(/^\/+/, '');
+  const _sbuilt = typeof assetsBuilt === 'boolean' ? assetsBuilt : !/^\/js\//.test(_sa('js/site.js'));
+%>
+<% if (_sbuilt) { %>
+<script defer src="<%= _sa('js/site.js') %>"></script>
+<% } else { %>
+<script defer src="/js/jquery.min.js"></script>
+<script defer src="/js/popper.min.js"></script>
+<script defer src="/js/bootstrap.min.js"></script>
+<script defer src="/js/select-opt.min.js"></script>
+<script defer src="/js/slick.min.js"></script>
+<script defer src="/js/custom.min.js"></script>
+<script defer src="/js/esc.js"></script>
+<% } %>
+<% for (const src of (_sm.scripts || [])) { %>
+<script defer src="<%= /^(https?:)?\/\//.test(src) ? src : _sa(src) %>"></script>
+<% } %>
+<% if (!_sm.noAnalytics) { %><%- include('./consent-banner') %><% } %>

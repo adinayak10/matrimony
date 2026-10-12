@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Child Safety Policy & Standards | BanjaraMatch - CSAE/CSAM Prevention</title>
+    
+    <!--== META TAGS ==-->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    
+    <meta name="description" content="BanjaraMatch Child Safety Policy and Standards. Learn about our comprehensive measures against Child Sexual Abuse and Exploitation (CSAE) and Child Sexual Abuse Material (CSAM). We prioritize child protection and safety.">
+    <meta name="keywords" content="child safety policy, CSAE prevention, CSAM prevention, child protection, safety standards, reporting child abuse">
+    
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.banjaramatch.com/child-safety-policy">
+    
+    <!--== FAV ICON ==-->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <!--== CSS FILES ==-->
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+    
+    <style>
+        .child-safety-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+        .policy-section {
+            padding: 40px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .policy-section:last-child {
+            border-bottom: none;
+        }
+        .policy-icon {
+            font-size: 48px;
+            color: #f6af04;
+            margin-bottom: 20px;
+        }
+        .emergency-box {
+            background: #fff3cd;
+            border-left: 5px solid #ffc107;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 5px;
+        }
+        .danger-box {
+            background: #f8d7da;
+            border-left: 5px solid #dc3545;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 5px;
+        }
+        .contact-box {
+            background: #d1ecf1;
+            border-left: 5px solid #0c5460;
+            padding: 25px;
+            margin: 30px 0;
+            border-radius: 5px;
+        }
+        .btn-report {
+            background: #dc3545;
+            color: white;
+            padding: 15px 40px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        .btn-report:hover {
+            background: #c82333;
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!--== HEADER ==-->
+    <%- include('../partials/header', { user: user || null }) %>
+
+    <!--== CHILD SAFETY HEADER ==-->
+    <div class="child-safety-header">
+        <div class="container">
+            <i class="fa fa-shield policy-icon" style="color: white;"></i>
+            <h1 style="margin-bottom: 15px;">Child Safety Policy & Standards</h1>
+            <p style="font-size: 18px; max-width: 800px; margin: 0 auto;">
+                BanjaraMatch is committed to protecting children and preventing Child Sexual Abuse and Exploitation (CSAE) 
+                and Child Sexual Abuse Material (CSAM) on our platform.
+            </p>
+            <p style="margin-top: 10px;"><strong>Last Updated:</strong> December 27, 2025</p>
+        </div>
+    </div>
+
+    <!--== MAIN CONTENT ==-->
+    <div class="container" style="padding: 40px 15px;">
+
+        <!--== CHILD SAFETY REPORTING FORM ==-->
+        <div class="row mb-5">
+            <div class="col-md-12">
+                <div style="background: #fff; border: 3px solid #dc3545; border-radius: 15px; padding: 40px; box-shadow: 0 5px 20px rgba(220, 53, 69, 0.2);">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <i class="fa fa-shield" style="font-size: 60px; color: #dc3545; margin-bottom: 20px;"></i>
+                        <h2 style="color: #dc3545; margin-bottom: 15px;">Report Child Safety Concern</h2>
+                        <p style="color: #721c24; font-size: 16px; line-height: 1.6;">
+                            If you have encountered content or behavior that exploits or endangers children on our platform, 
+                            please report it immediately using this form. All reports are treated with highest priority and 
+                            reviewed within 24 hours.
+                        </p>
+                    </div>
+
+                    <form id="childSafetyForm" style="max-width: 800px; margin: 0 auto;">
+                        <div id="safetyFormMessage" class="alert" style="display: none; margin-bottom: 20px;" role="alert"></div>
+
+                        <div class="row">
+                            <div class="col-md-6" style="margin-bottom: 20px;">
+                                <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Your Name: <span style="color: red;">*</span></label>
+                                <input type="text" id="reporterName" class="form-control" placeholder="Enter your name" required style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
+                            </div>
+                            <div class="col-md-6" style="margin-bottom: 20px;">
+                                <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Email: <span style="color: red;">*</span></label>
+                                <input type="email" id="reporterEmail" class="form-control" placeholder="your@email.com" required style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Phone (Optional):</label>
+                            <input type="tel" id="reporterPhone" class="form-control" placeholder="Your phone number" style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Type of Concern: <span style="color: red;">*</span></label>
+                            <select id="concernType" class="form-control" required style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
+                                <option value="">Select type of concern...</option>
+                                <option value="minor_profile">Profile of a minor (under 18)</option>
+                                <option value="inappropriate_content">Inappropriate content involving minors</option>
+                                <option value="grooming_behavior">Suspected grooming or predatory behavior</option>
+                                <option value="csam">Child Sexual Abuse Material (CSAM)</option>
+                                <option value="solicitation">Solicitation of minors</option>
+                                <option value="other_safety">Other child safety concern</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Profile ID / Username (if applicable):</label>
+                            <input type="text" id="reportedProfile" class="form-control" placeholder="e.g., username or profile ID" style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;">
+                        </div>
+
+                        <div style="margin-bottom: 20px;">
+                            <label style="font-weight: 600; color: #333; margin-bottom: 8px;">Detailed Description: <span style="color: red;">*</span></label>
+                            <textarea id="reportDescription" class="form-control" rows="6" required placeholder="Please provide as much detail as possible about the concern, including what you saw, when, and where on the platform." style="padding: 12px; border: 2px solid #ddd; border-radius: 5px;"></textarea>
+                            <small style="color: #666; display: block; margin-top: 5px;">Include URLs, screenshots descriptions, dates/times, and any other relevant information.</small>
+                        </div>
+
+                        <div style="margin-bottom: 25px;">
+                            <label style="display: flex; align-items: start; cursor: pointer;">
+                                <input type="checkbox" id="urgentReport" style="margin-top: 4px; margin-right: 10px; width: 18px; height: 18px;">
+                                <span style="color: #333; font-size: 14px;">This is an urgent matter requiring immediate attention</span>
+                            </label>
+                        </div>
+
+                        <div style="background: #fff3cd; border-left: 5px solid #ffc107; padding: 20px; margin-bottom: 25px; border-radius: 5px;">
+                            <p style="margin: 0; color: #856404; font-size: 14px; line-height: 1.6;">
+                                <i class="fa fa-info-circle"></i> <strong>What happens next:</strong> Your report will be reviewed immediately by our safety team. 
+                                If appropriate, we will report it to NCMEC (National Center for Missing & Exploited Children) and local law enforcement. 
+                                You may be contacted for additional information.
+                            </p>
+                        </div>
+
+                        <div style="text-align: center;">
+                            <button type="submit" id="submitSafetyReport" style="background: #dc3545; color: white; padding: 15px 50px; font-size: 18px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease;">
+                                <i class="fa fa-flag"></i> Submit Report
+                            </button>
+                        </div>
+                    </form>
+
+                    <div style="margin-top: 30px; padding-top: 30px; border-top: 2px solid #e0e0e0; text-align: center;">
+                        <h5 style="color: #333; margin-bottom: 15px;">Alternative Reporting Methods</h5>
+                        <p style="color: #666; margin-bottom: 10px;">
+                            <strong>Email:</strong> <a href="mailto:info@banjaramatch.com">info@banjaramatch.com</a>
+                        </p>
+                        <p style="color: #666; margin-bottom: 10px;">
+                            <strong>Emergency:</strong> Contact local law enforcement (India: 1098 Childline, 1930 Cyber Crime)
+                        </p>
+                        <p style="color: #666;">
+                            <strong>NCMEC:</strong> <a href="https://www.cybertipline.org" target="_blank">www.cybertipline.org</a> | 1-800-843-5678
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--== EMERGENCY RESOURCES ==-->
+        <div class="danger-box">
+            <h3 style="color: #721c24; margin-bottom: 15px;">
+                <i class="fa fa-phone"></i> Additional Emergency Resources
+            </h3>
+            <ul style="color: #721c24;">
+                <li><strong>Childline India:</strong> 1098 (24/7 helpline for children)</li>
+                <li><strong>Cyber Crime India:</strong> 1930 (Report cybercrime)</li>
+                <li><strong>NCMEC (USA):</strong> 1-800-843-5678 or <a href="https://www.cybertipline.org" target="_blank" style="color: #721c24; text-decoration: underline;">www.cybertipline.org</a></li>
+                <li><strong>Local Police:</strong> Contact your nearest police station for immediate assistance</li>
+            </ul>
+        </div>
+
+        <!--== OUR COMMITMENT ==-->
+        <div class="policy-section">
+            <h2 style="color: #333; margin-bottom: 20px;">Our Commitment to Child Safety</h2>
+            <p style="font-size: 16px; line-height: 1.8; color: #555;">
+                BanjaraMatch is a matrimonial platform intended exclusively for adults aged 18 years and older. 
+                We maintain a zero-tolerance policy towards any form of child exploitation, abuse, or inappropriate 
+                content involving minors. Our commitment includes:
+            </p>
+            <ul style="font-size: 16px; line-height: 1.8; color: #555; margin-top: 20px;">
+                <li>Preventing minors from accessing our platform</li>
+                <li>Detecting and removing any content that exploits or endangers children</li>
+                <li>Reporting suspected child abuse to relevant authorities</li>
+                <li>Cooperating fully with law enforcement investigations</li>
+                <li>Continuously improving our safety measures and technologies</li>
+            </ul>
+        </div>
+
+        <!--== AGE VERIFICATION ==-->
+        <div class="policy-section">
+            <div class="text-center">
+                <i class="fa fa-id-card policy-icon"></i>
+            </div>
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Age Verification & Access Control</h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 style="color: #f6af04;">Registration Requirements</h4>
+                    <ul style="font-size: 15px; line-height: 1.8; color: #555;">
+                        <li>Minimum age requirement: 18 years (males), 18 years (females) as per Indian law</li>
+                        <li>Date of birth verification during registration</li>
+                        <li>Government ID verification for profile activation</li>
+                        <li>Phone number verification via OTP</li>
+                        <li>Email address verification</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h4 style="color: #f6af04;">Ongoing Monitoring</h4>
+                    <ul style="font-size: 15px; line-height: 1.8; color: #555;">
+                        <li>Profile photo verification and moderation</li>
+                        <li>Automated age detection in uploaded photos</li>
+                        <li>Regular audits of user accounts</li>
+                        <li>Community reporting system</li>
+                        <li>Immediate suspension of suspicious accounts</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!--== CONTENT MODERATION ==-->
+        <div class="policy-section">
+            <div class="text-center">
+                <i class="fa fa-eye policy-icon"></i>
+            </div>
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Content Moderation & Detection</h2>
+            <p style="font-size: 16px; line-height: 1.8; color: #555; text-align: center; max-width: 900px; margin: 0 auto 30px;">
+                We employ multiple layers of protection to detect and prevent CSAE/CSAM content:
+            </p>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; height: 100%;">
+                        <h5 style="color: #333; margin-bottom: 15px;"><i class="fa fa-robot" style="color: #f6af04;"></i> Automated Detection</h5>
+                        <ul style="font-size: 14px; line-height: 1.8; color: #555;">
+                            <li>AI-powered image analysis</li>
+                            <li>PhotoDNA hash matching</li>
+                            <li>Text content scanning</li>
+                            <li>Behavioral pattern detection</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; height: 100%;">
+                        <h5 style="color: #333; margin-bottom: 15px;"><i class="fa fa-user-secret" style="color: #f6af04;"></i> Human Review</h5>
+                        <ul style="font-size: 14px; line-height: 1.8; color: #555;">
+                            <li>24/7 moderation team</li>
+                            <li>Manual profile verification</li>
+                            <li>Reported content review</li>
+                            <li>Escalation to authorities</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div style="background: #f8f9fa; padding: 25px; border-radius: 10px; height: 100%;">
+                        <h5 style="color: #333; margin-bottom: 15px;"><i class="fa fa-users" style="color: #f6af04;"></i> Community Reports</h5>
+                        <ul style="font-size: 14px; line-height: 1.8; color: #555;">
+                            <li>Easy reporting tools</li>
+                            <li>Anonymous reporting option</li>
+                            <li>Priority handling</li>
+                            <li>User feedback loop</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--== PROHIBITED CONTENT ==-->
+        <div class="policy-section">
+            <h2 style="color: #333; margin-bottom: 20px;">Strictly Prohibited Content & Behavior</h2>
+            <p style="font-size: 16px; line-height: 1.8; color: #555;">
+                The following are strictly prohibited on BanjaraMatch and will result in immediate account termination 
+                and reporting to authorities:
+            </p>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h5 style="color: #856404;"><i class="fa fa-ban"></i> Content Violations</h5>
+                        <ul style="color: #856404; font-size: 14px;">
+                            <li>Any sexual or suggestive content involving minors</li>
+                            <li>Child sexual abuse material (CSAM)</li>
+                            <li>Content that sexualizes minors</li>
+                            <li>Age-inappropriate images or videos</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div style="background: #f8d7da; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <h5 style="color: #721c24;"><i class="fa fa-user-times"></i> Behavior Violations</h5>
+                        <ul style="color: #721c24; font-size: 14px;">
+                            <li>Soliciting minors for sexual purposes</li>
+                            <li>Grooming or predatory behavior</li>
+                            <li>Sharing child exploitation material</li>
+                            <li>Creating accounts for minors</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--== REPORTING & RESPONSE ==-->
+        <div class="policy-section">
+            <div class="text-center">
+                <i class="fa fa-gavel policy-icon"></i>
+            </div>
+            <h2 style="color: #333; margin-bottom: 20px; text-align: center;">Reporting & Response Procedures</h2>
+            <p style="font-size: 16px; line-height: 1.8; color: #555; text-align: center; max-width: 900px; margin: 0 auto 30px;">
+                We take all reports seriously and follow strict procedures:
+            </p>
+            
+            <div class="row">
+                <div class="col-md-3 col-sm-6 text-center mb-4">
+                    <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; height: 100%;">
+                        <h3 style="color: #1976d2; margin-bottom: 10px;">1</h3>
+                        <h5 style="color: #333;">Report Received</h5>
+                        <p style="font-size: 13px; color: #555;">Immediate acknowledgment and priority assignment</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 text-center mb-4">
+                    <div style="background: #fff3e0; padding: 20px; border-radius: 10px; height: 100%;">
+                        <h3 style="color: #f57c00; margin-bottom: 10px;">2</h3>
+                        <h5 style="color: #333;">Initial Review</h5>
+                        <p style="font-size: 13px; color: #555;">Within 24 hours by trained moderators</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 text-center mb-4">
+                    <div style="background: #fce4ec; padding: 20px; border-radius: 10px; height: 100%;">
+                        <h3 style="color: #c2185b; margin-bottom: 10px;">3</h3>
+                        <h5 style="color: #333;">Action Taken</h5>
+                        <p style="font-size: 13px; color: #555;">Account suspension, content removal, evidence preservation</p>
+                    </div>
+                </div>
+                <div class="col-md-3 col-sm-6 text-center mb-4">
+                    <div style="background: #f3e5f5; padding: 20px; border-radius: 10px; height: 100%;">
+                        <h3 style="color: #7b1fa2; margin-bottom: 10px;">4</h3>
+                        <h5 style="color: #333;">Report to Authorities</h5>
+                        <p style="font-size: 13px; color: #555;">NCMEC, local law enforcement, and relevant agencies</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!--== LAW ENFORCEMENT COOPERATION ==-->
+        <div class="policy-section">
+            <h2 style="color: #333; margin-bottom: 20px;">Law Enforcement Cooperation</h2>
+            <p style="font-size: 16px; line-height: 1.8; color: #555;">
+                BanjaraMatch complies with all relevant child safety laws and cooperates fully with law enforcement:
+            </p>
+            <ul style="font-size: 16px; line-height: 1.8; color: #555; margin-top: 20px;">
+                <li><strong>India:</strong> National Commission for Protection of Child Rights (NCPCR), Cybercrime Investigation Cell</li>
+                <li><strong>International:</strong> National Center for Missing & Exploited Children (NCMEC), INTERPOL</li>
+                <li>Mandatory reporting of suspected CSAM to NCMEC CyberTipline</li>
+                <li>Preservation of evidence for law enforcement investigations</li>
+                <li>Rapid response to legal requests and subpoenas</li>
+                <li>Regular coordination with child protection agencies</li>
+            </ul>
+        </div>
+
+        <!--== CONTACT INFORMATION ==-->
+        <div class="policy-section">
+            <h2 style="color: #333; margin-bottom: 20px;">Contact Information</h2>
+            
+            <div class="contact-box">
+                <h4 style="color: #0c5460; margin-bottom: 15px;">
+                    <i class="fa fa-envelope"></i> Child Safety Contact
+                </h4>
+                <p style="color: #0c5460; font-size: 16px; margin-bottom: 10px;">
+                    For child safety concerns, CSAM reports, or questions about our policies:
+                </p>
+                <p style="font-size: 18px; margin-bottom: 5px;">
+                    <strong>Email:</strong> <a href="mailto:info@banjaramatch.com">info@banjaramatch.com</a>
+                </p>
+                <p style="color: #0c5460; font-size: 14px; margin-top: 15px;">
+                    <i class="fa fa-clock-o"></i> Our child safety team monitors this email 24/7 and responds to urgent reports immediately.
+                </p>
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <h5 style="color: #333; margin-bottom: 15px;">Emergency Resources</h5>
+                    <ul style="font-size: 15px; line-height: 1.8; color: #555;">
+                        <li><strong>NCMEC CyberTipline:</strong> <a href="https://www.cybertipline.org" target="_blank">www.cybertipline.org</a></li>
+                        <li><strong>NCMEC Hotline:</strong> 1-800-843-5678 (USA)</li>
+                        <li><strong>Childline India:</strong> 1098</li>
+                        <li><strong>Cyber Crime India:</strong> 1930</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <h5 style="color: #333; margin-bottom: 15px;">Policy Updates</h5>
+                    <p style="font-size: 15px; line-height: 1.8; color: #555;">
+                        This policy is reviewed and updated regularly to ensure we maintain the highest standards 
+                        of child protection. Users will be notified of significant changes.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!--== ADDITIONAL RESOURCES ==-->
+        <div class="policy-section">
+            <h2 style="color: #333; margin-bottom: 20px;">Additional Safety Resources</h2>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <a href="/privacy-policy" style="text-decoration: none;">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; border: 2px solid #e9ecef;">
+                            <i class="fa fa-lock" style="font-size: 36px; color: #f6af04;"></i>
+                            <h5 style="color: #333; margin-top: 15px;">Privacy Policy</h5>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!--== FOOTER ==-->
+    <%- include('../partials/footer') %>
+
+    <!--== SCRIPTS ==-->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            $('#childSafetyForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = $('#submitSafetyReport');
+                const messageDiv = $('#safetyFormMessage');
+                
+                // Disable button
+                submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Submitting...');
+                messageDiv.hide();
+
+                // Gather form data
+                const reportData = {
+                    name: $('#reporterName').val().trim(),
+                    email: $('#reporterEmail').val().trim(),
+                    phone: $('#reporterPhone').val().trim(),
+                    category: 'child_safety',
+                    subject: 'URGENT: Child Safety Report - ' + $('#concernType option:selected').text(),
+                    message: `
+TYPE OF CONCERN: ${$('#concernType option:selected').text()}
+REPORTED PROFILE/USER: ${$('#reportedProfile').val().trim() || 'Not specified'}
+URGENT: ${$('#urgentReport').is(':checked') ? 'YES - REQUIRES IMMEDIATE ATTENTION' : 'No'}
+
+DETAILED DESCRIPTION:
+${$('#reportDescription').val().trim()}
+
+---
+This is an automated child safety report submitted via the Child Safety Policy page.
+                    `.trim(),
+                    followUp: true
+                };
+
+                // Submit to API
+                $.ajax({
+                    url: 'https://api.banjaramatch.com/api/feedback/submit',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(reportData),
+                    success: function(response) {
+                        messageDiv.removeClass('alert-danger').addClass('alert-success')
+                            .html('<strong>Report Submitted Successfully!</strong><br>Your report has been received and will be reviewed immediately by our safety team. Reference ID: ' + (response.data?.feedbackId || 'N/A'))
+                            .fadeIn();
+                        
+                        // Reset form
+                        $('#childSafetyForm')[0].reset();
+                        
+                        // Scroll to message
+                        $('html, body').animate({
+                            scrollTop: messageDiv.offset().top - 100
+                        }, 500);
+                        
+                        submitBtn.prop('disabled', false).html('<i class="fa fa-flag"></i> Submit Report');
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON?.message || 'Failed to submit report. Please try emailing info@banjaramatch.com directly.';
+                        messageDiv.removeClass('alert-success').addClass('alert-danger')
+                            .html('<strong>Error:</strong> ' + errorMsg)
+                            .fadeIn();
+                        
+                        submitBtn.prop('disabled', false).html('<i class="fa fa-flag"></i> Submit Report');
+                    }
+                });
+            });
+
+            // Style submit button on hover
+            $('#submitSafetyReport').hover(
+                function() { $(this).css('background', '#c82333'); },
+                function() { $(this).css('background', '#dc3545'); }
+            );
+        });
+    </script>
+
+</body>
+</html>

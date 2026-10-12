@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+
+
+<head>
+    <title>Banjara Matrimony | Find Your Perfect Life Partner - Banjaramatch.com</title>
+
+    <!-- META TAGS -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="robots" content="noindex, follow">
+
+    <meta name="description" content="BanjaraMatch.com is the most trusted Banjara matrimony site to find your perfect life partner. Join now to explore verified Banjara profiles for marriage.">
+    <meta name="keywords" content="Banjara Matrimony, BanjaraMatch, Banjara Marriage, Banjara Brides, Banjara Grooms, Banjara Matrimonial, Find Banjara Partner, Trusted Banjara Marriage Website">
+
+    <meta name="author" content="Banjaramatch.com">
+    <meta property="og:title" content="Banjara Matrimony - Trusted Matrimonial Site for Banjara Community">
+    <meta property="og:description" content="Explore verified Banjara bride and groom profiles. Find your perfect match with BanjaraMatch.com.">
+    <meta property="og:url" content="https://www.banjaramatch.com">
+    <meta property="og:image" content="https://www.banjaramatch.com/images/social-preview.jpg">
+    <meta property="og:type" content="website">
+
+    <link rel="canonical" href="https://www.banjaramatch.com/login">
+
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+
+    <!-- Google Analytics (SEO & Traffic Tracking) -->
+    <%- include('../partials/analytics', { pageCategory: 'login' }) %>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/animate.min.css">
+    <link rel="stylesheet" href="css/style.min.css">
+
+    <!-- Firebase SDK for Email/Password Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    
+    <!-- Prevent Firebase auto-initialization -->
+    <script>
+        // Disable automatic Firebase initialization
+        window.FIREBASE_APPCHECK_DEBUG_TOKEN = false;
+    </script>
+
+    <style>
+        .password-input-wrapper {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #666;
+        }
+
+        .toggle-password:hover {
+            color: #f6af04;
+        }
+
+        .loading-spinner {
+            display: none;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #f6af04;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        .loading-spinner.active {
+            display: block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 10px;
+        }
+
+        .forgot-password a {
+            color: #f6af04;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+        }
+
+        .or-divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .or-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .or-divider span {
+            background: #fff;
+            padding: 0 15px;
+            position: relative;
+            z-index: 1;
+            color: #666;
+        }
+
+        .google-btn {
+            width: 100%;
+            background: #fff;
+            color: #444;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s;
+            margin-top: 15px;
+        }
+
+        .google-btn:hover {
+            background: #f8f8f8;
+            border-color: #ccc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .google-btn img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .google-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+      <script src="js/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <!-- LOGIN -->
+<!-- LOGIN SECTION -->
+<section class="login">
+    <div class="container">
+        <div class="row">
+            <div class="inn">
+                <!-- LEFT SIDE INFO -->
+                <div class="lhs">
+                    <div class="tit">
+                        <h2>Find Your <b>Perfect Banjara Life Partner</b><br> Simple. Safe. Secure.</h2>
+                    </div>
+                    <div class="im">
+                        <img src="images/login-couple.png" alt="Banjara couple image">
+                    </div>
+                    <div class="log-bg">&nbsp;</div>
+                </div>
+
+                <!-- RIGHT SIDE FORM -->
+                <div class="rhs">
+                    <div>
+                        <div class="form-tit">
+                            <h4>Join the #1 Trusted Banjara Matrimony</h4>
+                            <h1>Sign In to BanjaraMatch</h1>
+                            <p>Not a member yet? <a href="register">Create your free profile</a></p>
+                        </div>
+
+                        <div class="form-login">
+                            <form id="loginForm">
+                                <div class="form-group">
+                                    <label class="lb">Email:</label>
+                                    <input type="email" class="form-control" id="email" placeholder="Enter your email" name="email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="lb">Password:</label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" class="form-control" id="password" placeholder="Enter your password" name="password" required>
+                                        <i class="fa fa-eye toggle-password" onclick="togglePassword()"></i>
+                                    </div>
+                                </div>
+                                <div class="forgot-password">
+                                    <a href="/forgot-password">Forgot Password?</a>
+                                </div>
+                                <div class="loading-spinner" id="login-spinner"></div>
+                                <button type="submit" class="btn btn-primary" id="loginBtn">Sign In</button>
+                            </form>
+                            
+                            <div class="or-divider">
+                                <span>OR</span>
+                            </div>
+                            
+                            <button type="button" class="google-btn" id="googleLoginBtn">
+                                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                                Sign in with Google
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- END RIGHT -->
+            </div>
+        </div>
+    </div>
+</section>
+    <!-- END -->
+
+    <!-- FOOTER -->
+      <%- include('../partials/footer') %>
+
+    
+    <!-- END -->
+    <!-- END -->
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/select-opt.min.js"></script>
+    <script src="js/custom.min.js"></script>
+
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBEQVygTdSOOUczWmUezTt0CyoGm4l5Qe8",
+            authDomain: "socialmedia-dcdd8.firebaseapp.com",
+            databaseURL: "https://socialmedia-dcdd8-default-rtdb.firebaseio.com",
+            projectId: "socialmedia-dcdd8",
+            storageBucket: "socialmedia-dcdd8.firebasestorage.app",
+            messagingSenderId: "799990198329",
+            appId: "1:799990198329:web:ee65ff58d4992177a21de8",
+            measurementId: "G-3RE8KG7MXG"
+        };
+
+        // Initialize Firebase only if not already initialized
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                console.log('✅ Firebase initialized successfully');
+            } else {
+                console.log('ℹ️ Firebase already initialized');
+            }
+        } catch (error) {
+            console.error('❌ Firebase initialization error:', error);
+        }
+
+        // Toggle password visibility
+        function togglePassword() {
+            const input = document.getElementById('password');
+            const icon = document.querySelector('.toggle-password');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Login Form Handler
+        document.getElementById("loginForm").addEventListener("submit", async function(e) {
+            e.preventDefault();
+            
+            console.log('=== LOGIN: START ===');
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            
+            if (!email || !password) {
+                alert('Please enter both email and password');
+                return;
+            }
+
+            document.getElementById('login-spinner').classList.add('active');
+            document.getElementById('loginBtn').disabled = true;
+
+            try {
+                console.log('🔐 Logging in with email:', email);
+                
+                // Sign in with Firebase
+                const auth = firebase.auth();
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                const firebaseUser = userCredential.user;
+                
+                console.log('✅ Firebase authentication successful');
+                console.log('🆔 Firebase UID:', firebaseUser.uid);
+                
+                const firebaseToken = await firebaseUser.getIdToken();
+                console.log('🎫 Firebase ID Token obtained');
+
+                // Login to backend
+                const loginResponse = await fetch('https://api.banjaramatch.com/api/auth/firebase-email-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        email: email,
+                        firebaseUid: firebaseUser.uid,
+                        firebaseToken: firebaseToken
+                    }),
+                    credentials: 'include'
+                });
+
+                const loginData = await loginResponse.json();
+                console.log('🔐 Backend login response:', loginData);
+
+                if (loginData.status && loginData.token) {
+                    console.log('✅ Login successful! Setting token...');
+                    document.cookie = `token=${loginData.token}; path=/; max-age=${7 * 24 * 60 * 60}; domain=.banjaramatch.com; SameSite=Lax`;
+                    
+                    // Track login event
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', 'login', {
+                            'event_category': 'engagement',
+                            'method': 'email'
+                        });
+                    }
+                    
+                    console.log('🎉 Redirecting to dashboard...');
+                    alert('Login successful!');
+                    window.location.href = '/dashboard';
+                } else {
+                    alert(loginData.message || 'Login failed. Please try again.');
+                    document.getElementById('login-spinner').classList.remove('active');
+                    document.getElementById('loginBtn').disabled = false;
+                }
+            } catch (error) {
+                console.error('=== LOGIN: FAILED ===');
+                console.error('❌ Error:', error);
+                console.error('❌ Error code:', error.code);
+                console.error('❌ Error message:', error.message);
+                
+                document.getElementById('login-spinner').classList.remove('active');
+                document.getElementById('loginBtn').disabled = false;
+                
+                let errorMsg = 'Login failed. ';
+                if (error.code === 'auth/user-not-found') {
+                    errorMsg = 'No account found with this email. Please register first.';
+                } else if (error.code === 'auth/wrong-password') {
+                    errorMsg = 'Incorrect password. Please try again.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMsg = 'Invalid email format.';
+                } else if (error.code === 'auth/user-disabled') {
+                    errorMsg = 'This account has been disabled.';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMsg = 'Too many failed login attempts. Please try again later.';
+                } else {
+                    errorMsg += error.message || 'Please try again.';
+                }
+                
+                alert(errorMsg);
+            }
+        });
+
+        // Google Sign-In Handler (POPUP-BASED with blocker detection)
+        document.getElementById('googleLoginBtn').addEventListener('click', async function() {
+            console.log('=== GOOGLE LOGIN: BUTTON CLICKED (POPUP METHOD) ===');
+            console.log('Timestamp:', new Date().toISOString());
+            console.log('Current URL:', window.location.href);
+            
+            this.disabled = true;
+            this.innerHTML = '<div class="loading-spinner active" style="width: 20px; height: 20px; margin: 0;"></div> Opening Google...';
+
+            let popupStartTime = null; // Declare outside try-catch for error handler access
+            
+            try {
+                console.log('Step 1: Getting Firebase auth instance...');
+                const auth = firebase.auth();
+                console.log('✅ Firebase auth instance obtained:', auth ? 'Yes' : 'No');
+                
+                console.log('Step 2: Creating Google provider...');
+                const provider = new firebase.auth.GoogleAuthProvider();
+                console.log('✅ Google provider created');
+                
+                // Request additional scopes
+                console.log('Step 3: Adding scopes...');
+                provider.addScope('profile');
+                provider.addScope('email');
+                console.log('✅ Scopes added: profile, email');
+                
+                console.log('Step 4: Opening Google Sign-In popup...');
+                console.log('🔐 About to call signInWithPopup()');
+                this.innerHTML = '<div class="loading-spinner active" style="width: 20px; height: 20px; margin: 0;"></div> Waiting for Google...';
+                
+                // Track popup open time
+                popupStartTime = Date.now();
+                console.log('Popup opened at:', new Date(popupStartTime).toISOString());
+                
+                // Use POPUP for authentication
+                const result = await auth.signInWithPopup(provider);
+                const popupDuration = Date.now() - popupStartTime;
+                console.log('✅ signInWithPopup() completed!');
+                console.log('Popup duration:', popupDuration, 'ms');
+                console.log('📦 Result:', result);
+                
+                const firebaseUser = result.user;
+                console.log('👤 User obtained from popup:', firebaseUser);
+                
+                // Update button state
+                this.innerHTML = '<div class="loading-spinner active" style="width: 20px; height: 20px; margin: 0;"></div> Completing sign-in...';
+                
+                // Process the login
+                await processGoogleLogin(firebaseUser);
+                
+            } catch (error) {
+                const errorDuration = Date.now() - (popupStartTime || Date.now());
+                
+                this.disabled = false;
+                this.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Sign in with Google';
+                
+                // Handle popup-closed-by-user silently if user actually closed it
+                if (error.code === 'auth/popup-closed-by-user') {
+                    console.log('ℹ️ User closed Google Sign-In popup');
+                    // Don't show error alert for user cancellation - this is normal behavior
+                    return;
+                } else if (error.code === 'auth/cancelled-popup-request') {
+                    console.log('ℹ️ Popup request cancelled (another popup may be open)');
+                    return;
+                }
+                
+                // Log all other errors
+                console.error('=== GOOGLE LOGIN: FAILED ===');
+                console.error('Time to error:', errorDuration, 'ms');
+                console.error('❌ Error:', error);
+                console.error('❌ Error code:', error.code);
+                console.error('❌ Error message:', error.message);
+                
+                let errorMsg = '';
+                
+                if (error.code === 'auth/popup-blocked') {
+                    errorMsg = '⚠️ Popup Blocked!\n\nPlease allow popups for banjaramatch.com and try again.';
+                    console.error('🚫 Browser blocked the popup');
+                } else if (error.code === 'auth/account-exists-with-different-credential') {
+                    errorMsg = 'An account already exists with this email using email/password. Please use email login instead.';
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    errorMsg = '⚠️ Configuration Error\n\nGoogle Sign-In is not enabled in Firebase Console.\n\nPlease contact administrator.';
+                    console.error('🚫 CRITICAL: Enable Google provider at Firebase Console');
+                } else if (error.code === 'auth/unauthorized-domain') {
+                    errorMsg = '⚠️ Domain Not Authorized\n\nThis domain is not authorized for Google Sign-In.\n\nPlease contact administrator.';
+                    console.error('🚫 CRITICAL: Add domain to Firebase authorized domains');
+                } else {
+                    errorMsg = 'Google sign-in failed: ' + (error.message || 'Unknown error');
+                }
+                
+                alert(errorMsg);
+            }
+        });
+
+        // Check for existing auth session on page load (popup doesn't need redirect handler)
+        (async function checkExistingAuth() {
+            console.log('\n=== CHECKING EXISTING AUTH SESSION ===');
+            console.log('Page loaded at:', new Date().toISOString());
+            
+            try {
+                const auth = firebase.auth();
+                
+                // Check if user is already signed in
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        console.log('✅ User already authenticated!');
+                        console.log('👤 Display Name:', user.displayName);
+                        console.log('📧 Email:', user.email);
+                        console.log('🆔 UID:', user.uid);
+                        console.log('ℹ️ User can continue to dashboard');
+                    } else {
+                        console.log('ℹ️ No active Firebase session - user needs to login');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('❌ Error checking auth state:', error);
+            }
+        })();
+        
+        // Separate function to process Google login
+        async function processGoogleLogin(firebaseUser) {
+            try {
+                console.log('=== PROCESSING GOOGLE LOGIN ===');
+                console.log('👤 Display Name:', firebaseUser.displayName);
+                console.log('📧 Email:', firebaseUser.email);
+                console.log('🆔 Firebase UID:', firebaseUser.uid);
+                console.log('📸 Photo URL:', firebaseUser.photoURL);
+                console.log('✉️ Email Verified:', firebaseUser.emailVerified);
+                console.log('📞 Phone Number:', firebaseUser.phoneNumber);
+                console.log('🔑 Provider Data:', firebaseUser.providerData);
+                
+                // Show loading state
+                const googleBtn = document.getElementById('googleLoginBtn');
+                if (googleBtn) {
+                    console.log('Setting button to loading state...');
+                    googleBtn.disabled = true;
+                    googleBtn.innerHTML = '<div class="loading-spinner active" style="width: 20px; height: 20px; margin: 0;"></div> Completing sign-in...';
+                } else {
+                    console.log('⚠️ Google button not found in DOM');
+                }
+                
+                console.log('\nGetting Firebase ID token...');
+                const firebaseToken = await firebaseUser.getIdToken();
+                console.log('✅ Firebase ID Token obtained');
+                console.log('Token length:', firebaseToken.length);
+                console.log('Token (first 50 chars):', firebaseToken.substring(0, 50) + '...');
+
+                console.log('\nPreparing backend login request...');
+                const requestData = { 
+                    email: firebaseUser.email,
+                    full_name: firebaseUser.displayName,
+                    firebaseUid: firebaseUser.uid,
+                    firebaseToken: firebaseToken,
+                    photoURL: firebaseUser.photoURL
+                };
+                console.log('Request data:', JSON.stringify(requestData, null, 2));
+
+                console.log('\nCalling backend API...');
+                console.log('URL: https://api.banjaramatch.com/api/auth/firebase-google-login');
+                console.log('⏳ Sending request...');
+                
+                const loginResponse = await fetch('https://api.banjaramatch.com/api/auth/firebase-google-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData),
+                    credentials: 'include'
+                });
+
+                console.log('\n✅ Backend responded');
+                console.log('Response status:', loginResponse.status);
+                console.log('Response status text:', loginResponse.statusText);
+                console.log('Response headers:', [...loginResponse.headers.entries()]);
+                
+                const loginData = await loginResponse.json();
+                console.log('✅ Response parsed');
+                console.log('Backend response:', JSON.stringify(loginData, null, 2));
+
+                if (loginData.status && loginData.token) {
+                    console.log('\n🎉 Google login successful!');
+                    console.log('Token received:', loginData.token.substring(0, 50) + '...');
+                    console.log('Message:', loginData.message);
+                    
+                    // Set cookie with proper flags (backend also sets it, but we ensure it here too)
+                    console.log('Setting cookie on client-side...');
+                    const cookieString = `token=${loginData.token}; path=/; max-age=${7 * 24 * 60 * 60}; domain=.banjaramatch.com; SameSite=Lax; Secure`;
+                    document.cookie = cookieString;
+                    console.log('Cookie string:', cookieString.substring(0, 100) + '...');
+                    
+                    // Verify cookie was set
+                    const cookies = document.cookie;
+                    console.log('Current cookies:', cookies);
+                    const hasToken = cookies.includes('token=');
+                    console.log('Token cookie exists:', hasToken);
+                    
+                    // Also store in localStorage as backup
+                    try {
+                        localStorage.setItem('auth_token', loginData.token);
+                        console.log('✅ Token also saved to localStorage');
+                    } catch (e) {
+                        console.warn('⚠️ Could not save to localStorage:', e);
+                    }
+                    
+                    // Track event based on registration vs login
+                    const isNewUser = loginData.message && loginData.message.includes('Registration');
+                    console.log('Is new user?', isNewUser);
+                    
+                    if (typeof gtag !== 'undefined') {
+                        gtag('event', isNewUser ? 'sign_up' : 'login', {
+                            'event_category': 'engagement',
+                            'method': 'google'
+                        });
+                    }
+                    
+                    console.log('🎉 Google login completed successfully!');
+                    console.log('✅ ALL DONE - Check logs above for details');
+                    console.log('📋 SUMMARY:');
+                    console.log('  - Firebase authentication: ✅');
+                    console.log('  - Backend API call: ✅');
+                    console.log('  - Token saved in cookie: ✅');
+                    console.log('  - Token saved in localStorage: ✅');
+                    console.log('');
+                    
+                    // Redirect to thank-you page for new registrations, dashboard for existing users
+                    if (isNewUser) {
+                        console.log('🔗 New user - Redirecting to thank-you page...');
+                        // Track registration conversion
+                        if (typeof window.trackRegistrationConversion === 'function') {
+                            window.trackRegistrationConversion();
+                        }
+                        window.location.href = '/thank-you';
+                    } else {
+                        console.log('🔗 Existing user - Redirecting to dashboard...');
+                        window.location.href = '/dashboard';
+                    }
+                } else {
+                    console.error('\n❌ Backend login failed');
+                    console.error('Status:', loginData.status);
+                    console.error('Message:', loginData.message);
+                    console.error('Full response:', loginData);
+                    alert(loginData.message || 'Login failed. Please try again.');
+                    if (googleBtn) {
+                        googleBtn.disabled = false;
+                        googleBtn.innerHTML = '<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Sign in with Google';
+                    }
+                }
+            } catch (error) {
+                console.error('\n❌ ERROR IN processGoogleLogin:', error);
+                throw error;
+            }
+        }
+    </script>
+</body>
+
+
+</html>

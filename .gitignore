@@ -1,0 +1,62 @@
+# dependencies / tooling
+node_modules/
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.iml
+.claude/
+# env (examples are committed)
+**/.env
+**/.env.*
+!**/.env.example
+# runtime data lives in /var/www/banjaramatch-shared and is symlinked in
+apps/api/uploads/
+apps/api/uploads
+apps/web/public/downloads/
+apps/web/public/downloads
+apps/web/public/images/blog/
+apps/web/public/images/blog
+apps/web/public/sitemap*.xml
+apps/web/public/profiles/
+apps/web/public/build/
+apps/web/public/images/_r/
+# secrets — never
+**/serviceAccountKey*.json
+**/*service-account*.json
+**/*firebase-adminsdk*.json
+**/*.p8
+**/*.p12
+**/*.pem
+**/*.jks
+**/*.keystore
+**/key.properties
+apps/api/cert/
+apps/api/config.json
+apps/api/socialmedia-sa.json*
+**/ADMIN_CREDENTIALS.md
+# flutter
+apps/mobile/orange
+apps/mobile/build/
+apps/mobile/.dart_tool/
+apps/mobile/.flutter-plugins
+apps/mobile/.flutter-plugins-dependencies
+apps/mobile/flutter_01.png
+apps/mobile/android/.gradle/
+apps/mobile/android/.kotlin/
+apps/mobile/android/.idea/
+apps/mobile/android/build/
+apps/mobile/android/app/.cxx/
+apps/mobile/android/app/release/
+apps/mobile/android/app/debug/
+apps/mobile/android/app/profile/
+apps/mobile/android/local.properties
+apps/mobile/ios/build/
+apps/mobile/ios/.symlinks/
+apps/mobile/ios/Pods/
+apps/mobile/ios/Flutter/Generated.xcconfig
+apps/mobile/ios/Flutter/ephemeral/
+apps/mobile/ios/Flutter/flutter_export_environment.sh
+# local scratch
+deploy/psi/
+apps/web/logs/

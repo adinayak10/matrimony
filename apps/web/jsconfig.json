@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": "public"
+  },
+  "include": [
+    "views/**/*",
+    "public/**/*"
+  ]
+}

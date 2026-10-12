@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Enquiries - Banjara Match Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .content-wrapper {
+            padding: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.2rem;
+        }
+        .stats-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        .stats-card h3 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        .stats-card p {
+            margin: 0.5rem 0 0 0;
+            color: #666;
+        }
+        .stats-card.total h3 { color: #3b82f6; }
+        .stats-card.unread h3 { color: #ef4444; }
+        .stats-card.new h3 { color: #f59e0b; }
+        .stats-card.replied h3 { color: #10b981; }
+        
+        .contact-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid transparent;
+            transition: all 0.3s;
+        }
+        .contact-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .contact-card.unread {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .contact-card.new {
+            border-left-color: #f59e0b;
+        }
+        .contact-card.replied {
+            border-left-color: #10b981;
+        }
+        .badge-new {
+            background: #f59e0b;
+            color: white;
+        }
+        .badge-unread {
+            background: #ef4444;
+            color: white;
+        }
+        .badge-replied {
+            background: #10b981;
+            color: white;
+        }
+        .badge-resolved {
+            background: #6c757d;
+            color: white;
+        }
+        .filter-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .action-btn {
+            padding: 0.35rem 0.65rem;
+            font-size: 0.85rem;
+            margin: 0 0.2rem;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <script src="js/auth.js"></script>
+    <script>
+        // Server-side admin routes for /api/contact/* now require a real admin JWT
+        // (previously fully public). Patch fetch() once so every existing fetch()
+        // call on this page — including the duplicated markup/script blocks further
+        // down — automatically sends the bearer token, and redirect out if no
+        // admin session exists at all.
+        (function () {
+            const originalFetch = window.fetch;
+            window.fetch = function (input, init) {
+                try {
+                    const url = typeof input === 'string' ? input : (input && input.url) || '';
+                    if (url.includes('/api/contact/')) {
+                        const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
+                        if (token) {
+                            init = init || {};
+                            init.headers = Object.assign({}, init.headers || {}, { Authorization: `Bearer ${token}` });
+                        }
+                    }
+                } catch (e) { /* fall through to normal fetch */ }
+                return originalFetch.call(this, input, init);
+            };
+        })();
+        document.addEventListener('DOMContentLoaded', function () {
+            if (window.checkAuth) window.checkAuth();
+        });
+    </script>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="/dashboard">
+                <i class="bi bi-shield-lock"></i> BanjaraMatch Admin
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/users">
+                            <i class="bi bi-people"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reports">
+                            <i class="bi bi-flag"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/photo-moderation">
+                            <i class="bi bi-image"></i> Photo Moderation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/contact-enquiries">
+                            <i class="bi bi-envelope"></i> Contact Enquiries
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout()">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="content-wrapper">
+        <div class="container-fluid">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="text-white">
+                    <i class="bi bi-envelope-fill"></i> Contact Enquiries
+                </h2>
+                <button class="btn btn-light" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                </button>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="row" id="statsContainer">
+                <div class="col-md-3">
+                    <div class="stats-card total">
+                        <h3 id="totalCount">0</h3>
+                        <p><i class="bi bi-envelope"></i> Total Enquiries</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card unread">
+                        <h3 id="unreadCount">0</h3>
+                        <p><i class="bi bi-envelope-open"></i> Unread</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card new">
+                        <h3 id="newCount">0</h3>
+                        <p><i class="bi bi-star"></i> New</p>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card replied">
+                        <h3 id="repliedCount">0</h3>
+                        <p><i class="bi bi-check-circle"></i> Replied</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="filter-section">
+                <div class="row">
+                    <div class="col-md-4">
+                        <label class="form-label">Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="new">New</option>
+                            <option value="read">Read</option>
+                            <option value="replied">Replied</option>
+                            <option value="resolved">Resolved</option>
+                            <option value="spam">Spam</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Read Status</label>
+                        <select class="form-select" id="readFilter">
+                            <option value="">All Messages</option>
+                            <option value="false">Unread Only</option>
+                            <option value="true">Read Only</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Sort By</label>
+                        <select class="form-select" id="sortFilter">
+                            <option value="desc">Newest First</option>
+                            <option value="asc">Oldest First</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacts List -->
+            <div id="contactsContainer">
+                <div class="text-center text-white py-5">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading enquiries...</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <nav id="paginationContainer" style="display: none;">
+                <ul class="pagination justify-content-center" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Contact Detail Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-envelope-open"></i> Contact Details
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contactDetails"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        const API_URL = 'https://api.banjaramatch.com';
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Load contacts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadContacts();
+            
+            // Event listeners for filters
+            document.getElementById('statusFilter').addEventListener('change', () => {
+                currentPage = 1;
+                loadContacts();
+            });
+            
+            document.getElementById('readFilter').addEventListener('change', () => {
+                currentPage = 1;
+                loadContacts();
+            });
+            
+            document.getElementById('sortFilter').addEventListener('change', () => {
+                currentPage = 1;
+                loadContacts();
+            });
+        });
+
+        async function loadContacts() {
+            try {
+                const status = document.getElementById('statusFilter').value;
+                const isRead = document.getElementById('readFilter').value;
+                const sortOrder = document.getElementById('sortFilter').value;
+
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: 20,
+                    sortOrder: sortOrder
+                });
+
+                if (status) params.append('status', status);
+                if (isRead) params.append('isRead', isRead);
+
+                const response = await fetch(`${API_URL}/api/contact/all?${params}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayStats(data.stats);
+                    displayContacts(data.data);
+                    displayPagination(data.pagination);
+                } else {
+                    showError('Failed to load contacts');
+                }
+            } catch (error) {
+                console.error('Load contacts error:', error);
+                showError('Error loading contacts. Please try again.');
+            }
+        }
+
+        function displayStats(stats) {
+            document.getElementById('totalCount').textContent = stats.total || 0;
+            document.getElementById('unreadCount').textContent = stats.unread || 0;
+            document.getElementById('newCount').textContent = stats.new || 0;
+            document.getElementById('repliedCount').textContent = stats.replied || 0;
+        }
+
+        function displayContacts(contacts) {
+            const container = document.getElementById('contactsContainer');
+
+            if (contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="card">
+                        <div class="card-body text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 80px; opacity: 0.3;"></i>
+                            <h4 class="mt-3">No enquiries found</h4>
+                            <p class="text-muted">Try adjusting your filters</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = contacts.map(contact => `
+                <div class="contact-card ${contact.isRead ? '' : 'unread'} ${contact.status}">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="mb-0"><i class="bi bi-person"></i> ${contact.name}</h5>
+                                ${!contact.isRead ? '<span class="badge badge-unread ms-2">UNREAD</span>' : ''}
+                                <span class="badge badge-${contact.status} ms-2">${contact.status.toUpperCase()}</span>
+                            </div>
+                            <p class="mb-1">
+                                <i class="bi bi-envelope"></i>
+                                <a href="mailto:${contact.email}">${contact.email}</a>
+                            </p>
+                            <p class="mb-1">
+                                <i class="bi bi-telephone"></i>
+                                <a href="tel:${contact.phone}">${contact.phone}</a>
+                            </p>
+                            <p class="mb-2 text-muted">
+                                <i class="bi bi-clock"></i>
+                                ${new Date(contact.createdAt).toLocaleString()}
+                            </p>
+                            <p class="mb-0"><strong>Message:</strong> ${contact.message.substring(0, 150)}${contact.message.length > 150 ? '...' : ''}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-primary action-btn" onclick="viewContact('${contact._id}')">
+                                <i class="bi bi-eye"></i> View
+                            </button>
+                            ${!contact.isRead ? `
+                                <button class="btn btn-success action-btn" onclick="markAsRead('${contact._id}')">
+                                    <i class="bi bi-check"></i> Mark Read
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-warning action-btn" onclick="updateStatus('${contact._id}', 'replied')">
+                                <i class="bi bi-reply"></i> Replied
+                            </button>
+                            <button class="btn btn-danger action-btn" onclick="deleteContact('${contact._id}')">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayPagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            const paginationEl = document.getElementById('pagination');
+
+            if (pagination.pages <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            totalPages = pagination.pages;
+
+            let html = '';
+
+            // Previous button
+            html += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>
+                </li>
+            `;
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>
+                        </li>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+
+            // Next button
+            html += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>
+                </li>
+            `;
+
+            paginationEl.innerHTML = html;
+        }
+
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            loadContacts();
+            window.scrollTo(0, 0);
+        }
+
+        async function viewContact(id) {
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const contact = data.data;
+                    document.getElementById('contactDetails').innerHTML = `
+                        <div class="mb-3">
+                            <strong><i class="bi bi-person"></i> Name:</strong> ${contact.name}
+                        </div>
+                        <div class="mb-3">
+                            <strong><i class="bi bi-envelope"></i> Email:</strong> 
+                            <a href="mailto:${contact.email}">${contact.email}</a>
+                        </div>
+                        <div class="mb-3">
+                            <strong><i class="bi bi-telephone"></i> Phone:</strong> 
+                            <a href="tel:${contact.phone}">${contact.phone}</a>
+                        </div>
+                        <div class="mb-3">
+                            <strong><i class="bi bi-flag"></i> Status:</strong> 
+                            <span class="badge badge-${contact.status}">${contact.status.toUpperCase()}</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong><i class="bi bi-calendar"></i> Submitted:</strong> 
+                            ${new Date(contact.createdAt).toLocaleString()}
+                        </div>
+                        <div class="mb-3">
+                            <strong><i class="bi bi-chat-text"></i> Message:</strong><br>
+                            <div class="border p-3 bg-light rounded mt-2">${contact.message}</div>
+                        </div>
+                        ${contact.adminNotes ? `
+                            <div class="mb-3">
+                                <strong><i class="bi bi-pencil"></i> Admin Notes:</strong><br>
+                                <div class="border p-3 bg-warning bg-opacity-10 rounded mt-2">${contact.adminNotes}</div>
+                            </div>
+                        ` : ''}
+                    `;
+
+                    const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+                    modal.show();
+
+                    // Mark as read
+                    if (!contact.isRead) {
+                        markAsRead(id, false);
+                    }
+                } else {
+                    alert('Failed to load contact details');
+                }
+            } catch (error) {
+                console.error('View contact error:', error);
+                alert('Error loading contact');
+            }
+        }
+
+        async function markAsRead(id, reload = true) {
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}/read`, {
+                    method: 'PATCH'
+                });
+
+                const data = await response.json();
+
+                if (data.success && reload) {
+                    loadContacts();
+                }
+            } catch (error) {
+                console.error('Mark as read error:', error);
+            }
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadContacts();
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (error) {
+                console.error('Update status error:', error);
+                alert('Error updating status');
+            }
+        }
+
+        async function deleteContact(id) {
+            if (!confirm('Are you sure you want to delete this contact enquiry?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadContacts();
+                } else {
+                    alert('Failed to delete contact');
+                }
+            } catch (error) {
+                console.error('Delete contact error:', error);
+                alert('Error deleting contact');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('contactsContainer').innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <div class="alert alert-danger text-center">
+                            <i class="bi bi-exclamation-triangle"></i> ${message}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('adminToken');
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <style>
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stats-card .icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .stats-card.total .icon { background: #007bff; }
+        .stats-card.unread .icon { background: #dc3545; }
+        .stats-card.new .icon { background: #ffc107; }
+        .stats-card.replied .icon { background: #28a745; }
+        
+        .contact-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            border-left: 4px solid transparent;
+        }
+        
+        .contact-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .contact-card.unread {
+            border-left-color: #dc3545;
+            background: #fff8f8;
+        }
+        
+        .contact-card.new {
+            border-left-color: #ffc107;
+        }
+        
+        .contact-card.replied {
+            border-left-color: #28a745;
+        }
+        
+        .badge-new {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        .badge-unread {
+            background: #dc3545;
+        }
+        
+        .badge-replied {
+            background: #28a745;
+        }
+        
+        .badge-resolved {
+            background: #6c757d;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .btn-action {
+            padding: 5px 15px;
+            font-size: 14px;
+            margin: 2px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+        
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .pagination-wrapper {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        
+        .sidebar {
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #2c3e50;
+            padding-top: 20px;
+            overflow-y: auto;
+        }
+        
+        .sidebar .nav-link {
+            color: #ecf0f1;
+            padding: 12px 20px;
+            margin: 5px 10px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: #34495e;
+            color: white;
+        }
+        
+        .sidebar .nav-link.active {
+            background: #f6af04;
+            color: white;
+        }
+        
+        .main-content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+        
+        .navbar-brand {
+            color: white !important;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" style="width: 250px;">
+        <div class="text-center mb-4">
+            <h4 class="text-white">BanjaraMatch</h4>
+            <p class="text-white-50 small">Admin Panel</p>
+        </div>
+        <nav class="nav flex-column">
+            <a class="nav-link" href="/dashboard.html">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <a class="nav-link" href="/users.html">
+                <i class="fas fa-users"></i> Users
+            </a>
+            <a class="nav-link" href="/reports">
+                <i class="fas fa-flag"></i> Reports
+            </a>
+            <a class="nav-link" href="/photo-moderation">
+                <i class="fas fa-image"></i> Photo Moderation
+            </a>
+            <a class="nav-link active" href="/contact-enquiries.html">
+                <i class="fas fa-envelope"></i> Contact Enquiries
+            </a>
+            <a class="nav-link" href="/settings.html">
+                <i class="fas fa-cog"></i> Settings
+            </a>
+            <a class="nav-link" href="/banners.html">
+                <i class="fas fa-image"></i> Banners
+            </a>
+            <a class="nav-link" href="/constants.html">
+                <i class="fas fa-database"></i> Constants
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="fas fa-envelope"></i> Contact Enquiries</h2>
+            <button class="btn btn-primary" onclick="location.reload()">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row" id="statsContainer">
+            <div class="col-md-3">
+                <div class="stats-card total">
+                    <div class="d-flex align-items-center">
+                        <div class="icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0" id="totalCount">0</h3>
+                            <p class="mb-0 text-muted">Total Enquiries</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card unread">
+                    <div class="d-flex align-items-center">
+                        <div class="icon">
+                            <i class="fas fa-envelope-open"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0" id="unreadCount">0</h3>
+                            <p class="mb-0 text-muted">Unread</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card new">
+                    <div class="d-flex align-items-center">
+                        <div class="icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0" id="newCount">0</h3>
+                            <p class="mb-0 text-muted">New</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card replied">
+                    <div class="d-flex align-items-center">
+                        <div class="icon">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h3 class="mb-0" id="repliedCount">0</h3>
+                            <p class="mb-0 text-muted">Replied</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search & Filters -->
+        <div class="search-box">
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Status Filter</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="new">New</option>
+                        <option value="read">Read</option>
+                        <option value="replied">Replied</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="spam">Spam</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Read Status</label>
+                    <select class="form-select" id="readFilter">
+                        <option value="">All Messages</option>
+                        <option value="false">Unread Only</option>
+                        <option value="true">Read Only</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Sort By</label>
+                    <select class="form-select" id="sortFilter">
+                        <option value="desc">Newest First</option>
+                        <option value="asc">Oldest First</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contacts List -->
+        <div id="contactsContainer">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i><br>
+                Loading enquiries...
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-wrapper" id="paginationContainer" style="display: none;">
+            <nav>
+                <ul class="pagination justify-content-center mb-0" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Contact Detail Modal -->
+    <div class="modal fade" id="contactModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Contact Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="contactDetails"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- API Helper -->
+    <script src="js/api.js"></script>
+    
+    <script>
+        const API_URL = 'https://api.banjaramatch.com';
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Load contacts on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadContacts();
+            
+            // Event listeners for filters
+            document.getElementById('statusFilter').addEventListener('change', () => {
+                currentPage = 1;
+                loadContacts();
+            });
+            
+            document.getElementById('readFilter').addEventListener('change', () => {
+                currentPage = 1;
+                loadContacts();
+            });
+            
+            document.getElementById('sortFilter').addEventListener('change', () => {
+                currentPage = 1;
+                loadContacts();
+            });
+        });
+
+        async function loadContacts() {
+            try {
+                const status = document.getElementById('statusFilter').value;
+                const isRead = document.getElementById('readFilter').value;
+                const sortOrder = document.getElementById('sortFilter').value;
+
+                const params = new URLSearchParams({
+                    page: currentPage,
+                    limit: 20,
+                    sortOrder: sortOrder
+                });
+
+                if (status) params.append('status', status);
+                if (isRead) params.append('isRead', isRead);
+
+                const response = await fetch(`${API_URL}/api/contact/all?${params}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    displayStats(data.stats);
+                    displayContacts(data.data);
+                    displayPagination(data.pagination);
+                } else {
+                    showError('Failed to load contacts');
+                }
+            } catch (error) {
+                console.error('Load contacts error:', error);
+                showError('Error loading contacts. Please check your connection.');
+            }
+        }
+
+        function displayStats(stats) {
+            document.getElementById('totalCount').textContent = stats.total || 0;
+            document.getElementById('unreadCount').textContent = stats.unread || 0;
+            document.getElementById('newCount').textContent = stats.new || 0;
+            document.getElementById('repliedCount').textContent = stats.replied || 0;
+        }
+
+        function displayContacts(contacts) {
+            const container = document.getElementById('contactsContainer');
+
+            if (contacts.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h4>No enquiries found</h4>
+                        <p class="text-muted">Try adjusting your filters or wait for new submissions</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = contacts.map(contact => `
+                <div class="contact-card ${contact.isRead ? '' : 'unread'} ${contact.status}">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="d-flex align-items-center mb-2">
+                                <h5 class="mb-0">${escapeHtml(contact.name)}</h5>
+                                ${!contact.isRead ? '<span class="badge badge-unread ms-2">UNREAD</span>' : ''}
+                                <span class="badge badge-${contact.status} ms-2">${contact.status.toUpperCase()}</span>
+                            </div>
+                            <p class="mb-1">
+                                <i class="fas fa-envelope text-muted"></i>
+                                <a href="mailto:${contact.email}">${escapeHtml(contact.email)}</a>
+                            </p>
+                            <p class="mb-1">
+                                <i class="fas fa-phone text-muted"></i>
+                                <a href="tel:${contact.phone}">${escapeHtml(contact.phone)}</a>
+                            </p>
+                            <p class="mb-2 text-muted">
+                                <i class="fas fa-clock"></i>
+                                ${new Date(contact.createdAt).toLocaleString('en-IN', { 
+                                    dateStyle: 'medium', 
+                                    timeStyle: 'short' 
+                                })}
+                            </p>
+                            <p class="mb-0"><strong>Message:</strong> ${escapeHtml(contact.message.substring(0, 150))}${contact.message.length > 150 ? '...' : ''}</p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-primary btn-action" onclick="viewContact('${contact._id}')">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            ${!contact.isRead ? `
+                                <button class="btn btn-success btn-action" onclick="markAsRead('${contact._id}')">
+                                    <i class="fas fa-check"></i> Mark Read
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-warning btn-action" onclick="updateStatus('${contact._id}', 'replied')">
+                                <i class="fas fa-reply"></i> Replied
+                            </button>
+                            <button class="btn btn-danger btn-action" onclick="deleteContact('${contact._id}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function displayPagination(pagination) {
+            const container = document.getElementById('paginationContainer');
+            const paginationEl = document.getElementById('pagination');
+
+            if (pagination.pages <= 1) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.style.display = 'block';
+            totalPages = pagination.pages;
+
+            let html = '';
+
+            // Previous button
+            html += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1}); return false;">Previous</a>
+                </li>
+            `;
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${i}); return false;">${i}</a>
+                        </li>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+
+            // Next button
+            html += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1}); return false;">Next</a>
+                </li>
+            `;
+
+            paginationEl.innerHTML = html;
+        }
+
+        function changePage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            loadContacts();
+            window.scrollTo(0, 0);
+        }
+
+        async function viewContact(id) {
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const contact = data.data;
+                    document.getElementById('contactDetails').innerHTML = `
+                        <div class="mb-3">
+                            <strong>Name:</strong> ${escapeHtml(contact.name)}
+                        </div>
+                        <div class="mb-3">
+                            <strong>Email:</strong> <a href="mailto:${contact.email}">${escapeHtml(contact.email)}</a>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Phone:</strong> <a href="tel:${contact.phone}">${escapeHtml(contact.phone)}</a>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Status:</strong> <span class="badge badge-${contact.status}">${contact.status.toUpperCase()}</span>
+                        </div>
+                        <div class="mb-3">
+                            <strong>Submitted:</strong> ${new Date(contact.createdAt).toLocaleString('en-IN', { 
+                                dateStyle: 'full', 
+                                timeStyle: 'long' 
+                            })}
+                        </div>
+                        <div class="mb-3">
+                            <strong>Source:</strong> ${contact.source || 'website'}
+                        </div>
+                        <div class="mb-3">
+                            <strong>Message:</strong><br>
+                            <p class="border p-3 bg-light rounded">${escapeHtml(contact.message)}</p>
+                        </div>
+                        ${contact.adminNotes ? `
+                            <div class="mb-3">
+                                <strong>Admin Notes:</strong><br>
+                                <p class="border p-3 bg-warning bg-opacity-10 rounded">${escapeHtml(contact.adminNotes)}</p>
+                            </div>
+                        ` : ''}
+                    `;
+
+                    const modal = new bootstrap.Modal(document.getElementById('contactModal'));
+                    modal.show();
+
+                    // Mark as read
+                    if (!contact.isRead) {
+                        markAsRead(id, false);
+                    }
+                } else {
+                    alert('Failed to load contact details');
+                }
+            } catch (error) {
+                console.error('View contact error:', error);
+                alert('Error loading contact');
+            }
+        }
+
+        async function markAsRead(id, reload = true) {
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}/read`, {
+                    method: 'PATCH'
+                });
+
+                const data = await response.json();
+
+                if (data.success && reload) {
+                    loadContacts();
+                }
+            } catch (error) {
+                console.error('Mark as read error:', error);
+            }
+        }
+
+        async function updateStatus(id, status) {
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}/status`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    loadContacts();
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (error) {
+                console.error('Update status error:', error);
+                alert('Error updating status');
+            }
+        }
+
+        async function deleteContact(id) {
+            if (!confirm('Are you sure you want to delete this contact enquiry?')) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/contact/${id}`, {
+                    method: 'DELETE'
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('Contact deleted successfully');
+                    loadContacts();
+                } else {
+                    alert('Failed to delete contact');
+                }
+            } catch (error) {
+                console.error('Delete contact error:', error);
+                alert('Error deleting contact');
+            }
+        }
+
+        function showError(message) {
+            document.getElementById('contactsContainer').innerHTML = `
+                <div class="alert alert-danger text-center">
+                    <i class="fas fa-exclamation-triangle"></i> ${message}
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

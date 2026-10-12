@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Banjara Match Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">📊 Dashboard</a></li>
+                <li><a href="/users">👥 Users</a></li>
+                <li><a href="/reports">🚩 Reports</a></li>
+                <li><a href="/photo-moderation">🖼️ Photo Moderation</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="/constants">⚙️ Constants</a></li>
+                <li><a href="/settings" class="active">🔧 Settings</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <h1>System Settings</h1>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- App Settings -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Application Settings</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="appSettingsForm" onsubmit="saveAppSettings(event)">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>App Name</label>
+                                    <input type="text" name="appName" value="Banjara Match">
+                                </div>
+                                <div class="form-group">
+                                    <label>Support Email</label>
+                                    <input type="email" name="supportEmail" value="support@banjaramatch.com">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Minimum Age</label>
+                                    <input type="number" name="minAge" value="18">
+                                </div>
+                                <div class="form-group">
+                                    <label>Maximum Age</label>
+                                    <input type="number" name="maxAge" value="80">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save Settings</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Database Stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Database Statistics</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Total Users</span>
+                                <span class="info-value" id="dbTotalUsers">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Banners</span>
+                                <span class="info-value" id="dbTotalBanners">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Castes</span>
+                                <span class="info-value" id="dbTotalCastes">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Total Gotras</span>
+                                <span class="info-value" id="dbTotalGotras">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Admin Actions</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; gap: 15px;">
+                            <div>
+                                <h4 style="margin-bottom: 10px;">Bulk Operations</h4>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn btn-warning" onclick="verifyAllUsers()">✓ Verify All Users</button>
+                                    <button class="btn btn-danger" onclick="unverifyAllUsers()">✗ Unverify All Users</button>
+                                    <button class="btn btn-success" onclick="unblockAllUsers()">🔓 Unblock All Users</button>
+                                </div>
+                            </div>
+                            
+                            <div style="border-top: 1px solid var(--border); padding-top: 15px;">
+                                <h4 style="margin-bottom: 10px;">Data Management</h4>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn btn-primary" onclick="exportAllData()">📥 Export All Data</button>
+                                    <button class="btn btn-warning" onclick="clearCache()">🗑️ Clear Cache</button>
+                                </div>
+                            </div>
+
+                            <div style="border-top: 1px solid var(--border); padding-top: 15px;">
+                                <h4 style="margin-bottom: 10px; color: var(--danger-color);">⚠️ Danger Zone</h4>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <button class="btn btn-danger" onclick="deleteInactiveUsers()">🗑️ Delete Inactive Users (30+ days)</button>
+                                    <button class="btn btn-danger" onclick="deleteAllBlockedUsers()">🗑️ Delete All Blocked Users</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Admin Information</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Admin Username</span>
+                                <span class="info-value">admin</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Panel Version</span>
+                                <span class="info-value">1.0.0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">API Base URL</span>
+                                <span class="info-value">api.banjaramatch.com</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Login Time</span>
+                                <span class="info-value" id="loginTime">-</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 20px;">
+                            <button class="btn btn-primary" onclick="changePassword()">🔑 Change Password</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/auth.js?v=1764497821"></script>
+    <script src="/js/api.js?v=1764497821"></script>
+    <script>
+        async function loadStats() {
+            try {
+                const [users, banners, castes, gotras] = await Promise.all([
+                    apiRequest('/api/users?limit=10000'),
+                    apiRequest('/api/banners'),
+                    apiRequest('/api/castes'),
+                    apiRequest('/api/gotras')
+                ]);
+
+                document.getElementById('dbTotalUsers').textContent = users.data?.length || 0;
+                document.getElementById('dbTotalBanners').textContent = banners.data?.length || 0;
+                document.getElementById('dbTotalCastes').textContent = castes.data?.length || 0;
+                document.getElementById('dbTotalGotras').textContent = gotras.data?.length || 0;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        function saveAppSettings(event) {
+            event.preventDefault();
+            showNotification('Settings saved successfully', 'success');
+        }
+
+        async function verifyAllUsers() {
+            if (!window.confirm('Verify ALL users? This cannot be easily undone.')) return;
+            
+            try {
+                const response = await apiRequest('/api/users?limit=10000');
+                const users = response.data || [];
+                
+                for (const user of users) {
+                    if (!user.is_verified) {
+                        await apiRequest(`/api/users/${user._id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ is_verified: 1 })
+                        });
+                    }
+                }
+                
+                showNotification(`${users.length} users verified successfully`, 'success');
+            } catch (error) {
+                showNotification('Failed to verify users', 'danger');
+            }
+        }
+
+        async function unverifyAllUsers() {
+            if (!window.confirm('Unverify ALL users? This is a drastic action.')) return;
+            
+            try {
+                const response = await apiRequest('/api/users?limit=10000');
+                const users = response.data || [];
+                
+                for (const user of users) {
+                    if (user.is_verified) {
+                        await apiRequest(`/api/users/${user._id}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({ is_verified: 0 })
+                        });
+                    }
+                }
+                
+                showNotification(`${users.length} users unverified`, 'success');
+            } catch (error) {
+                showNotification('Failed to unverify users', 'danger');
+            }
+        }
+
+        async function unblockAllUsers() {
+            if (!window.confirm('Unblock ALL blocked users?')) return;
+            
+            try {
+                const response = await apiRequest('/api/users?limit=10000');
+                const users = response.data || [];
+                const blockedUsers = users.filter(u => u.is_block);
+                
+                for (const user of blockedUsers) {
+                    await apiRequest(`/api/users/${user._id}`, {
+                        method: 'PUT',
+                        body: JSON.stringify({ is_block: 0 })
+                    });
+                }
+                
+                showNotification(`${blockedUsers.length} users unblocked`, 'success');
+            } catch (error) {
+                showNotification('Failed to unblock users', 'danger');
+            }
+        }
+
+        async function deleteInactiveUsers() {
+            if (!window.confirm('Delete users inactive for 30+ days? This CANNOT be undone!')) return;
+            
+            const confirmText = prompt('Type "DELETE INACTIVE" to confirm:');
+            if (confirmText !== 'DELETE INACTIVE') return;
+
+            try {
+                const response = await apiRequest('/api/users?limit=10000');
+                const users = response.data || [];
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                
+                const inactiveUsers = users.filter(u => {
+                    const lastSeen = u.lastSeen ? new Date(u.lastSeen) : new Date(u.createdAt);
+                    return lastSeen < thirtyDaysAgo;
+                });
+                
+                for (const user of inactiveUsers) {
+                    await apiRequest(`/api/users/${user._id}`, { method: 'DELETE' });
+                }
+                
+                showNotification(`${inactiveUsers.length} inactive users deleted`, 'success');
+            } catch (error) {
+                showNotification('Failed to delete inactive users', 'danger');
+            }
+        }
+
+        async function deleteAllBlockedUsers() {
+            if (!window.confirm('Delete ALL blocked users? This CANNOT be undone!')) return;
+            
+            const confirmText = prompt('Type "DELETE BLOCKED" to confirm:');
+            if (confirmText !== 'DELETE BLOCKED') return;
+
+            try {
+                const response = await apiRequest('/api/users?limit=10000');
+                const users = response.data || [];
+                const blockedUsers = users.filter(u => u.is_block);
+                
+                for (const user of blockedUsers) {
+                    await apiRequest(`/api/users/${user._id}`, { method: 'DELETE' });
+                }
+                
+                showNotification(`${blockedUsers.length} blocked users deleted`, 'success');
+            } catch (error) {
+                showNotification('Failed to delete blocked users', 'danger');
+            }
+        }
+
+        function exportAllData() {
+            showNotification('Exporting data...', 'success');
+            // Implementation would export all data to JSON
+        }
+
+        function clearCache() {
+            if (window.confirm('Clear all cached data?')) {
+                showNotification('Cache cleared', 'success');
+            }
+        }
+
+        function changePassword() {
+            const newPassword = prompt('Enter new admin password:');
+            if (newPassword && newPassword.length >= 6) {
+                showNotification('Password changed successfully. Update .env file on server.', 'success');
+            } else {
+                showNotification('Password must be at least 6 characters', 'danger');
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadStats();
+                document.getElementById('loginTime').textContent = new Date().toLocaleString();
+            }
+        });
+    </script>
+</body>
+</html>

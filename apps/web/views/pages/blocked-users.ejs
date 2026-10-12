@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'Blocked Users - Banjara Match' %></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Manage the profiles you've blocked on Banjara Match">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+
+    <style>
+    .settings-card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .blocked-users-list {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .blocked-user-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px;
+        background: #f9f9f9;
+        border-radius: 6px;
+        margin-bottom: 10px;
+    }
+    .blocked-user-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    .blocked-user-info img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <div class="db-nav">
+                            <div class="db-nav-pro">
+                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="db-nav-list">
+                                <ul>
+                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                                    <li><a href="/blocked-users" class="act"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit">Blocked Users</h2>
+
+                        <div class="settings-card">
+                            <div id="blockedUsersList" class="blocked-users-list">
+                                <p class="text-center text-muted">Loading blocked users...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+    <script src="/js/esc.js"></script>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+        const MY_USER_ID = '<%= user?._id %>';
+
+        function getAuthToken() {
+            return document.cookie.split('; ')
+                .find(row => row.startsWith('token='))
+                ?.split('=')[1];
+        }
+
+        function photoUrl(profile) {
+            if (!profile) return '/images/default-user.jpg';
+            return profile.startsWith('http') ? profile : `https://api.banjaramatch.com/${profile}`;
+        }
+
+        async function loadBlockedUsers() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/fetchBlockedUserList`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify({ my_user_id: MY_USER_ID, limit: 100 })
+                });
+                const data = await response.json();
+
+                if (data.status && data.data && data.data.length > 0) {
+                    const html = data.data.map(u => `
+                        <div class="blocked-user-item" data-user-id="${u._id}">
+                            <div class="blocked-user-info">
+                                <img src="${esc(photoUrl(u.profile))}" alt="${esc(u.full_name)}" onerror="this.src='/images/default-user.jpg'">
+                                <div>
+                                    <div style="font-weight: 600;">${esc(u.full_name || 'Unknown user')}</div>
+                                    <div style="font-size: 13px; color: #777;">Blocked</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger unblock-btn" data-user-id="${u._id}">
+                                <i class="fa fa-unlock"></i> Unblock
+                            </button>
+                        </div>
+                    `).join('');
+                    document.getElementById('blockedUsersList').innerHTML = html;
+                } else {
+                    document.getElementById('blockedUsersList').innerHTML = '<p class="text-center text-muted py-4">You haven\'t blocked anyone.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading blocked users:', error);
+                document.getElementById('blockedUsersList').innerHTML = '<p class="text-center text-danger">Failed to load blocked users</p>';
+            }
+        }
+
+        document.getElementById('blockedUsersList').addEventListener('click', async function(e) {
+            const btn = e.target.closest('.unblock-btn');
+            if (!btn) return;
+
+            const userId = btn.dataset.userId;
+            if (!window.confirm('Are you sure you want to unblock this user?')) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Unblocking...';
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/UserUnblockedByUser`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: userId })
+                });
+                const data = await response.json();
+                if (data.status) {
+                    loadBlockedUsers();
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa fa-unlock"></i> Unblock';
+                }
+            } catch (error) {
+                console.error('Error unblocking user:', error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa fa-unlock"></i> Unblock';
+            }
+        });
+
+        loadBlockedUsers();
+    });
+    </script>
+</body>
+</html>

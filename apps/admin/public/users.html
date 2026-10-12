@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Banjara Match Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .content-wrapper {
+            padding: 2rem;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.2rem;
+        }
+        .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .status-badge {
+            padding: 0.35rem 0.65rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .badge-verified {
+            background: #10b981;
+            color: white;
+        }
+        .badge-unverified {
+            background: #f59e0b;
+            color: white;
+        }
+        .badge-blocked {
+            background: #ef4444;
+            color: white;
+        }
+        .badge-active {
+            background: #3b82f6;
+            color: white;
+        }
+        .action-btn {
+            padding: 0.35rem 0.65rem;
+            font-size: 0.85rem;
+            margin: 0 0.2rem;
+        }
+        .filter-section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+        .pagination {
+            margin-top: 1.5rem;
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .stats-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .stats-card h3 {
+            color: #667eea;
+            margin: 0;
+            font-size: 2rem;
+        }
+        .stats-card p {
+            margin: 0.5rem 0 0 0;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="dashboard.html">
+                <i class="bi bi-heart-fill text-danger"></i>
+                <strong>Banjara Match Admin</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="dashboard.html">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="users.html">
+                            <i class="bi bi-people"></i> Users
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/reports">
+                            <i class="bi bi-flag"></i> Reports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/photo-moderation">
+                            <i class="bi bi-image"></i> Photo Moderation
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="logout(); return false;">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="content-wrapper container-fluid">
+        <!-- Stats Row -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="totalUsers">0</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="verifiedUsers">0</h3>
+                    <p>Verified Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="activeUsers">0</h3>
+                    <p>Active Users</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <h3 id="blockedUsers">0</h3>
+                    <p>Blocked Users</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="row">
+                <div class="col-md-2">
+                    <label>Search</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Name, email, phone...">
+                </div>
+                <div class="col-md-2">
+                    <label>Gender</label>
+                    <select class="form-select" id="genderFilter">
+                        <option value="">All</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Not specified">Not specified</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Platform</label>
+                    <select class="form-select" id="platformFilter">
+                        <option value="">All</option>
+                        <option value="mobile">📱 Mobile</option>
+                        <option value="web">🌐 Web</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Verification</label>
+                    <select class="form-select" id="verificationFilter">
+                        <option value="">All</option>
+                        <option value="1">Verified</option>
+                        <option value="0">Unverified</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Status</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="">All</option>
+                        <option value="0">Active</option>
+                        <option value="1">Blocked</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>&nbsp;</label>
+                    <button class="btn btn-primary w-100" onclick="loadUsers()">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-people"></i> User Management</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Avatar</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Gender</th>
+                                <th>Platform</th>
+                                <th>Last Active</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="9" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <nav>
+                    <ul class="pagination justify-content-center" id="pagination">
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- View User Modal -->
+    <div class="modal fade" id="viewUserModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person"></i> User Details</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="userDetailsBody">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" id="userDetailsFooter">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div class="modal fade" id="editUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil"></i> Edit User</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editUserForm">
+                        <input type="hidden" id="editUserId">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="editFullName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="editEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" id="editPhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Gender</label>
+                            <select class="form-select" id="editGender" required>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Not specified">Not specified</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveUserEdit()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js?v=1764600897"></script>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+
+        // Wait for page to load before initializing
+        window.addEventListener('load', async function() {
+            console.log('🚀 Users page loaded');
+            
+            // Check authentication
+            const isAuthenticated = await window.checkAuth();
+            
+            if (isAuthenticated) {
+                // Load users and stats
+                loadUsers();
+                loadStats();
+            }
+        });
+
+        // Add event listeners for filters when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function(e) {
+                    if (e.key === 'Enter') {
+                        loadUsers();
+                    }
+                });
+            }
+        });
+
+        async function loadStats() {
+            try {
+                const response = await window.apiRequest('/api/admin/dashboard/stats');
+                if (response.status) {
+                    document.getElementById('totalUsers').textContent = response.data.overview.totalUsers;
+                    document.getElementById('verifiedUsers').textContent = response.data.overview.verifiedUsers;
+                    document.getElementById('activeUsers').textContent = response.data.overview.activeUsers;
+                    document.getElementById('blockedUsers').textContent = response.data.overview.blockedUsers;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Format last active time as "time ago"
+        function formatTimeAgo(date, isOnline) {
+            // Show online status if user is currently online
+            if (isOnline) {
+                return '<span class="text-success"><i class="bi bi-circle-fill"></i> Online now</span>';
+            }
+            
+            if (!date) return '<span class="text-muted">Never</span>';
+            
+            const now = new Date();
+            const lastActive = new Date(date);
+            const diffMs = now - lastActive;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return '<span class="text-success"><i class="bi bi-circle-fill"></i> Just now</span>';
+            if (diffMins < 60) return `<span class="text-success">${diffMins}m ago</span>`;
+            if (diffHours < 24) return `<span class="text-info">${diffHours}h ago</span>`;
+            if (diffDays < 7) return `<span class="text-warning">${diffDays}d ago</span>`;
+            if (diffDays < 30) return `<span class="text-secondary">${Math.floor(diffDays/7)}w ago</span>`;
+            if (diffDays < 365) return `<span class="text-secondary">${Math.floor(diffDays/30)}mo ago</span>`;
+            return `<span class="text-muted">${Math.floor(diffDays/365)}y ago</span>`;
+        }
+
+        async function loadUsers(page = 1) {
+            currentPage = page;
+            
+            const search = document.getElementById('searchInput').value;
+            const gender = document.getElementById('genderFilter').value;
+            const platform = document.getElementById('platformFilter').value;
+            const verified = document.getElementById('verificationFilter').value;
+            const blocked = document.getElementById('statusFilter').value;
+
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 20
+            });
+
+            if (search) params.append('search', search);
+            if (gender) params.append('gender', gender);
+            if (platform) params.append('registration_platform', platform);
+            if (verified) params.append('is_verified', verified);
+            if (blocked) params.append('is_block', blocked);
+
+            try {
+                // Add cache buster
+                params.append('_t', Date.now());
+                const response = await window.apiRequest(`/api/admin/users?${params}`);
+                
+                console.log('📡 API Response:', response);
+                console.log('👥 Users Data:', response.data);
+                if (response.data && response.data.length > 0) {
+                    console.log('🔍 First User Full Data:', JSON.stringify(response.data[0], null, 2));
+                }
+                
+                if (response.status) {
+                    displayUsers(response.data);
+                    totalPages = response.pagination.pages;
+                    updatePagination();
+                    loadStats(); // Refresh stats
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                alert('Failed to load users');
+            }
+        }
+
+        function displayUsers(users) {
+            const tbody = document.getElementById('usersTableBody');
+            
+            if (users.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center">No users found</td></tr>';
+                return;
+            }
+
+            // Log first user to debug
+            if (users.length > 0) {
+                console.log('👤 Sample User Data:', {
+                    _id: users[0]._id,
+                    full_name: users[0].full_name,
+                    profile: users[0].profile,
+                    profilePicture: users[0].profilePicture,
+                    profile_picture: users[0].profile_picture
+                });
+            }
+
+            tbody.innerHTML = users.map(user => {
+                let profileImage = user.profile || user.profilePicture || user.profile_picture;
+                
+                // If profile image exists and is relative path, prepend API URL
+                if (profileImage && !profileImage.startsWith('http')) {
+                    profileImage = `https://api.banjaramatch.com/${profileImage}`;
+                }
+                
+                // Use data URL placeholder if no image
+                const placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect width="50" height="50" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="20" fill="%23999"%3E?%3C/text%3E%3C/svg%3E';
+                
+                return `
+                <tr>
+                    <td>
+                        <img src="${profileImage || placeholder}" 
+                             alt="${user.full_name}" 
+                             class="user-avatar"
+                             onerror="this.src='${placeholder}'">
+                    </td>
+                    <td>${user.full_name || 'N/A'}</td>
+                    <td>${user.email || 'N/A'}</td>
+                    <td>${user.phone || 'N/A'}</td>
+                    <td>${user.gender || 'N/A'}</td>
+                    <td><span class="badge bg-secondary">${user.platform_label || 'N/A'}</span></td>
+                    <td>${formatTimeAgo(user.lastSeen, user.isOnline)}</td>
+                    <td>
+                        ${user.is_verified ? 
+                            '<span class="status-badge badge-verified"><i class="bi bi-check-circle"></i> Verified</span>' : 
+                            '<span class="status-badge badge-unverified"><i class="bi bi-exclamation-circle"></i> Unverified</span>'}
+                        ${user.is_block ? 
+                            '<span class="status-badge badge-blocked"><i class="bi bi-slash-circle"></i> Blocked</span>' : 
+                            '<span class="status-badge badge-active"><i class="bi bi-circle-fill"></i> Active</span>'}
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary action-btn" onclick="viewUser('${user._id}')">
+                            <i class="bi bi-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            const pages = [];
+
+            // Previous button
+            pages.push(`
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="loadUsers(${currentPage - 1}); return false;">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+            `);
+
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    pages.push(`
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="loadUsers(${i}); return false;">${i}</a>
+                        </li>
+                    `);
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    pages.push('<li class="page-item disabled"><span class="page-link">...</span></li>');
+                }
+            }
+
+            // Next button
+            pages.push(`
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="loadUsers(${currentPage + 1}); return false;">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            `);
+
+            pagination.innerHTML = pages.join('');
+        }
+
+        async function viewUser(userId) {
+            const modal = new bootstrap.Modal(document.getElementById('viewUserModal'));
+            modal.show();
+
+            const body = document.getElementById('userDetailsBody');
+            body.innerHTML = '<div class="text-center"><div class="spinner-border text-primary"></div></div>';
+
+            try {
+                const response = await window.apiRequest(`/api/admin/users/${userId}`);
+                
+                if (response.status) {
+                    const user = response.data;
+                    // Handle multiple possible profile image field names
+                    let profileImage = user.profile || user.profilePicture || user.profile_picture || user.profileImage;
+                    
+                    // If profile image exists and is relative path, prepend API URL
+                    if (profileImage && !profileImage.startsWith('http')) {
+                        profileImage = `https://api.banjaramatch.com/${profileImage}`;
+                    }
+                    
+                    const placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="150" height="150"%3E%3Crect width="150" height="150" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="40" fill="%23999"%3E?%3C/text%3E%3C/svg%3E';
+                    
+                    console.log('👤 User Data:', { 
+                        userId: user._id,
+                        name: user.full_name,
+                        profile: user.profile,
+                        profilePicture: user.profilePicture,
+                        profile_picture: user.profile_picture,
+                        profileImage: user.profileImage,
+                        selectedImage: profileImage || placeholder
+                    });
+                    
+                    body.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-4 text-center">
+                                <img src="${profileImage || placeholder}" 
+                                     alt="${user.full_name}" 
+                                     class="img-fluid rounded-circle mb-3"
+                                     style="width: 150px; height: 150px; object-fit: cover;"
+                                     onerror="this.src='${placeholder}'">
+                                <h5>${user.full_name}</h5>
+                                <p class="text-muted">@${user.username || 'N/A'}</p>
+                            </div>
+                            <div class="col-md-8">
+                                <h6>Basic Information</h6>
+                                <table class="table table-sm">
+                                    <tr><th>Email:</th><td>${user.email}</td></tr>
+                                    <tr><th>Phone:</th><td>${user.phone}</td></tr>
+                                    <tr><th>Gender:</th><td>${user.gender}</td></tr>
+                                    <tr><th>DOB:</th><td>${user.dob ? new Date(user.dob).toLocaleDateString() : 'N/A'}</td></tr>
+                                    <tr><th>Height:</th><td>${user.height ? user.height + ' cm' : 'N/A'}</td></tr>
+                                    <tr><th>Marital Status:</th><td>${user.maritalStatus || 'N/A'}</td></tr>
+                                </table>
+
+                                <h6 class="mt-3">Professional Information</h6>
+                                <table class="table table-sm">
+                                    <tr><th>Profession:</th><td>${user.profession?.name || 'N/A'}</td></tr>
+                                    <tr><th>Qualification:</th><td>${user.qualification?.name || 'N/A'}</td></tr>
+                                    <tr><th>Income:</th><td>${user.incomeRange?.name || 'N/A'}</td></tr>
+                                </table>
+
+                                <h6 class="mt-3">Family Information</h6>
+                                <table class="table table-sm">
+                                    <tr><th>Caste:</th><td>${user.caste?.name || 'N/A'}</td></tr>
+                                    <tr><th>Gotra:</th><td>${user.gotra?.name || 'N/A'}</td></tr>
+                                    <tr><th>Family Type:</th><td>${user.family?.familyType || 'N/A'}</td></tr>
+                                    <tr><th>Family Status:</th><td>${user.family?.familyStatus || 'N/A'}</td></tr>
+                                </table>
+
+                                <h6 class="mt-3">Account Status</h6>
+                                <table class="table table-sm">
+                                    <tr><th>Verified:</th><td>${user.is_verified ? '✅ Yes' : '❌ No'}</td></tr>
+                                    <tr><th>Blocked:</th><td>${user.is_block ? '🚫 Yes' : '✅ No'}</td></tr>
+                                    <tr><th>Last Login Platform:</th><td><span class="badge bg-secondary">${user.platform_label || 'N/A'}</span></td></tr>
+                                    <tr><th>Role:</th><td>${user.role}</td></tr>                                    <tr><th>Password (Hash):</th><td><small class="text-muted" style="word-break: break-all;">${user.password || 'Not set (OTP login)'}</small></td></tr>                                    <tr><th>Created:</th><td>${new Date(user.createdAt).toLocaleString()}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Update footer with action buttons
+                    const footer = document.getElementById('userDetailsFooter');
+                    footer.innerHTML = `
+                        <button type="button" class="btn btn-warning" onclick="editUser('${user._id}'); var modal = bootstrap.Modal.getInstance(document.getElementById('viewUserModal')); modal.hide();">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-${user.is_verified ? 'secondary' : 'success'}" onclick="toggleVerify('${user._id}', ${user.is_verified})">
+                            <i class="bi bi-${user.is_verified ? 'x-circle' : 'check-circle'}"></i> ${user.is_verified ? 'Unverify' : 'Verify'}
+                        </button>
+                        <button type="button" class="btn btn-${user.is_block ? 'success' : 'danger'}" onclick="toggleBlock('${user._id}', ${user.is_block})">
+                            <i class="bi bi-${user.is_block ? 'unlock' : 'lock'}"></i> ${user.is_block ? 'Unblock' : 'Block'}
+                        </button>
+                        <button type="button" class="btn btn-danger" onclick="deleteUser('${user._id}', '${user.full_name}')">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+                body.innerHTML = '<div class="alert alert-danger">Failed to load user details</div>';
+            }
+        }
+
+        async function editUser(userId) {
+            try {
+                const response = await window.apiRequest(`/api/admin/users/${userId}`);
+                
+                if (response.status) {
+                    const user = response.data;
+                    
+                    console.log('📝 Loading user for edit:', { 
+                        userId: user._id, 
+                        currentGender: user.gender,
+                        full_name: user.full_name,
+                        email: user.email,
+                        phone: user.phone
+                    });
+                    
+                    document.getElementById('editUserId').value = user._id;
+                    document.getElementById('editFullName').value = user.full_name || '';
+                    document.getElementById('editEmail').value = user.email || '';
+                    document.getElementById('editPhone').value = user.phone || '';
+                    document.getElementById('editGender').value = user.gender || 'Male';
+                    
+                    console.log('📝 Form fields set:', {
+                        editUserId: document.getElementById('editUserId').value,
+                        editGender: document.getElementById('editGender').value
+                    });
+
+                    const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                    modal.show();
+                }
+            } catch (error) {
+                console.error('Error loading user:', error);
+                alert('Failed to load user details');
+            }
+        }
+
+        async function saveUserEdit() {
+            const userId = document.getElementById('editUserId').value;
+            const data = {
+                full_name: document.getElementById('editFullName').value,
+                email: document.getElementById('editEmail').value,
+                phone: document.getElementById('editPhone').value,
+                gender: document.getElementById('editGender').value
+            };
+
+            console.log('🔄 Saving user edit:', { userId, data });
+
+            try {
+                console.log('📡 Sending PUT request to:', `/api/admin/users/${userId}`);
+                const response = await window.apiRequest(`/api/admin/users/${userId}`, 'PUT', data);
+                
+                console.log('✅ Update response:', response);
+                
+                if (response.status) {
+                    console.log('✅ User updated successfully, closing modal and reloading users');
+                    alert('User updated successfully');
+                    bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                    await loadUsers(currentPage);
+                    console.log('✅ Users reloaded');
+                } else {
+                    console.error('❌ Response status is false:', response);
+                    alert('Failed to update user: ' + (response.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('❌ Error updating user:', error);
+                console.error('❌ Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    response: error.response
+                });
+                alert('Failed to update user: ' + error.message);
+            }
+        }
+
+        async function toggleVerify(userId, currentStatus) {
+            const newStatus = !currentStatus; // Toggle the status
+            const action = currentStatus ? 'unverify' : 'verify';
+            
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+            try {
+                const response = await window.apiRequest(`/api/admin/users/${userId}/verify`, 'POST', { verify: newStatus });
+                
+                if (response.status) {
+                    alert(`User ${action}ed successfully`);
+                    await loadUsers(currentPage); // Wait for reload
+                    // Close view modal if open
+                    const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewUserModal'));
+                    if (viewModal) viewModal.hide();
+                }
+            } catch (error) {
+                console.error('Error toggling verification:', error);
+                alert('Failed to update verification status');
+            }
+        }
+
+        async function toggleBlock(userId, currentStatus) {
+            const newStatus = !currentStatus; // Toggle the status
+            const action = currentStatus ? 'unblock' : 'block';
+            
+            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+
+            try {
+                const response = await window.apiRequest(`/api/admin/users/${userId}/block`, 'POST', { block: newStatus });
+                
+                if (response.status) {
+                    alert(`User ${action}ed successfully`);
+                    await loadUsers(currentPage); // Wait for reload
+                    // Close view modal if open
+                    const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewUserModal'));
+                    if (viewModal) viewModal.hide();
+                }
+            } catch (error) {
+                console.error('Error toggling block:', error);
+                alert('Failed to update block status');
+            }
+        }
+
+        async function deleteUser(userId, userName) {
+            if (!window.confirm(`Are you sure you want to DELETE user "${userName}"?\n\nThis will permanently remove:\n• User account\n• All photos\n• All messages\n• All connections\n• All activity logs\n\nThis action CANNOT be undone!`)) return;
+
+            try {
+                console.log('🗑️ Deleting user:', userId, userName);
+                const response = await window.apiRequest(`/api/admin/users/${userId}`, 'DELETE');
+                
+                if (response.status) {
+                    alert('User deleted successfully');
+                    loadUsers(currentPage);
+                    // Close view modal if open
+                    const viewModal = bootstrap.Modal.getInstance(document.getElementById('viewUserModal'));
+                    if (viewModal) viewModal.hide();
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Failed to delete user');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

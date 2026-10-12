@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'Profile Visitors - Banjara Match' %></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Who viewed your profile on Banjara Match">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+
+    <style>
+    .visitor-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    .visitor-tabs a {
+        padding: 8px 18px;
+        border-radius: 20px;
+        background: #f0f0f0;
+        color: #444;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .visitor-tabs a.active {
+        background: #f6af04;
+        color: #fff;
+    }
+    .visitor-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+    .visitor-card {
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .visitor-card img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+    }
+    .visitor-card .body {
+        padding: 12px 14px;
+    }
+    .visitor-card h5 {
+        margin: 0 0 4px;
+        font-size: 16px;
+    }
+    .visitor-card .meta {
+        color: #777;
+        font-size: 13px;
+    }
+    .empty-visitors {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <div class="db-nav">
+                            <div class="db-nav-pro">
+                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="db-nav-list">
+                                <ul>
+                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                                    <li><a href="/profile-visitors" class="act"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit"><i class="fa fa-eye"></i> Profile Visitors</h2>
+
+                        <div class="visitor-tabs">
+                            <a href="/profile-visitors?type=they_viewed_me" class="<%= activeType === 'they_viewed_me' ? 'active' : '' %>">Viewed Me</a>
+                            <a href="/profile-visitors?type=mutual" class="<%= activeType === 'mutual' ? 'active' : '' %>">Mutual Views</a>
+                            <a href="/profile-visitors?type=i_viewed" class="<%= activeType === 'i_viewed' ? 'active' : '' %>">I Viewed</a>
+                        </div>
+
+                        <div class="visitor-grid" id="visitorGrid">
+                            <div class="empty-visitors" style="grid-column:1/-1;"><div class="spinner-border text-warning" role="status"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+    <script src="/js/esc.js"></script>
+
+    <script>
+        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+        const MY_USER_ID = '<%= user._id %>';
+        const ACTIVE_TYPE = '<%= activeType %>';
+
+        function getAuthToken() {
+            return document.cookie.split('; ')
+                .find(row => row.startsWith('token='))
+                ?.split('=')[1];
+        }
+
+        function photoUrl(profile) {
+            if (!profile) return '/images/default-user.jpg';
+            return profile.startsWith('http') ? profile : `https://api.banjaramatch.com/${profile}`;
+        }
+
+        function calcAge(dob) {
+            if (!dob) return 'N/A';
+            return new Date().getFullYear() - new Date(dob).getFullYear();
+        }
+
+        function formatVisitDate(dateStr) {
+            if (!dateStr) return '';
+            return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        async function loadVisitors() {
+            const grid = document.getElementById('visitorGrid');
+            try {
+                const res = await fetch(`${API_BASE_URL}/getProfileVisitorSummary`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getAuthToken()}`
+                    },
+                    body: JSON.stringify({ my_user_id: MY_USER_ID, type: ACTIVE_TYPE, page: 1, limit: 60 })
+                });
+                const data = await res.json();
+
+                if (!data.status || !data.data || data.data.length === 0) {
+                    const emptyText = ACTIVE_TYPE === 'they_viewed_me' ? 'No one has viewed your profile yet.'
+                        : ACTIVE_TYPE === 'mutual' ? 'No mutual views yet — keep exploring profiles!'
+                        : "You haven't viewed anyone's profile yet.";
+                    grid.innerHTML = `<div class="empty-visitors" style="grid-column:1/-1;"><div style="font-size:48px; opacity:.3;">👀</div><p class="text-muted">${emptyText}</p><a href="/all-profiles" class="cta-3">Browse Profiles</a></div>`;
+                    return;
+                }
+
+                grid.innerHTML = data.data.map(p => `
+                    <div class="visitor-card">
+                        <a href="/profile/${p._id}">
+                            <img src="${esc(photoUrl(p.profile))}" alt="${esc(p.full_name)}" onerror="this.src='/images/default-user.jpg'">
+                        </a>
+                        <div class="body">
+                            <h5><a href="/profile/${p._id}" style="color:#222;">${esc(p.full_name || 'Unknown')}</a></h5>
+                            <div class="meta">${esc(p.location?.city?.name || 'Not specified')} &middot; ${calcAge(p.dob)} years</div>
+                            ${p.lastVisitedAt ? `
+                                <div class="meta" style="margin-top:4px; color:#999;">
+                                    <i class="fa fa-clock-o"></i> ${formatVisitDate(p.lastVisitedAt)}${p.visitCount > 1 ? ` &middot; ${p.visitCount}x` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading visitors:', error);
+                grid.innerHTML = '<div class="empty-visitors" style="grid-column:1/-1; color:#dc3545;">Failed to load visitors.</div>';
+            }
+        }
+
+        loadVisitors();
+    </script>
+</body>
+</html>

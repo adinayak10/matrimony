@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Banjara Match Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .stats-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+        .stat-box { background: #fff; border-radius: 8px; padding: 16px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); flex: 1; min-width: 140px; }
+        .stat-box h3 { margin: 0; font-size: 1.8rem; }
+        .stat-box p { margin: 4px 0 0; color: #666; font-size: 0.85rem; }
+        .filters-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: end; }
+        .filters-row .form-group { margin: 0; }
+        .badge-status { padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-resolved { background: #d4edda; color: #155724; }
+        .badge-dismissed { background: #e2e3e5; color: #383d41; }
+        .report-desc { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">📊 Dashboard</a></li>
+                <li><a href="/users">👥 Users</a></li>
+                <li><a href="/reports" class="active">🚩 Reports</a></li>
+                <li><a href="/photo-moderation">🖼️ Photo Moderation</a></li>
+                <li><a href="/contact-enquiries">📧 Contact Enquiries</a></li>
+                <li><a href="/community-feedback">💡 Community Feedback</a></li>
+                <li><a href="/beta-testers">🧪 Beta Testers</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="/regional-pages">🌍 Regional Pages</a></li>
+                <li><a href="/community-data">🌳 Community Data</a></li>
+                <li><a href="/constants">⚙️ Constants</a></li>
+                <li><a href="/settings">🔧 Settings</a></li>
+                <li><a href="/apk-manager">📱 APK Manager</a></li>
+                <li><a href="/broadcast-email">📨 Broadcast Email</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <h1>Reports</h1>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="stats-row">
+                    <div class="stat-box"><h3 id="statPending">–</h3><p>Pending</p></div>
+                    <div class="stat-box"><h3 id="statResolved">–</h3><p>Resolved</p></div>
+                    <div class="stat-box"><h3 id="statDismissed">–</h3><p>Dismissed</p></div>
+                    <div class="stat-box"><h3 id="statTotal">–</h3><p>Total</p></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>User Reports</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="filters-row">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="statusFilter" onchange="currentPage=1;loadReports()">
+                                    <option value="">All</option>
+                                    <option value="pending" selected>Pending</option>
+                                    <option value="resolved">Resolved</option>
+                                    <option value="dismissed">Dismissed</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn btn-secondary" onclick="document.getElementById('statusFilter').value='';currentPage=1;loadReports()">Clear filter</button>
+                            </div>
+                        </div>
+
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Reported User</th>
+                                        <th>Reported By</th>
+                                        <th>Reason</th>
+                                        <th>Description</th>
+                                        <th>Status</th>
+                                        <th>Filed</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportsTable">
+                                    <tr><td colspan="7" class="loading"><div class="spinner"></div>Loading reports...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <nav>
+                            <ul class="pagination" id="pagination" style="display:flex; gap:6px; list-style:none; padding:0; margin-top:16px;"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Report Detail Modal -->
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Report Detail</h3>
+                <button class="modal-close" onclick="closeReportModal()">×</button>
+            </div>
+            <div class="modal-body" id="reportModalBody">
+                Loading...
+            </div>
+            <div class="modal-footer" id="reportModalFooter"></div>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script>
+        let currentPage = 1;
+        let activeReportId = null;
+
+        async function loadStats() {
+            try {
+                const res = await apiRequest('/api/admin/reports/stats');
+                const s = res.data || {};
+                document.getElementById('statPending').textContent = s.pending ?? 0;
+                document.getElementById('statResolved').textContent = s.resolved ?? 0;
+                document.getElementById('statDismissed').textContent = s.dismissed ?? 0;
+                document.getElementById('statTotal').textContent = s.total ?? 0;
+            } catch (error) {
+                console.error('Error loading report stats:', error);
+            }
+        }
+
+        async function loadReports() {
+            const tbody = document.getElementById('reportsTable');
+            tbody.innerHTML = '<tr><td colspan="7" class="loading"><div class="spinner"></div>Loading reports...</td></tr>';
+            try {
+                const status = document.getElementById('statusFilter').value;
+                const params = new URLSearchParams({ page: currentPage, limit: 20 });
+                if (status) params.append('status', status);
+
+                const res = await apiRequest(`/api/admin/reports?${params}`);
+                const reports = res.data || [];
+
+                if (reports.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No reports found</td></tr>';
+                    renderPagination(res.pagination);
+                    return;
+                }
+
+                tbody.innerHTML = reports.map(r => `
+                    <tr>
+                        <td>${r.reportedUser?.full_name || 'Unknown'}${r.reportedUser?.is_block ? ' <span class="badge-status badge-dismissed">blocked</span>' : ''}</td>
+                        <td>${r.reportedBy?.full_name || 'Unknown'}</td>
+                        <td>${escapeHtml(r.reason)}</td>
+                        <td class="report-desc" title="${escapeHtml(r.desc || '')}">${escapeHtml(r.desc || '—')}</td>
+                        <td><span class="badge-status badge-${r.status}">${r.status}</span></td>
+                        <td>${formatDate(r.createdAt)}</td>
+                        <td>
+                            <div class="table-actions">
+                                <button class="btn btn-primary btn-sm" onclick="viewReport('${r._id}')">View</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                renderPagination(res.pagination);
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#dc3545;">Failed to load reports</td></tr>';
+            }
+        }
+
+        function renderPagination(pagination) {
+            const el = document.getElementById('pagination');
+            if (!pagination || pagination.pages <= 1) { el.innerHTML = ''; return; }
+            let html = '';
+            for (let i = 1; i <= pagination.pages; i++) {
+                html += `<li><button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-secondary'}" onclick="currentPage=${i};loadReports()">${i}</button></li>`;
+            }
+            el.innerHTML = html;
+        }
+
+        async function viewReport(id) {
+            activeReportId = id;
+            document.getElementById('reportModal').classList.add('active');
+            document.getElementById('reportModalBody').innerHTML = 'Loading...';
+            document.getElementById('reportModalFooter').innerHTML = '';
+            try {
+                const res = await apiRequest(`/api/admin/reports/${id}`);
+                const r = res.data;
+                document.getElementById('reportModalBody').innerHTML = `
+                    <p><strong>Reported user:</strong> ${r.reportedUser?.full_name || 'Unknown'} (${r.reportedUser?.email || 'no email'})</p>
+                    <p><strong>Reported by:</strong> ${r.reportedBy?.full_name || 'Unknown'} (${r.reportedBy?.email || 'no email'})</p>
+                    <p><strong>Reason:</strong> ${escapeHtml(r.reason)}</p>
+                    <p><strong>Description:</strong><br>${escapeHtml(r.desc || 'No additional description provided.')}</p>
+                    <p><strong>Status:</strong> <span class="badge-status badge-${r.status}">${r.status}</span></p>
+                    <p><strong>Filed:</strong> ${formatDateTime(r.createdAt)}</p>
+                    ${r.resolvedBy ? `<p><strong>Resolved by:</strong> ${r.resolvedBy.full_name} on ${formatDateTime(r.resolvedAt)}</p>` : ''}
+                    ${r.resolutionNote ? `<p><strong>Resolution note:</strong> ${escapeHtml(r.resolutionNote)}</p>` : ''}
+                    <div class="form-group" style="margin-top:12px;">
+                        <label>Resolution note (optional)</label>
+                        <textarea id="resolutionNoteInput" rows="2" style="width:100%;"></textarea>
+                    </div>
+                `;
+                document.getElementById('reportModalFooter').innerHTML = `
+                    ${r.status === 'pending' ? `
+                        <button class="btn btn-danger" onclick="blockReportedUser()">Block reported user</button>
+                        <button class="btn btn-secondary" onclick="resolveReport('dismissed')">Dismiss</button>
+                        <button class="btn btn-success" onclick="resolveReport('resolved')">Mark resolved</button>
+                    ` : `
+                        <button class="btn btn-secondary" onclick="resolveReport('pending')">Reopen</button>
+                    `}
+                    <button class="btn btn-secondary" onclick="closeReportModal()">Close</button>
+                `;
+            } catch (error) {
+                document.getElementById('reportModalBody').innerHTML = '<p style="color:#dc3545;">Failed to load report.</p>';
+            }
+        }
+
+        async function resolveReport(status) {
+            const note = document.getElementById('resolutionNoteInput')?.value || '';
+            try {
+                await apiRequest(`/api/admin/reports/${activeReportId}/status`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ status, resolutionNote: note })
+                });
+                showNotification(`Report marked as ${status}`, 'success');
+                closeReportModal();
+                loadReports();
+                loadStats();
+            } catch (error) {
+                showNotification('Failed to update report', 'danger');
+            }
+        }
+
+        async function blockReportedUser() {
+            if (!window.confirm('Block this user? They will be immediately blocked from the platform.')) return;
+            const note = document.getElementById('resolutionNoteInput')?.value || '';
+            try {
+                await apiRequest(`/api/admin/reports/${activeReportId}/block-user`, {
+                    method: 'POST',
+                    body: JSON.stringify({ resolutionNote: note })
+                });
+                showNotification('User blocked and report resolved', 'success');
+                closeReportModal();
+                loadReports();
+                loadStats();
+            } catch (error) {
+                showNotification('Failed to block user', 'danger');
+            }
+        }
+
+        function closeReportModal() {
+            document.getElementById('reportModal').classList.remove('active');
+            activeReportId = null;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        window.addEventListener('load', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadStats();
+                loadReports();
+            }
+        });
+    </script>
+</body>
+</html>

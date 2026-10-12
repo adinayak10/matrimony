@@ -1,0 +1,31 @@
+<%#
+  Every state page with its city pages nested (D3.26, D6.49 anchor plan).
+  Data: res.locals.regionalIndex from middleware/regionalIndex.js —
+  [{ state, slug, cities: [{ name, slug }] }]. Renders nothing when empty so an
+  API outage never leaves an empty heading. Include with an optional heading:
+    include('../partials/regional-links', { heading: 'Banjara Matrimony by State and City' })
+%>
+<% const _ri = (typeof regionalIndex !== 'undefined' && Array.isArray(regionalIndex)) ? regionalIndex : []; %>
+<% if (_ri.length) { %>
+<nav class="regional-links" aria-label="Banjara matrimony by state and city">
+  <% if (typeof heading !== 'undefined' && heading) { %><h3 class="regional-links__title"><%= heading %></h3><% } %>
+  <ul class="regional-links__states">
+    <% for (const s of _ri) { %>
+    <li class="regional-links__state">
+      <% if (s.slug) { %>
+      <a href="/<%= s.slug %>" title="Banjara matrimony in <%= s.state %>"><strong>Banjara matrimony in <%= s.state %></strong></a>
+      <% } else { %>
+      <strong><%= s.state %></strong>
+      <% } %>
+      <% if (s.cities && s.cities.length) { %>
+      <ul class="regional-links__cities">
+        <% for (const c of s.cities) { %>
+        <li><a href="/<%= c.slug %>" title="Banjara matrimony in <%= c.name %>"><%= c.name %></a></li>
+        <% } %>
+      </ul>
+      <% } %>
+    </li>
+    <% } %>
+  </ul>
+</nav>
+<% } %>

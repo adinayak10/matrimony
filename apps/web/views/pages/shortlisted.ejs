@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'My Shortlist - Banjara Match' %></title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Your shortlisted profiles on Banjara Match">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+
+    <style>
+    .shortlist-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+    }
+    .shortlist-card {
+        background: #fff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        position: relative;
+    }
+    .shortlist-card img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+    }
+    .shortlist-card .body {
+        padding: 12px 14px;
+    }
+    .shortlist-card h5 {
+        margin: 0 0 4px;
+        font-size: 16px;
+    }
+    .shortlist-card .meta {
+        color: #777;
+        font-size: 13px;
+    }
+    .shortlist-card .remove-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+        cursor: pointer;
+    }
+    .shortlist-card .remove-btn:hover {
+        background: #d9534f;
+    }
+    .empty-shortlist {
+        text-align: center;
+        padding: 60px 20px;
+    }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <div class="db-nav">
+                            <div class="db-nav-pro">
+                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="db-nav-list">
+                                <ul>
+                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                                    <li><a href="/shortlisted" class="act"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit"><i class="fa fa-star"></i> My Shortlist</h2>
+
+                        <% if (shortlistedProfiles && shortlistedProfiles.length > 0) { %>
+                            <div class="shortlist-grid" id="shortlistGrid">
+                                <% shortlistedProfiles.forEach(function(p) {
+                                    const age = p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : 'N/A';
+                                    const city = p.location?.city?.name || 'Not specified';
+                                    const img = p.profile ? (p.profile.startsWith('http') ? p.profile : `https://api.banjaramatch.com/${p.profile}`) : '/images/default-user.jpg';
+                                %>
+                                    <div class="shortlist-card" data-user-id="<%= p._id %>">
+                                        <button class="remove-btn" title="Remove from shortlist" onclick="removeFromShortlist('<%= p._id %>', this)">&times;</button>
+                                        <a href="/profile/<%= p._id %>">
+                                            <img src="<%= img %>" alt="<%= p.full_name %>" onerror="this.src='/images/default-user.jpg'">
+                                        </a>
+                                        <div class="body">
+                                            <h5><a href="/profile/<%= p._id %>" style="color:#222;"><%= p.full_name %></a><% if (p.is_verified) { %> <svg width="12" height="12" viewBox="0 0 24 24" fill="#2e7d32" title="Verified"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg><% } %></h5>
+                                            <div class="meta"><%= city %> &middot; <%= age %> years</div>
+                                        </div>
+                                    </div>
+                                <% }) %>
+                            </div>
+                        <% } else { %>
+                            <div class="empty-shortlist">
+                                <div style="font-size: 56px; opacity: 0.3;">⭐</div>
+                                <p class="text-muted">You haven't shortlisted any profiles yet</p>
+                                <a href="/all-profiles" class="cta-3">Browse Profiles</a>
+                            </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+
+    <script>
+        const MY_USER_ID = '<%= user._id %>';
+        const API_BASE = 'https://api.banjaramatch.com';
+
+        async function removeFromShortlist(userId, btn) {
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${API_BASE}/api/toggleShortlist`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: userId })
+                });
+                const data = await res.json();
+                if (data.status) {
+                    const card = document.querySelector(`.shortlist-card[data-user-id="${userId}"]`);
+                    if (card) card.remove();
+                    const grid = document.getElementById('shortlistGrid');
+                    if (grid && grid.children.length === 0) {
+                        window.location.reload();
+                    }
+                } else {
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                console.error('Failed to remove from shortlist', e);
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<section class="stats-grid stats-grid--4" aria-label="Report counts">
+  <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('clock') %></div><div><div class="stat__value" data-stat="pending">&ndash;</div><div class="stat__label">Pending</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('check-circle') %></div><div><div class="stat__value" data-stat="resolved">&ndash;</div><div class="stat__label">Resolved</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--neutral"><%- icon('x-circle') %></div><div><div class="stat__value" data-stat="dismissed">&ndash;</div><div class="stat__label">Dismissed</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('flag') %></div><div><div class="stat__value" data-stat="total">&ndash;</div><div class="stat__label">Total</div></div></div>
+</section>
+
+<section class="card">
+  <div class="card__header card__header--stack">
+    <%- include('../partials/table-toolbar', {
+      id: 'report-filters',
+      search: false,
+      filters: [
+        { name: 'status', label: 'Status', options: [
+          { value: '', label: 'Any status' }, { value: 'pending', label: 'Pending' }, { value: 'resolved', label: 'Resolved' }, { value: 'dismissed', label: 'Dismissed' }
+        ] },
+        { name: 'reason', label: 'Reason', options: [ { value: '', label: 'Any reason' } ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="reports-table" data-table-mount></div>
+  </div>
+</section>

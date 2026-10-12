@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Pages Manager - Admin Panel</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+        .stat-card h3 {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .stat-card p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .filters-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .filter-item label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #555;
+        }
+        .filter-item input,
+        .filter-item select {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .badge {
+            padding: 5px 12px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .modal-content {
+            max-width: 1000px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .form-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .form-tab {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px 18px;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        .form-tab.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .form-tab:hover:not(.active) {
+            background: #e9ecef;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .city-tag {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            margin: 5px;
+            font-size: 13px;
+        }
+        .city-tag button {
+            background: none;
+            border: none;
+            color: white;
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">📊 Dashboard</a></li>
+                <li><a href="/users">👥 Users</a></li>
+                <li><a href="/reports">🚩 Reports</a></li>
+                <li><a href="/photo-moderation">🖼️ Photo Moderation</a></li>
+                <li><a href="/contact-enquiries">📧 Contact Enquiries</a></li>
+                <li><a href="/community-feedback">💡 Community Feedback</a></li>
+                <li><a href="/beta-testers">🧪 Beta Testers</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="/regional-pages" class="active">🌍 Regional Pages</a></li>
+                <li style="padding-left: 30px;"><a href="/city-pages" class="active">🏙️ City Pages</a></li>
+                <li style="padding-left: 30px;"><a href="/state-pages">🗺️ State Pages</a></li>
+                <li><a href="/community-data">🌳 Community Data</a></li>
+                <li><a href="/constants">⚙️ Constants</a></li>
+                <li><a href="/settings">🔧 Settings</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <h1>🏙️ City Pages Manager</h1>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span id="adminUsername">Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <h3 id="stat-total">0</h3>
+                        <p>Total City Pages</p>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <h3 id="stat-published">0</h3>
+                        <p>Published</p>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <h3 id="stat-draft">0</h3>
+                        <p>Draft</p>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <h3 id="stat-states">0</h3>
+                        <p>States Covered</p>
+                    </div>
+                </div>
+
+                <!-- Filters & Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🔍 Filters & Search</h3>
+                        <button class="btn btn-primary" onclick="openCreateModal()">
+                            <i class="fas fa-plus"></i> Create City Page
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="filters-row">
+                            <div class="filter-item">
+                                <label>Search City</label>
+                                <input type="text" id="searchInput" placeholder="Type city name..." onkeyup="handleSearch()">
+                            </div>
+                            <div class="filter-item">
+                                <label>State</label>
+                                <select id="stateFilter" onchange="loadCityPages()">
+                                    <option value="">All States</option>
+                                </select>
+                            </div>
+                            <div class="filter-item">
+                                <label>Status</label>
+                                <select id="statusFilter" onchange="loadCityPages()">
+                                    <option value="">All Status</option>
+                                    <option value="true">Published</option>
+                                    <option value="false">Draft</option>
+                                </select>
+                            </div>
+                            <div class="filter-item">
+                                <label>Sort By</label>
+                                <select id="sortFilter" onchange="loadCityPages()">
+                                    <option value="createdAt">Created Date</option>
+                                    <option value="updatedAt">Last Updated</option>
+                                    <option value="stats.totalMembers">Members Count</option>
+                                    <option value="views">Views</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- City Pages Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>City Regional Pages</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>City</th>
+                                        <th>State</th>
+                                        <th>Slug</th>
+                                        <th>Members</th>
+                                        <th>Views</th>
+                                        <th>Status</th>
+                                        <th>Last Updated</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cityPagesTable">
+                                    <tr>
+                                        <td colspan="8" class="loading">
+                                            <div class="spinner"></div>
+                                            Loading city pages...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="pagination" style="margin-top: 20px; text-align: center;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Create/Edit Modal -->
+    <div id="cityModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Create City Page</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="cityForm" onsubmit="saveCityPage(event)">
+                <div class="modal-body">
+                    <!-- Form Tabs -->
+                    <div class="form-tabs">
+                        <button type="button" class="form-tab active" onclick="showTab(event, 'basic')">📍 Basic Info</button>
+                        <button type="button" class="form-tab" onclick="showTab(event, 'seo')">🔍 SEO Meta</button>
+                        <button type="button" class="form-tab" onclick="showTab(event, 'content')">📝 Content</button>
+                        <button type="button" class="form-tab" onclick="showTab(event, 'localities')">📍 Localities</button>
+                        <button type="button" class="form-tab" onclick="showTab(event, 'nearby')">🗺️ Nearby Cities</button>
+                    </div>
+
+                    <!-- Basic Info Tab -->
+                    <div id="tab-basic" class="tab-content active">
+                        <h4 style="margin-bottom: 15px; color: #667eea;">📍 Basic Information</h4>
+                        <div class="form-group">
+                            <label>State *</label>
+                            <select id="stateSelect" name="state" required onchange="loadCitiesForState()">
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>City *</label>
+                            <select id="citySelect" name="city" required onchange="onCityChange()">
+                                <option value="">Select City</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Slug (URL) - Auto-generated</label>
+                            <input type="text" id="slug" name="slug" placeholder="Will preview when you select a city" readonly style="background-color: #f5f5f5; cursor: not-allowed;">
+                            <small style="color: #666;">⚡ Preview generated instantly when city is selected</small>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="isPublished" name="isPublished">
+                                Publish Immediately
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="isActive" name="isActive" checked>
+                                Set as Active
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- SEO Meta Tab -->
+                    <div id="tab-seo" class="tab-content">
+                        <h4 style="margin-bottom: 15px; color: #667eea;">🔍 SEO & Meta Data</h4>
+                        <div class="form-group">
+                            <label>Meta Title</label>
+                            <input type="text" id="metaTitle" name="metaTitle" maxlength="60">
+                            <small>50-60 characters recommended</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Meta Description</label>
+                            <textarea id="metaDescription" name="metaDescription" rows="3" maxlength="160"></textarea>
+                            <small>150-160 characters recommended</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Meta Keywords (comma-separated)</label>
+                            <textarea id="metaKeywords" name="metaKeywords" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Content Tab -->
+                    <div id="tab-content" class="tab-content">
+                        <h4 style="margin-bottom: 15px; color: #667eea;">📝 Page Content</h4>
+                        
+                        <h5>Hero Section</h5>
+                        <div class="form-group">
+                            <label>Hero Title</label>
+                            <input type="text" id="heroTitle" name="heroTitle">
+                        </div>
+                        <div class="form-group">
+                            <label>Hero Subtitle</label>
+                            <textarea id="heroSubtitle" name="heroSubtitle" rows="2"></textarea>
+                        </div>
+                        
+                        <hr style="margin: 20px 0;">
+                        
+                        <h5>Intro Section</h5>
+                        <div class="form-group">
+                            <label>Intro Heading</label>
+                            <input type="text" id="introHeading" name="introHeading">
+                        </div>
+                        <div class="form-group">
+                            <label>Intro Content</label>
+                            <textarea id="introContent" name="introContent" rows="4"></textarea>
+                        </div>
+                        
+                        <hr style="margin: 20px 0;">
+                        
+                        <h5>About Section</h5>
+                        <div class="form-group">
+                            <label>About Heading</label>
+                            <input type="text" id="aboutHeading" name="aboutHeading">
+                        </div>
+                        <div class="form-group">
+                            <label>About Content</label>
+                            <textarea id="aboutContent" name="aboutContent" rows="6"></textarea>
+                            <small style="color: #e74c3c; font-weight: bold;">⚠️ Write unique city-specific content!</small>
+                        </div>
+                    </div>
+
+                    <!-- Localities Tab -->
+                    <div id="tab-localities" class="tab-content">
+                        <h4 style="margin-bottom: 15px; color: #667eea;">📍 Popular Localities</h4>
+                        <div class="form-group">
+                            <label>Popular Localities (one per line)</label>
+                            <textarea id="popularLocalities" name="popularLocalities" rows="8" placeholder="Banjara Hills&#10;Jubilee Hills&#10;Madhapur"></textarea>
+                            <small>List popular areas where Banjara community resides</small>
+                        </div>
+                    </div>
+
+                    <!-- Nearby Cities Tab -->
+                    <div id="tab-nearby" class="tab-content">
+                        <h4 style="margin-bottom: 15px; color: #667eea;">🗺️ Nearby Cities</h4>
+                        <div class="form-group">
+                            <button type="button" class="btn btn-primary" onclick="autoLoadNearbyCities()">
+                                <i class="fas fa-location-arrow"></i> Auto-load Nearby Cities (50km)
+                            </button>
+                        </div>
+                        <div class="form-group">
+                            <div id="nearbyCitiesContainer" style="min-height: 60px; border: 1px dashed #ddd; border-radius: 8px; padding: 15px;">
+                                <small style="color: #999;">Selected nearby cities will appear here</small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Manual Search</label>
+                            <input type="text" id="citySearch" placeholder="Search city name...">
+                            <button type="button" class="btn btn-secondary" onclick="searchCities()">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                        <div id="citySearchResults" style="max-height: 250px; overflow-y: auto; display: none;"></div>
+                    </div>
+
+                    <input type="hidden" id="editingPageId" value="">
+                    <input type="hidden" id="nearbyCitiesData" name="nearbyCities" value="[]">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Save City Page
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script src="/js/notifications.js"></script>
+    <script>
+        const API_BASE = 'https://api.banjaramatch.com/api';
+        let currentPage = 1;
+        let selectedNearbyCities = [];
+        let cityNamesCache = {};
+
+        // Initialize
+        window.addEventListener('load', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                await loadStates();
+                await loadCityPages();
+            }
+        });
+
+        // Tab navigation
+        function showTab(event, tabName) {
+            event.preventDefault();
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.form-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Load states
+        async function loadStates() {
+            try {
+                const data = await window.apiRequest('/api/states', 'POST', {});
+                if (data.status && data.data) {
+                    const stateFilter = document.getElementById('stateFilter');
+                    const stateSelect = document.getElementById('stateSelect');
+                    
+                    const options = data.data.map(state => 
+                        `<option value="${state._id}">${state.name}</option>`
+                    ).join('');
+                    
+                    stateFilter.innerHTML += options;
+                    stateSelect.innerHTML += options;
+                }
+            } catch (error) {
+                console.error('Error loading states:', error);
+            }
+        }
+
+        // Load cities for state
+        async function loadCitiesForState() {
+            const stateId = document.getElementById('stateSelect').value;
+            const citySelect = document.getElementById('citySelect');
+            
+            if (!stateId) {
+                citySelect.innerHTML = '<option value="">Select City</option>';
+                return;
+            }
+
+            try {
+                const data = await window.apiRequest('/api/cities', 'POST', { state: stateId });
+                if (data.status && data.data) {
+                    citySelect.innerHTML = '<option value="">Select City</option>' + 
+                        data.data.map(city => 
+                            `<option value="${city._id}">${city.name}</option>`
+                        ).join('');
+                }
+            } catch (error) {
+                console.error('Error loading cities:', error);
+            }
+        }
+
+        // Load city pages
+        async function loadCityPages() {
+            const search = document.getElementById('searchInput').value;
+            const state = document.getElementById('stateFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            const sortBy = document.getElementById('sortFilter').value;
+
+            let url = `/api/city-pages/admin/all?page=${currentPage}&limit=20&sortBy=${sortBy}&sortOrder=desc`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            if (state) url += `&state=${state}`;
+            if (status) url += `&isPublished=${status}`;
+
+            try {
+                const data = await window.apiRequest(url);
+                if (data.status && data.data) {
+                    renderPages(data.data);
+                    updateStats(data.data);
+                    updatePagination(data.pagination);
+                }
+            } catch (error) {
+                console.error('Error loading city pages:', error);
+                showNotification('Failed to load city pages', 'danger');
+            }
+        }
+
+        // Render pages
+        function renderPages(pages) {
+            const tbody = document.getElementById('cityPagesTable');
+
+            if (pages.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 30px;">No city pages found. <button class="btn btn-primary" onclick="openCreateModal()">Create First City Page</button></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = pages.map(page => `
+                <tr>
+                    <td><strong>${page.city?.name || 'N/A'}</strong></td>
+                    <td>${page.state?.name || 'N/A'}</td>
+                    <td><small>${page.slug || '-'}</small></td>
+                    <td>${page.stats?.totalMembers || 0}</td>
+                    <td>${page.views || 0}</td>
+                    <td>
+                        ${page.isPublished 
+                            ? '<span class="badge badge-success">Published</span>' 
+                            : '<span class="badge badge-warning">Draft</span>'}
+                    </td>
+                    <td>${new Date(page.updatedAt).toLocaleDateString()}</td>
+                    <td>
+                        <div class="table-actions">
+                            <button class="btn btn-primary btn-sm" onclick="editPage('${page._id}')" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="refreshStats('${page._id}')" title="Refresh Stats">
+                                <i class="fas fa-sync"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePage('${page._id}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Update stats
+        function updateStats(pages) {
+            const total = pages.length;
+            const published = pages.filter(p => p.isPublished).length;
+            const statesSet = new Set(pages.map(p => p.state?._id).filter(Boolean));
+            
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-published').textContent = published;
+            document.getElementById('stat-draft').textContent = total - published;
+            document.getElementById('stat-states').textContent = statesSet.size;
+        }
+
+        // Update pagination
+        function updatePagination(pagination) {
+            if (!pagination) return;
+            
+            const paginationDiv = document.getElementById('pagination');
+            let html = '<div style="display: flex; gap: 10px; justify-content: center; align-items: center;">';
+            
+            if (pagination.currentPage > 1) {
+                html += `<button class="btn btn-secondary btn-sm" onclick="changePage(${pagination.currentPage - 1})">Previous</button>`;
+            }
+            
+            html += `<span style="padding: 8px 15px;">Page ${pagination.currentPage} of ${pagination.totalPages}</span>`;
+            
+            if (pagination.hasMore) {
+                html += `<button class="btn btn-secondary btn-sm" onclick="changePage(${pagination.currentPage + 1})">Next</button>`;
+            }
+            
+            html += '</div>';
+            paginationDiv.innerHTML = html;
+        }
+
+        // Change page
+        function changePage(page) {
+            currentPage = page;
+            loadCityPages();
+        }
+
+        // Handle search
+        let searchTimeout;
+        function handleSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentPage = 1;
+                loadCityPages();
+            }, 500);
+        }
+
+        // Open create modal
+        function openCreateModal() {
+            document.getElementById('modalTitle').textContent = 'Create City Page';
+            document.getElementById('cityForm').reset();
+            document.getElementById('editingPageId').value = '';
+            selectedNearbyCities = [];
+            document.getElementById('nearbyCitiesContainer').innerHTML = '<small style="color: #999;">Selected nearby cities will appear here</small>';
+            document.getElementById('cityModal').style.display = 'flex';
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('cityModal').style.display = 'none';
+        }
+
+        // Auto-trigger on city selection
+        async function onCityChange() {
+            const cityId = document.getElementById('citySelect').value;
+            const citySelect = document.getElementById('citySelect');
+            const slugInput = document.getElementById('slug');
+            
+            if (cityId) {
+                // Get selected city name and generate slug preview immediately
+                const cityName = citySelect.options[citySelect.selectedIndex].text;
+                const slugPreview = generateSlug(cityName);
+                slugInput.value = slugPreview;
+                slugInput.style.color = '#667eea';
+                slugInput.style.fontWeight = '600';
+                
+                // Then fetch and prefill other data
+                await prefillCityData();
+            } else {
+                // Clear slug if no city selected
+                slugInput.value = '';
+                slugInput.style.color = '';
+                slugInput.style.fontWeight = '';
+            }
+        }
+        
+        // Generate slug from city/state name
+        function generateSlug(name) {
+            return 'banjara-matrimony-' + name
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .trim();
+        }
+
+        // Prefill city data
+        async function prefillCityData() {
+            const cityId = document.getElementById('citySelect').value;
+            if (!cityId) {
+                showNotification('Please select a city first', 'warning');
+                return;
+            }
+
+            try {
+                const data = await window.apiRequest(`/api/city-pages/admin/prefill/${cityId}`);
+                if (data.status && data.data) {
+                    const prefill = data.data;
+                    
+                    // Fill form fields (skip slug - already set with instant preview)
+                    // document.getElementById('slug').value is already set by onCityChange()
+                    document.getElementById('metaTitle').value = prefill.metaTitle || '';
+                    document.getElementById('metaDescription').value = prefill.metaDescription || '';
+                    document.getElementById('metaKeywords').value = (prefill.metaKeywords || []).join(', ');
+                    document.getElementById('heroTitle').value = prefill.heroSection?.title || '';
+                    document.getElementById('heroSubtitle').value = prefill.heroSection?.subtitle || '';
+                    document.getElementById('introHeading').value = prefill.introSection?.heading || '';
+                    document.getElementById('introContent').value = prefill.introSection?.content || '';
+                    document.getElementById('aboutHeading').value = prefill.aboutSection?.heading || '';
+                    document.getElementById('aboutContent').value = prefill.aboutSection?.content || '';
+                    
+                    showNotification('City data prefilled successfully!', 'success');
+                }
+            } catch (error) {
+                console.error('Error prefilling data:', error);
+                showNotification('Failed to prefill data', 'danger');
+            }
+        }
+
+        // Save city page
+        async function saveCityPage(event) {
+            event.preventDefault();
+            
+            const pageId = document.getElementById('editingPageId').value;
+            const formData = {
+                cityId: document.getElementById('citySelect').value,
+                stateId: document.getElementById('stateSelect').value,
+                metaTitle: document.getElementById('metaTitle').value,
+                metaDescription: document.getElementById('metaDescription').value,
+                metaKeywords: document.getElementById('metaKeywords').value.split(',').map(k => k.trim()).filter(Boolean),
+                heroSection: {
+                    title: document.getElementById('heroTitle').value,
+                    subtitle: document.getElementById('heroSubtitle').value
+                },
+                introSection: {
+                    heading: document.getElementById('introHeading').value,
+                    content: document.getElementById('introContent').value
+                },
+                aboutSection: {
+                    heading: document.getElementById('aboutHeading').value,
+                    content: document.getElementById('aboutContent').value
+                },
+                popularLocalities: document.getElementById('popularLocalities').value.split('\n').map(l => l.trim()).filter(Boolean),
+                nearbyCities: selectedNearbyCities,
+                isPublished: document.getElementById('isPublished').checked,
+                isActive: document.getElementById('isActive').checked
+            };
+
+            // Only include slug if it has a value (otherwise backend will auto-generate)
+            const slugValue = document.getElementById('slug').value.trim();
+            if (slugValue) {
+                formData.slug = slugValue;
+            }
+
+            try {
+                let url = '/api/city-pages/admin';
+                let method = 'POST';
+                
+                if (pageId) {
+                    url += `/${pageId}`;
+                    method = 'PUT';
+                }
+
+                const data = await window.apiRequest(url, method, formData);
+                
+                if (data.status) {
+                    showNotification(pageId ? 'City page updated successfully!' : 'City page created successfully!', 'success');
+                    closeModal();
+                    loadCityPages();
+                }
+            } catch (error) {
+                console.error('Error saving city page:', error);
+                showNotification('Failed to save city page', 'danger');
+            }
+        }
+
+        // Edit page
+        async function editPage(pageId) {
+            try {
+                const data = await window.apiRequest(`/api/city-pages/admin/${pageId}`);
+                if (data.status && data.data) {
+                    const page = data.data;
+                    
+                    document.getElementById('modalTitle').textContent = 'Edit City Page';
+                    document.getElementById('editingPageId').value = pageId;
+                    document.getElementById('stateSelect').value = page.state?._id || '';
+                    await loadCitiesForState();
+                    document.getElementById('citySelect').value = page.city?._id || '';
+                    document.getElementById('slug').value = page.slug || '';
+                    document.getElementById('metaTitle').value = page.metaTitle || '';
+                    document.getElementById('metaDescription').value = page.metaDescription || '';
+                    document.getElementById('metaKeywords').value = (page.metaKeywords || []).join(', ');
+                    document.getElementById('heroTitle').value = page.heroSection?.title || '';
+                    document.getElementById('heroSubtitle').value = page.heroSection?.subtitle || '';
+                    document.getElementById('introHeading').value = page.introSection?.heading || '';
+                    document.getElementById('introContent').value = page.introSection?.content || '';
+                    document.getElementById('aboutHeading').value = page.aboutSection?.heading || '';
+                    document.getElementById('aboutContent').value = page.aboutSection?.content || '';
+                    document.getElementById('popularLocalities').value = (page.popularLocalities || []).join('\n');
+                    document.getElementById('isPublished').checked = page.isPublished || false;
+                    document.getElementById('isActive').checked = page.isActive || false;
+                    
+                    selectedNearbyCities = page.nearbyCities || [];
+                    renderNearbyCities();
+                    
+                    document.getElementById('cityModal').style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Error loading page:', error);
+                showNotification('Failed to load city page', 'danger');
+            }
+        }
+
+        // Delete page
+        async function deletePage(pageId) {
+            if (!confirm('Are you sure you want to delete this city page?')) return;
+
+            try {
+                const data = await window.apiRequest(`/api/city-pages/admin/${pageId}`, 'DELETE');
+                if (data.status) {
+                    showNotification('City page deleted successfully!', 'success');
+                    loadCityPages();
+                }
+            } catch (error) {
+                console.error('Error deleting page:', error);
+                showNotification('Failed to delete city page', 'danger');
+            }
+        }
+
+        // Refresh stats
+        async function refreshStats(pageId) {
+            try {
+                const data = await window.apiRequest(`/api/city-pages/admin/${pageId}/refresh-stats`, 'POST');
+                if (data.status) {
+                    showNotification('Stats refreshed successfully!', 'success');
+                    loadCityPages();
+                }
+            } catch (error) {
+                console.error('Error refreshing stats:', error);
+                showNotification('Failed to refresh stats', 'danger');
+            }
+        }
+
+        // Auto-load nearby cities
+        async function autoLoadNearbyCities() {
+            const cityId = document.getElementById('citySelect').value;
+            if (!cityId) {
+                showNotification('Please select a city first', 'warning');
+                return;
+            }
+
+            try {
+                const data = await window.apiRequest('/api/cities', 'POST', {});
+                if (data.status && data.data) {
+                    // Simple filter - take first 10 cities from same state (not including current)
+                    const stateId = document.getElementById('stateSelect').value;
+                    const nearbyList = data.data.filter(c => c.state === stateId && c._id !== cityId).slice(0, 10);
+                    selectedNearbyCities = nearbyList.map(c => c._id);
+                    nearbyList.forEach(c => { cityNamesCache[c._id] = c.name; });
+                    renderNearbyCities();
+                    showNotification('Nearby cities loaded!', 'success');
+                }
+            } catch (error) {
+                console.error('Error loading nearby cities:', error);
+            }
+        }
+
+        // Render nearby cities
+        function renderNearbyCities() {
+            const container = document.getElementById('nearbyCitiesContainer');
+            if (selectedNearbyCities.length === 0) {
+                container.innerHTML = '<small style="color: #999;">Selected nearby cities will appear here</small>';
+                return;
+            }
+            
+            container.innerHTML = selectedNearbyCities.map(cityId => `
+                <span class="city-tag">
+                    ${cityNamesCache[cityId] || ('City ' + cityId.substring(0, 8))}
+                    <button onclick="removeNearbyCity('${cityId}')">×</button>
+                </span>
+            `).join('');
+        }
+
+        // Remove nearby city
+        function removeNearbyCity(cityId) {
+            selectedNearbyCities = selectedNearbyCities.filter(id => id !== cityId);
+            renderNearbyCities();
+        }
+
+        // Search cities by name (Manual Search box) — was previously called by
+        // the Search button with no function defined at all (dead button).
+        async function searchCities() {
+            const term = document.getElementById('citySearch').value.trim();
+            const resultsEl = document.getElementById('citySearchResults');
+
+            if (!term) {
+                showNotification('Enter a city name to search', 'warning');
+                return;
+            }
+
+            try {
+                const data = await window.apiRequest('/api/cities', 'POST', { search: term, limit: 20 });
+                resultsEl.style.display = 'block';
+
+                if (!data.status || !data.data || data.data.length === 0) {
+                    resultsEl.innerHTML = '<small style="color:#999;">No cities found.</small>';
+                    return;
+                }
+
+                resultsEl.innerHTML = data.data.map(c => `
+                    <div style="padding:8px 10px; border-bottom:1px solid #eee; cursor:pointer;"
+                         onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''"
+                         onclick="addSearchedCity('${c._id}', ${JSON.stringify(c.name || 'Unnamed city')})">
+                        ${c.name || 'Unnamed city'}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error searching cities:', error);
+                showNotification('Failed to search cities', 'danger');
+            }
+        }
+
+        // Add a city from search results into the nearby-cities selection
+        function addSearchedCity(cityId, cityName) {
+            if (!selectedNearbyCities.includes(cityId)) {
+                selectedNearbyCities.push(cityId);
+                cityNamesCache[cityId] = cityName;
+                renderNearbyCities();
+            }
+            document.getElementById('citySearchResults').style.display = 'none';
+            document.getElementById('citySearch').value = '';
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem('adminToken');
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!-- SOCIAL SHARING BUTTONS (External Link Building & Viral Growth) -->
+<%
+// Get sharing configuration
+const shareUrl = locals.shareUrl || `https://www.banjaramatch.com${locals.currentPath || '/'}`;
+const shareTitle = locals.shareTitle || locals.title || 'BanjaraMatch - Find Your Perfect Match';
+const shareDescription = locals.shareDescription || 'India\'s most trusted FREE Banjara matrimony platform';
+const shareImage = locals.shareImage || 'https://www.banjaramatch.com/images/banjaramatch-preview.jpg';
+
+// Encode for URLs
+const encodedUrl = encodeURIComponent(shareUrl);
+const encodedTitle = encodeURIComponent(shareTitle);
+const encodedDescription = encodeURIComponent(shareDescription);
+%>
+
+<div class="social-share-buttons" style="margin: 20px 0;">
+  <h5 style="font-size: 14px; color: #666; margin-bottom: 12px;">
+    <i class="fa fa-share-alt" aria-hidden="true"></i> Share this:
+  </h5>
+  <div class="share-buttons-container" style="display: flex; gap: 10px; flex-wrap: wrap;">
+    
+    <!-- WhatsApp -->
+    <a href="https://api.whatsapp.com/send?text=<%= encodedTitle %>%20-%20<%= encodedUrl %>" 
+       target="_blank" 
+       rel="noopener noreferrer nofollow"
+       class="share-btn whatsapp"
+       title="Share on WhatsApp"
+       onclick="trackShare('whatsapp')"
+       style="display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; background: #25D366; color: white; border-radius: 5px; text-decoration: none; font-size: 13px; transition: all 0.3s;">
+      <i class="fa fa-whatsapp" aria-hidden="true"></i>
+      <span>WhatsApp</span>
+    </a>
+    
+    <!-- Facebook -->
+    <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodedUrl %>" 
+       target="_blank" 
+       rel="noopener noreferrer nofollow"
+       class="share-btn facebook"
+       title="Share on Facebook"
+       onclick="trackShare('facebook')"
+       style="display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; background: #1877F2; color: white; border-radius: 5px; text-decoration: none; font-size: 13px; transition: all 0.3s;">
+      <i class="fa fa-facebook" aria-hidden="true"></i>
+      <span>Facebook</span>
+    </a>
+    
+    <!-- Twitter (X) -->
+    <a href="https://twitter.com/intent/tweet?text=<%= encodedTitle %>&url=<%= encodedUrl %>&via=banjaramatch" 
+       target="_blank" 
+       rel="noopener noreferrer nofollow"
+       class="share-btn twitter"
+       title="Share on Twitter"
+       onclick="trackShare('twitter')"
+       style="display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; background: #000000; color: white; border-radius: 5px; text-decoration: none; font-size: 13px; transition: all 0.3s;">
+      <i class="fa fa-twitter" aria-hidden="true"></i>
+      <span>Twitter</span>
+    </a>
+    
+    <!-- LinkedIn -->
+    <a href="https://www.linkedin.com/shareArticle?mini=true&url=<%= encodedUrl %>&title=<%= encodedTitle %>&summary=<%= encodedDescription %>" 
+       target="_blank" 
+       rel="noopener noreferrer nofollow"
+       class="share-btn linkedin"
+       title="Share on LinkedIn"
+       onclick="trackShare('linkedin')"
+       style="display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; background: #0A66C2; color: white; border-radius: 5px; text-decoration: none; font-size: 13px; transition: all 0.3s;">
+      <i class="fa fa-linkedin" aria-hidden="true"></i>
+      <span>LinkedIn</span>
+    </a>
+    
+    <!-- Pinterest (for blog posts with images) -->
+    <% if (locals.showPinterest !== false) { %>
+    <a href="https://pinterest.com/pin/create/button/?url=<%= encodedUrl %>&media=<%= encodeURIComponent(shareImage) %>&description=<%= encodedTitle %>" 
+       target="_blank" 
+       rel="noopener noreferrer nofollow"
+       class="share-btn pinterest"
+       title="Pin on Pinterest"
+       onclick="trackShare('pinterest')"
+       style="display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; background: #E60023; color: white; border-radius: 5px; text-decoration: none; font-size: 13px; transition: all 0.3s;">
+      <i class="fa fa-pinterest" aria-hidden="true"></i>
+      <span>Pinterest</span>
+    </a>
+    <% } %>
+    
+    <!-- Copy Link -->
+    <button onclick="copyShareLink('<%= shareUrl %>')" 
+            class="share-btn copy-link"
+            title="Copy Link"
+            style="display: inline-flex; align-items: center; gap: 5px; padding: 8px 15px; background: #6c757d; color: white; border-radius: 5px; border: none; cursor: pointer; font-size: 13px; transition: all 0.3s;">
+      <i class="fa fa-copy" aria-hidden="true"></i>
+      <span>Copy Link</span>
+    </button>
+  </div>
+</div>
+
+<style>
+/* Hover effects for share buttons */
+.share-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.share-btn:active {
+  transform: translateY(0);
+}
+
+/* Mobile responsive */
+@media (max-width: 576px) {
+  .share-buttons-container {
+    justify-content: center;
+  }
+  .share-btn span {
+    display: none;
+  }
+  .share-btn {
+    padding: 10px 12px !important;
+  }
+}
+</style>
+
+<script>
+// Copy link to clipboard
+function copyShareLink(url) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      // Visual feedback
+      const btn = event.target.closest('button');
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="fa fa-check"></i> <span>Copied!</span>';
+      btn.style.background = '#28a745';
+      
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.style.background = '#6c757d';
+      }, 2000);
+      
+      trackShare('copy-link');
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      // Fallback for older browsers
+      fallbackCopyText(url);
+    });
+  } else {
+    fallbackCopyText(url);
+  }
+}
+
+// Fallback copy method for older browsers
+function fallbackCopyText(text) {
+  const textArea = document.createElement("textarea");
+  textArea.value = text;
+  textArea.style.position = "fixed";
+  textArea.style.left = "-999999px";
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    alert('Link copied to clipboard!');
+    trackShare('copy-link');
+  } catch (err) {
+    console.error('Fallback: Could not copy text', err);
+  }
+  document.body.removeChild(textArea);
+}
+
+// Analytics tracking for social shares
+function trackShare(platform) {
+  console.log('Share tracked:', platform, '<%= shareUrl %>');
+  
+  // Google Analytics (if enabled)
+  if (typeof gtag !== 'undefined') {
+    gtag('event', 'share', {
+      method: platform,
+      content_type: 'page',
+      item_id: '<%= shareUrl %>'
+    });
+  }
+  
+  // Can also send to your API for tracking
+  // fetch('/api/track-share', {
+  //   method: 'POST',
+  //   headers: { 'Content-Type': 'application/json' },
+  //   body: JSON.stringify({ platform, url: '<%= shareUrl %>' })
+  // }).catch(err => console.log('Track failed:', err));
+}
+</script>

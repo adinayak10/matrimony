@@ -1,0 +1,44 @@
+<%#
+  Cookie-consent banner (D2.23). Shown only when REQUIRE_COOKIE_CONSENT=1 and the
+  visitor has not answered. The answer is stored in bm_consent=granted|denied
+  (1 year, SameSite=Lax) and pushed to Google Consent Mode; head.ejs reads the
+  cookie on later page loads before any tag runs. No API calls, no dependencies.
+%>
+<% const _cRequired = /^(1|true|yes)$/i.test(process.env.REQUIRE_COOKIE_CONSENT || ''); %>
+<% if (_cRequired) { %>
+<div id="bm-consent" class="bm-consent" role="dialog" aria-live="polite" aria-label="Cookie consent" hidden>
+  <p class="bm-consent__text">
+    We use cookies for analytics and to measure sign-ups. No analytics cookies are set until you agree.
+    <a href="/privacy-policy">Privacy policy</a>
+  </p>
+  <div class="bm-consent__actions">
+    <button type="button" class="bm-consent__btn bm-consent__btn--secondary" data-consent="denied">Decline</button>
+    <button type="button" class="bm-consent__btn" data-consent="granted">Accept</button>
+  </div>
+</div>
+<style>
+.bm-consent{position:fixed;left:16px;right:16px;bottom:16px;z-index:10000;max-width:640px;margin:0 auto;background:#fff;color:#333;border:1px solid #e6dcc3;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.15);padding:16px 18px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;font-size:14px;line-height:1.5}
+.bm-consent[hidden]{display:none}
+.bm-consent__text{margin:0;flex:1 1 280px}
+.bm-consent__text a{color:#66451c;text-decoration:underline}
+.bm-consent__actions{display:flex;gap:8px}
+.bm-consent__btn{border:0;border-radius:8px;padding:9px 16px;font-weight:600;cursor:pointer;background:#f6af04;color:#2b1d00}
+.bm-consent__btn--secondary{background:#f1f1f1;color:#333}
+</style>
+<script>
+(function(){
+  var el=document.getElementById('bm-consent');if(!el)return;
+  if(window.bmConsent==='granted'||window.bmConsent==='denied')return;
+  el.hidden=false;
+  el.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest?e.target.closest('[data-consent]'):null;if(!b)return;
+    var v=b.getAttribute('data-consent')==='granted'?'granted':'denied';
+    var secure=location.protocol==='https:'?'; Secure':'';
+    document.cookie='bm_consent='+v+'; Max-Age=31536000; Path=/; SameSite=Lax'+secure;
+    window.bmConsent=v;
+    if(typeof gtag==='function')gtag('consent','update',{analytics_storage:v,ad_storage:v,ad_user_data:v,ad_personalization:v});
+    el.hidden=true;
+  });
+})();
+</script>
+<% } %>

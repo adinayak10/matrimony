@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Data Manager - Banjara Match Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .main-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .main-tab {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 12px 24px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #555;
+        }
+        .main-tab.active {
+            background: #667eea;
+            color: #fff;
+            border-color: #667eea;
+        }
+        .section { display: none; }
+        .section.active { display: block; }
+        .form-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .form-tab {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 10px 18px;
+            cursor: pointer;
+            border-radius: 6px 6px 0 0;
+            font-size: 14px;
+        }
+        .form-tab.active { background: #667eea; color: #fff; border-color: #667eea; }
+        .tab-content { display: none; padding: 5px 2px; }
+        .tab-content.active { display: block; }
+        .modal-content { max-width: 700px; max-height: 90vh; overflow-y: auto; }
+        .state-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr auto;
+            gap: 8px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+        .state-row input, .state-row select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .state-rows-header {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+        }
+        .clan-checkboxes label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-right: 14px;
+            font-weight: normal;
+            font-size: 13px;
+        }
+        small { color: #888; display: block; margin-top: 3px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">📊 Dashboard</a></li>
+                <li><a href="/users">👥 Users</a></li>
+                <li><a href="/reports">🚩 Reports</a></li>
+                <li><a href="/photo-moderation">🖼️ Photo Moderation</a></li>
+                <li><a href="/contact-enquiries">📧 Contact Enquiries</a></li>
+                <li><a href="/community-feedback">💡 Community Feedback</a></li>
+                <li><a href="/beta-testers">🧪 Beta Testers</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="/regional-pages">🌍 Regional Pages</a></li>
+                <li><a href="/community-data" class="active">🌳 Community Data</a></li>
+                <li><a href="/constants">⚙️ Constants</a></li>
+                <li><a href="/settings">🔧 Settings</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <h1>🌳 Community Data — Clans, Gotras &amp; Surname Titles</h1>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <div class="main-tabs">
+                    <button type="button" class="main-tab active" onclick="showSection(event, 'clans')">🏛️ Clans</button>
+                    <button type="button" class="main-tab" onclick="showSection(event, 'gotras')">🌿 Gotras</button>
+                    <button type="button" class="main-tab" onclick="showSection(event, 'surnameTitles')">🏷️ Surname Titles</button>
+                </div>
+
+                <!-- ============ CLANS SECTION ============ -->
+                <div id="section-clans" class="section active">
+                    <div class="stats-grid">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <h3 id="clanStatTotal">0</h3><p>Total Clans</p>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <h3 id="clanStatActive">0</h3><p>Active</p>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <h3 id="clanStatDisputed">0</h3><p>Disputed Status</p>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                            <h3 id="clanStatGotras">0</h3><p>Gotras Mapped</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Clans</h3>
+                            <button class="btn btn-primary" onclick="openClanModal()">+ Add Clan</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead><tr><th>Name</th><th>Display Name</th><th>Origin</th><th>Gotras</th><th>Disputed</th><th>Active</th><th>Actions</th></tr></thead>
+                                    <tbody id="clansTable"><tr><td colspan="7" class="loading"><div class="spinner"></div>Loading...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ GOTRAS SECTION ============ -->
+                <div id="section-gotras" class="section">
+                    <div class="stats-grid">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <h3 id="gotraStatTotal">0</h3><p>Total Gotras</p>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <h3 id="gotraStatAssigned">0</h3><p>Clan-Assigned</p>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                            <h3 id="gotraStatUnassigned">0</h3><p>Unassigned</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Gotras</h3>
+                            <div>
+                                <button class="btn btn-secondary" onclick="openAiSuggestModal()">🤖 AI Suggest Clans</button>
+                                <button class="btn btn-primary" onclick="openGotraModal()">+ Add Gotra</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="filters-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;margin-bottom:20px;">
+                                <div class="filter-item" style="display:flex;flex-direction:column;gap:6px;">
+                                    <label style="font-size:13px;font-weight:600;color:#555;">Search</label>
+                                    <input type="text" id="gotraSearch" placeholder="Search gotra name..." oninput="renderGotraTable()">
+                                </div>
+                                <div class="filter-item" style="display:flex;flex-direction:column;gap:6px;">
+                                    <label style="font-size:13px;font-weight:600;color:#555;">Clan</label>
+                                    <select id="gotraClanFilter" onchange="renderGotraTable()">
+                                        <option value="">All Clans</option>
+                                        <option value="__unassigned__">Unassigned only</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table>
+                                    <thead><tr><th>Name</th><th>Clan</th><th>Alternate Names</th><th>Origin</th><th>Active</th><th>Actions</th></tr></thead>
+                                    <tbody id="gotrasTable"><tr><td colspan="6" class="loading"><div class="spinner"></div>Loading...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ SURNAME TITLES SECTION ============ -->
+                <div id="section-surnameTitles" class="section">
+                    <div class="stats-grid">
+                        <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                            <h3 id="stStatTotal">0</h3><p>Total Surname Titles</p>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                            <h3 id="stStatActive">0</h3><p>Active</p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Surname Titles</h3>
+                            <button class="btn btn-primary" onclick="openSurnameTitleModal()">+ Add Surname/Title</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead><tr><th>Name</th><th>Usage Type</th><th>Applicable Clans</th><th>Active</th><th>Actions</th></tr></thead>
+                                    <tbody id="surnameTitlesTable"><tr><td colspan="5" class="loading"><div class="spinner"></div>Loading...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ============ CLAN MODAL ============ -->
+    <div id="clanModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="clanModalTitle">Add Clan</h3>
+                <button class="modal-close" onclick="closeModal('clanModal')">&times;</button>
+            </div>
+            <form id="clanForm" onsubmit="saveClan(event)">
+                <div class="modal-body">
+                    <div class="form-tabs">
+                        <button type="button" class="form-tab active" onclick="showFormTab(event, 'clanForm', 'basic')">Basic</button>
+                        <button type="button" class="form-tab" onclick="showFormTab(event, 'clanForm', 'lineage')">Lineage &amp; Origin</button>
+                        <button type="button" class="form-tab" onclick="showFormTab(event, 'clanForm', 'states')">State Presence</button>
+                    </div>
+                    <div id="clanForm-tab-basic" class="tab-content active">
+                        <div class="form-group"><label>Name *</label><input type="text" id="clanName" required></div>
+                        <div class="form-group"><label>Display Name</label><input type="text" id="clanDisplayName" placeholder="e.g. Rathod Gor"></div>
+                        <div class="form-group"><label>Description</label><textarea id="clanDescription" rows="3"></textarea></div>
+                        <div class="form-group"><label><input type="checkbox" id="clanIsActive" checked> Active (visible on public site)</label></div>
+                        <div class="form-group"><label>Sort Order</label><input type="number" id="clanSortOrder" value="0"></div>
+                    </div>
+                    <div id="clanForm-tab-lineage" class="tab-content">
+                        <div class="form-group"><label>Origin (region)</label><input type="text" id="clanOrigin"></div>
+                        <div class="form-group"><label>Alternate Names (one per line)</label><textarea id="clanAlternateNames" rows="3"></textarea></div>
+                        <div class="form-group"><label>Disputed Status (leave blank if undisputed)</label><textarea id="clanDisputedStatus" rows="2"></textarea></div>
+                    </div>
+                    <div id="clanForm-tab-states" class="tab-content">
+                        <div class="state-rows-header">State / Local Name / Stronghold Districts (comma-sep) / Common Surnames (comma-sep)</div>
+                        <div id="clanStateRows"></div>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="addStateRow('clanStateRows','clan')">+ Add State Row</button>
+                    </div>
+                    <input type="hidden" id="clanEditingId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('clanModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Clan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============ GOTRA MODAL ============ -->
+    <div id="gotraModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="gotraModalTitle">Add Gotra</h3>
+                <button class="modal-close" onclick="closeModal('gotraModal')">&times;</button>
+            </div>
+            <form id="gotraForm" onsubmit="saveGotra(event)">
+                <div class="modal-body">
+                    <div class="form-tabs">
+                        <button type="button" class="form-tab active" onclick="showFormTab(event, 'gotraForm', 'basic')">Basic</button>
+                        <button type="button" class="form-tab" onclick="showFormTab(event, 'gotraForm', 'details')">Details</button>
+                        <button type="button" class="form-tab" onclick="showFormTab(event, 'gotraForm', 'states')">State Presence</button>
+                    </div>
+                    <div id="gotraForm-tab-basic" class="tab-content active">
+                        <div class="form-group"><label>Name *</label><input type="text" id="gotraName" required></div>
+                        <div class="form-group">
+                            <label>Clan</label>
+                            <select id="gotraClan"><option value="">— Unassigned —</option></select>
+                            <small>Assigning a clan here is what makes this gotra appear under that clan on the public gotra-list page.</small>
+                        </div>
+                        <div class="form-group"><label><input type="checkbox" id="gotraIsActive" checked> Active (visible on public site)</label></div>
+                    </div>
+                    <div id="gotraForm-tab-details" class="tab-content">
+                        <div class="form-group"><label>Alternate Names / Spelling Variants (one per line)</label><textarea id="gotraAlternateNames" rows="3"></textarea></div>
+                        <div class="form-group"><label>Description</label><textarea id="gotraDescription" rows="3"></textarea></div>
+                        <div class="form-group"><label>Origin</label><input type="text" id="gotraOrigin"></div>
+                        <div class="form-group"><label>Deity</label><input type="text" id="gotraDeity"></div>
+                    </div>
+                    <div id="gotraForm-tab-states" class="tab-content">
+                        <div class="state-rows-header">State / Local Gotra Name / Common Surnames (comma-sep)</div>
+                        <div id="gotraStateRows"></div>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="addStateRow('gotraStateRows','gotra')">+ Add State Row</button>
+                    </div>
+                    <input type="hidden" id="gotraEditingId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('gotraModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Gotra</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============ AI SUGGEST CLANS MODAL ============ -->
+    <div id="aiSuggestModal" class="modal">
+        <div class="modal-content" style="max-width:900px;">
+            <div class="modal-header">
+                <h3>🤖 AI-Suggested Clan Assignments</h3>
+                <button class="modal-close" onclick="closeModal('aiSuggestModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="color:#666;font-size:13px;margin-bottom:15px;">
+                    Groq AI suggests a clan for each unassigned gotra based on documented Banjara genealogy.
+                    Nothing is saved until you review and click <strong>Apply Selected</strong> below — low-confidence
+                    or "no match" suggestions are left unchecked by default.
+                </p>
+                <div id="aiSuggestLoading" class="loading"><div class="spinner"></div>Asking AI about unassigned gotras...</div>
+                <div id="aiSuggestContent" style="display:none;">
+                    <div style="display:flex;gap:10px;margin-bottom:12px;">
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="selectAiSuggestions('high')">Select High Confidence</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="selectAiSuggestions('all')">Select All Matched</button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="selectAiSuggestions('none')">Clear Selection</button>
+                        <span style="margin-left:auto;color:#888;font-size:13px;align-self:center;" id="aiSuggestCount"></span>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th></th><th>Gotra</th><th>Suggested Clan</th><th>Confidence</th><th>Reasoning</th></tr></thead>
+                            <tbody id="aiSuggestTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('aiSuggestModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="applyAiSuggestions()">Apply Selected</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ SURNAME TITLE MODAL ============ -->
+    <div id="stModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="stModalTitle">Add Surname/Title</h3>
+                <button class="modal-close" onclick="closeModal('stModal')">&times;</button>
+            </div>
+            <form id="stForm" onsubmit="saveSurnameTitle(event)">
+                <div class="modal-body">
+                    <div class="form-tabs">
+                        <button type="button" class="form-tab active" onclick="showFormTab(event, 'stForm', 'basic')">Basic</button>
+                        <button type="button" class="form-tab" onclick="showFormTab(event, 'stForm', 'usage')">Usage</button>
+                        <button type="button" class="form-tab" onclick="showFormTab(event, 'stForm', 'states')">State Presence</button>
+                    </div>
+                    <div id="stForm-tab-basic" class="tab-content active">
+                        <div class="form-group"><label>Name *</label><input type="text" id="stName" required></div>
+                        <div class="form-group"><label>Alternate Spellings (one per line)</label><textarea id="stAlternateSpellings" rows="2"></textarea></div>
+                        <div class="form-group"><label>Meaning</label><input type="text" id="stMeaning"></div>
+                        <div class="form-group"><label><input type="checkbox" id="stIsActive" checked> Active (visible on public site)</label></div>
+                        <div class="form-group"><label>Sort Order</label><input type="number" id="stSortOrder" value="0"></div>
+                    </div>
+                    <div id="stForm-tab-usage" class="tab-content">
+                        <div class="form-group"><label>Origin (how it became a surname)</label><textarea id="stOrigin" rows="2"></textarea></div>
+                        <div class="form-group"><label>Usage Pattern</label><input type="text" id="stUsagePattern" placeholder="e.g. combined after gotra name, as in Mudavath Raju"></div>
+                        <div class="form-group">
+                            <label>Usage Type</label>
+                            <select id="stUsageType">
+                                <option value="title-suffix">Title suffix</option>
+                                <option value="occupational">Occupational</option>
+                                <option value="status">Status</option>
+                                <option value="regional-honorific">Regional honorific</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Applicable Clans (leave all unchecked = used universally)</label>
+                            <div class="clan-checkboxes" id="stApplicableClans"></div>
+                        </div>
+                    </div>
+                    <div id="stForm-tab-states" class="tab-content">
+                        <div class="state-rows-header">State / Prevalence / Example Names (comma-sep) / Notes</div>
+                        <div id="stStateRows"></div>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="addStateRow('stStateRows','surnameTitle')">+ Add State Row</button>
+                    </div>
+                    <input type="hidden" id="stEditingId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('stModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Surname/Title</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script>
+        const CLAN_EP = '/api/admin/constants/clans';
+        const GOTRA_EP = '/api/admin/constants/gotras';
+        const ST_EP = '/api/admin/constants/surname-titles';
+
+        let clans = [];
+        let gotras = [];
+        let surnameTitles = [];
+
+        const STATE_FIELD_SCHEMAS = {
+            clan: [
+                { key: 'state', label: 'State', type: 'text' },
+                { key: 'localName', label: 'Local Name', type: 'text' },
+                { key: 'strongholdDistricts', label: 'Stronghold Districts (comma-sep)', type: 'list' },
+                { key: 'commonSurnames', label: 'Common Surnames (comma-sep)', type: 'list' },
+            ],
+            gotra: [
+                { key: 'state', label: 'State', type: 'text' },
+                { key: 'localGotraName', label: 'Local Gotra Name', type: 'text' },
+                { key: 'commonSurnames', label: 'Common Surnames (comma-sep)', type: 'list' },
+            ],
+            surnameTitle: [
+                { key: 'state', label: 'State', type: 'text' },
+                { key: 'prevalence', label: 'Prevalence', type: 'select', options: ['very common', 'common', 'occasional'] },
+                { key: 'exampleNames', label: 'Example Names (comma-sep)', type: 'list' },
+                { key: 'notes', label: 'Notes', type: 'text' },
+            ],
+        };
+
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        function linesToArray(text) {
+            return text.split('\n').map(s => s.trim()).filter(Boolean);
+        }
+
+        function addStateRow(containerId, schemaKey, data) {
+            data = data || {};
+            const container = document.getElementById(containerId);
+            const schema = STATE_FIELD_SCHEMAS[schemaKey];
+            const row = document.createElement('div');
+            row.className = 'state-row';
+            row.innerHTML = schema.map(f => {
+                const val = data[f.key];
+                if (f.type === 'select') {
+                    return `<select data-key="${f.key}">${f.options.map(o => `<option value="${o}" ${val === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+                }
+                const strVal = Array.isArray(val) ? val.join(', ') : (val || '');
+                return `<input type="text" data-key="${f.key}" placeholder="${esc(f.label)}" value="${esc(strVal)}">`;
+            }).join('') + `<button type="button" class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>`;
+            container.appendChild(row);
+        }
+
+        function collectStateRows(containerId, schemaKey) {
+            const container = document.getElementById(containerId);
+            const schema = STATE_FIELD_SCHEMAS[schemaKey];
+            return Array.from(container.children).map(row => {
+                const obj = {};
+                schema.forEach(f => {
+                    const input = row.querySelector(`[data-key="${f.key}"]`);
+                    let v = input ? input.value : '';
+                    if (f.type === 'list') v = v.split(',').map(s => s.trim()).filter(Boolean);
+                    obj[f.key] = v;
+                });
+                return obj;
+            }).filter(o => o.state);
+        }
+
+        function showSection(event, name) {
+            event.preventDefault();
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('section-' + name).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showFormTab(event, formId, tabName) {
+            event.preventDefault();
+            const form = document.getElementById(formId);
+            form.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            form.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(`${formId}-tab-${tabName}`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // ---------------- CLANS ----------------
+        async function loadClans() {
+            const res = await window.apiRequest(CLAN_EP);
+            clans = res.data || [];
+            renderClanTable();
+            populateClanDropdowns();
+        }
+
+        function renderClanTable() {
+            const tbody = document.getElementById('clansTable');
+            if (clans.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">No clans found</td></tr>';
+            } else {
+                tbody.innerHTML = clans.map(c => {
+                    const gotraCount = gotras.filter(g => g.clan && (g.clan._id === c._id)).length;
+                    return `<tr>
+                        <td><strong>${esc(c.name)}</strong></td>
+                        <td>${esc(c.displayName || '')}</td>
+                        <td>${esc(c.origin || '')}</td>
+                        <td>${gotraCount}</td>
+                        <td>${c.disputedStatus ? '<span class="badge badge-warning">Disputed</span>' : '<span class="badge badge-success">Settled</span>'}</td>
+                        <td>${c.isActive ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Hidden</span>'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary" onclick="editClan('${c._id}')">Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteClan('${c._id}')">Delete</button>
+                        </td>
+                    </tr>`;
+                }).join('');
+            }
+            document.getElementById('clanStatTotal').textContent = clans.length;
+            document.getElementById('clanStatActive').textContent = clans.filter(c => c.isActive).length;
+            document.getElementById('clanStatDisputed').textContent = clans.filter(c => c.disputedStatus).length;
+            document.getElementById('clanStatGotras').textContent = gotras.filter(g => g.clan).length;
+        }
+
+        function populateClanDropdowns() {
+            const gotraSelect = document.getElementById('gotraClan');
+            gotraSelect.innerHTML = '<option value="">— Unassigned —</option>' +
+                clans.map(c => `<option value="${c._id}">${esc(c.name)}</option>`).join('');
+
+            const filterSelect = document.getElementById('gotraClanFilter');
+            filterSelect.innerHTML = '<option value="">All Clans</option><option value="__unassigned__">Unassigned only</option>' +
+                clans.map(c => `<option value="${c._id}">${esc(c.name)}</option>`).join('');
+
+            const checkboxContainer = document.getElementById('stApplicableClans');
+            checkboxContainer.innerHTML = clans.map(c =>
+                `<label><input type="checkbox" value="${esc(c.name)}" class="st-clan-cb"> ${esc(c.name)}</label>`
+            ).join('');
+        }
+
+        function openClanModal() {
+            document.getElementById('clanForm').reset();
+            document.getElementById('clanEditingId').value = '';
+            document.getElementById('clanStateRows').innerHTML = '';
+            document.getElementById('clanIsActive').checked = true;
+            document.getElementById('clanModalTitle').textContent = 'Add Clan';
+            document.getElementById('clanModal').classList.add('active');
+        }
+
+        function editClan(id) {
+            const c = clans.find(x => x._id === id);
+            if (!c) return;
+            document.getElementById('clanEditingId').value = c._id;
+            document.getElementById('clanName').value = c.name || '';
+            document.getElementById('clanDisplayName').value = c.displayName || '';
+            document.getElementById('clanDescription').value = c.description || '';
+            document.getElementById('clanIsActive').checked = !!c.isActive;
+            document.getElementById('clanSortOrder').value = c.sortOrder || 0;
+            document.getElementById('clanOrigin').value = c.origin || '';
+            document.getElementById('clanAlternateNames').value = (c.alternateNames || []).join('\n');
+            document.getElementById('clanDisputedStatus').value = c.disputedStatus || '';
+            document.getElementById('clanStateRows').innerHTML = '';
+            (c.statePresence || []).forEach(row => addStateRow('clanStateRows', 'clan', row));
+            document.getElementById('clanModalTitle').textContent = 'Edit Clan';
+            document.getElementById('clanModal').classList.add('active');
+        }
+
+        async function saveClan(event) {
+            event.preventDefault();
+            const id = document.getElementById('clanEditingId').value;
+            const payload = {
+                name: document.getElementById('clanName').value.trim(),
+                displayName: document.getElementById('clanDisplayName').value.trim(),
+                description: document.getElementById('clanDescription').value.trim(),
+                isActive: document.getElementById('clanIsActive').checked,
+                sortOrder: Number(document.getElementById('clanSortOrder').value) || 0,
+                origin: document.getElementById('clanOrigin').value.trim(),
+                alternateNames: linesToArray(document.getElementById('clanAlternateNames').value),
+                disputedStatus: document.getElementById('clanDisputedStatus').value.trim(),
+                statePresence: collectStateRows('clanStateRows', 'clan'),
+            };
+            try {
+                if (id) await window.apiRequest(`${CLAN_EP}/${id}`, 'PUT', payload);
+                else await window.apiRequest(CLAN_EP, 'POST', payload);
+                window.showNotification('Clan saved successfully', 'success');
+                closeModal('clanModal');
+                await loadClans();
+            } catch (err) {
+                window.showNotification('Failed to save clan: ' + err.message, 'danger');
+            }
+        }
+
+        async function deleteClan(id) {
+            if (!window.confirm('Delete this clan? Gotras assigned to it will become unassigned.')) return;
+            try {
+                await window.apiRequest(`${CLAN_EP}/${id}`, 'DELETE');
+                window.showNotification('Clan deleted', 'success');
+                await loadClans();
+                await loadGotras();
+            } catch (err) {
+                window.showNotification('Failed to delete clan: ' + err.message, 'danger');
+            }
+        }
+
+        // ---------------- GOTRAS ----------------
+        async function loadGotras() {
+            const res = await window.apiRequest(GOTRA_EP);
+            gotras = res.data || [];
+            renderGotraTable();
+            renderClanTable();
+        }
+
+        function renderGotraTable() {
+            const tbody = document.getElementById('gotrasTable');
+            const search = (document.getElementById('gotraSearch').value || '').toLowerCase();
+            const clanFilter = document.getElementById('gotraClanFilter').value;
+
+            let filtered = gotras;
+            if (search) {
+                filtered = filtered.filter(g =>
+                    g.name.toLowerCase().includes(search) ||
+                    (g.alternateNames || []).some(a => a.toLowerCase().includes(search))
+                );
+            }
+            if (clanFilter === '__unassigned__') {
+                filtered = filtered.filter(g => !g.clan);
+            } else if (clanFilter) {
+                filtered = filtered.filter(g => g.clan && g.clan._id === clanFilter);
+            }
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No gotras found</td></tr>';
+            } else {
+                tbody.innerHTML = filtered.map(g => `<tr>
+                    <td><strong>${esc(g.name)}</strong></td>
+                    <td>${g.clan ? `<span class="badge badge-primary">${esc(g.clan.name)}</span>` : '<span class="badge badge-warning">Unassigned</span>'}</td>
+                    <td>${esc((g.alternateNames || []).join(', '))}</td>
+                    <td>${esc(g.origin || '')}</td>
+                    <td>${g.isActive ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Hidden</span>'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="editGotra('${g._id}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteGotra('${g._id}')">Delete</button>
+                    </td>
+                </tr>`).join('');
+            }
+
+            document.getElementById('gotraStatTotal').textContent = gotras.length;
+            document.getElementById('gotraStatAssigned').textContent = gotras.filter(g => g.clan).length;
+            document.getElementById('gotraStatUnassigned').textContent = gotras.filter(g => !g.clan).length;
+        }
+
+        function openGotraModal() {
+            document.getElementById('gotraForm').reset();
+            document.getElementById('gotraEditingId').value = '';
+            document.getElementById('gotraStateRows').innerHTML = '';
+            document.getElementById('gotraIsActive').checked = true;
+            document.getElementById('gotraModalTitle').textContent = 'Add Gotra';
+            document.getElementById('gotraModal').classList.add('active');
+        }
+
+        function editGotra(id) {
+            const g = gotras.find(x => x._id === id);
+            if (!g) return;
+            document.getElementById('gotraEditingId').value = g._id;
+            document.getElementById('gotraName').value = g.name || '';
+            document.getElementById('gotraClan').value = g.clan ? g.clan._id : '';
+            document.getElementById('gotraIsActive').checked = !!g.isActive;
+            document.getElementById('gotraAlternateNames').value = (g.alternateNames || []).join('\n');
+            document.getElementById('gotraDescription').value = g.description || '';
+            document.getElementById('gotraOrigin').value = g.origin || '';
+            document.getElementById('gotraDeity').value = g.deity || '';
+            document.getElementById('gotraStateRows').innerHTML = '';
+            (g.statePresence || []).forEach(row => addStateRow('gotraStateRows', 'gotra', row));
+            document.getElementById('gotraModalTitle').textContent = 'Edit Gotra';
+            document.getElementById('gotraModal').classList.add('active');
+        }
+
+        async function saveGotra(event) {
+            event.preventDefault();
+            const id = document.getElementById('gotraEditingId').value;
+            const clanId = document.getElementById('gotraClan').value;
+            const payload = {
+                name: document.getElementById('gotraName').value.trim(),
+                clan: clanId || null,
+                isActive: document.getElementById('gotraIsActive').checked,
+                alternateNames: linesToArray(document.getElementById('gotraAlternateNames').value),
+                description: document.getElementById('gotraDescription').value.trim(),
+                origin: document.getElementById('gotraOrigin').value.trim(),
+                deity: document.getElementById('gotraDeity').value.trim(),
+                statePresence: collectStateRows('gotraStateRows', 'gotra'),
+            };
+            try {
+                if (id) await window.apiRequest(`${GOTRA_EP}/${id}`, 'PUT', payload);
+                else await window.apiRequest(GOTRA_EP, 'POST', payload);
+                window.showNotification('Gotra saved successfully', 'success');
+                closeModal('gotraModal');
+                await loadGotras();
+            } catch (err) {
+                window.showNotification('Failed to save gotra: ' + err.message, 'danger');
+            }
+        }
+
+        async function deleteGotra(id) {
+            if (!window.confirm('Delete this gotra?')) return;
+            try {
+                await window.apiRequest(`${GOTRA_EP}/${id}`, 'DELETE');
+                window.showNotification('Gotra deleted', 'success');
+                await loadGotras();
+            } catch (err) {
+                window.showNotification('Failed to delete gotra: ' + err.message, 'danger');
+            }
+        }
+
+        // ---------------- AI SUGGEST CLANS ----------------
+        const AI_SUGGEST_EP = '/api/admin/gotras/ai-suggest';
+        const AI_APPLY_EP = '/api/admin/gotras/ai-apply';
+        let aiSuggestions = [];
+
+        async function openAiSuggestModal() {
+            document.getElementById('aiSuggestModal').classList.add('active');
+            document.getElementById('aiSuggestLoading').style.display = 'block';
+            document.getElementById('aiSuggestContent').style.display = 'none';
+            try {
+                const res = await window.apiRequest(AI_SUGGEST_EP, 'POST', {});
+                aiSuggestions = res.data || [];
+                renderAiSuggestTable();
+                document.getElementById('aiSuggestLoading').style.display = 'none';
+                document.getElementById('aiSuggestContent').style.display = 'block';
+            } catch (err) {
+                window.showNotification('AI suggestion failed: ' + err.message, 'danger');
+                closeModal('aiSuggestModal');
+            }
+        }
+
+        function renderAiSuggestTable() {
+            const tbody = document.getElementById('aiSuggestTable');
+            if (aiSuggestions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">No unassigned gotras — nothing to suggest.</td></tr>';
+            } else {
+                tbody.innerHTML = aiSuggestions.map((s, i) => {
+                    const badgeClass = s.confidence === 'high' ? 'badge-success' : (s.confidence === 'medium' ? 'badge-warning' : 'badge-danger');
+                    const clanOptions = '<option value="">— Skip —</option>' +
+                        clans.map(c => `<option value="${c._id}" ${c._id === s.suggestedClanId ? 'selected' : ''}>${esc(c.name)}</option>`).join('');
+                    return `<tr>
+                        <td><input type="checkbox" id="aiCb${i}" ${s.suggestedClanId ? 'checked' : ''}></td>
+                        <td><strong>${esc(s.name)}</strong></td>
+                        <td><select id="aiClan${i}">${clanOptions}</select></td>
+                        <td><span class="badge ${badgeClass}">${esc(s.confidence)}</span></td>
+                        <td style="font-size:12px;color:#666;">${esc(s.reasoning)}</td>
+                    </tr>`;
+                }).join('');
+                aiSuggestions.forEach((s, i) => {
+                    if (s.confidence === 'low' || !s.suggestedClanId) document.getElementById('aiCb' + i).checked = false;
+                });
+            }
+            document.getElementById('aiSuggestCount').textContent = aiSuggestions.length + ' unassigned gotras checked';
+        }
+
+        function selectAiSuggestions(mode) {
+            aiSuggestions.forEach((s, i) => {
+                const cb = document.getElementById('aiCb' + i);
+                if (mode === 'none') cb.checked = false;
+                else if (mode === 'all') cb.checked = !!s.suggestedClanId;
+                else if (mode === 'high') cb.checked = s.confidence === 'high' && !!s.suggestedClanId;
+            });
+        }
+
+        async function applyAiSuggestions() {
+            const assignments = aiSuggestions.map((s, i) => {
+                const cb = document.getElementById('aiCb' + i);
+                const clanId = document.getElementById('aiClan' + i).value;
+                return (cb.checked && clanId) ? { gotraId: s.gotraId, clanId } : null;
+            }).filter(Boolean);
+
+            if (assignments.length === 0) {
+                window.showNotification('No rows selected', 'danger');
+                return;
+            }
+
+            try {
+                await window.apiRequest(AI_APPLY_EP, 'POST', { assignments });
+                window.showNotification(`Applied ${assignments.length} clan assignment(s)`, 'success');
+                closeModal('aiSuggestModal');
+                await loadGotras();
+            } catch (err) {
+                window.showNotification('Failed to apply: ' + err.message, 'danger');
+            }
+        }
+
+        // ---------------- SURNAME TITLES ----------------
+        async function loadSurnameTitles() {
+            const res = await window.apiRequest(ST_EP);
+            surnameTitles = res.data || [];
+            renderSurnameTitleTable();
+        }
+
+        function renderSurnameTitleTable() {
+            const tbody = document.getElementById('surnameTitlesTable');
+            if (surnameTitles.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">No surname titles found</td></tr>';
+            } else {
+                tbody.innerHTML = surnameTitles.map(s => `<tr>
+                    <td><strong>${esc(s.name)}</strong></td>
+                    <td>${esc(s.usageType || '')}</td>
+                    <td>${(s.applicableClans || []).length ? esc(s.applicableClans.join(', ')) : '<em>Universal</em>'}</td>
+                    <td>${s.isActive ? '<span class="badge badge-success">Active</span>' : '<span class="badge badge-danger">Hidden</span>'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="editSurnameTitle('${s._id}')">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSurnameTitle('${s._id}')">Delete</button>
+                    </td>
+                </tr>`).join('');
+            }
+            document.getElementById('stStatTotal').textContent = surnameTitles.length;
+            document.getElementById('stStatActive').textContent = surnameTitles.filter(s => s.isActive).length;
+        }
+
+        function openSurnameTitleModal() {
+            document.getElementById('stForm').reset();
+            document.getElementById('stEditingId').value = '';
+            document.getElementById('stStateRows').innerHTML = '';
+            document.getElementById('stIsActive').checked = true;
+            document.querySelectorAll('.st-clan-cb').forEach(cb => cb.checked = false);
+            document.getElementById('stModalTitle').textContent = 'Add Surname/Title';
+            document.getElementById('stModal').classList.add('active');
+        }
+
+        function editSurnameTitle(id) {
+            const s = surnameTitles.find(x => x._id === id);
+            if (!s) return;
+            document.getElementById('stEditingId').value = s._id;
+            document.getElementById('stName').value = s.name || '';
+            document.getElementById('stAlternateSpellings').value = (s.alternateSpellings || []).join('\n');
+            document.getElementById('stMeaning').value = s.meaning || '';
+            document.getElementById('stIsActive').checked = !!s.isActive;
+            document.getElementById('stSortOrder').value = s.sortOrder || 0;
+            document.getElementById('stOrigin').value = s.origin || '';
+            document.getElementById('stUsagePattern').value = s.usagePattern || '';
+            document.getElementById('stUsageType').value = s.usageType || 'title-suffix';
+            const applicable = s.applicableClans || [];
+            document.querySelectorAll('.st-clan-cb').forEach(cb => cb.checked = applicable.includes(cb.value));
+            document.getElementById('stStateRows').innerHTML = '';
+            (s.statePresence || []).forEach(row => addStateRow('stStateRows', 'surnameTitle', row));
+            document.getElementById('stModalTitle').textContent = 'Edit Surname/Title';
+            document.getElementById('stModal').classList.add('active');
+        }
+
+        async function saveSurnameTitle(event) {
+            event.preventDefault();
+            const id = document.getElementById('stEditingId').value;
+            const applicableClans = Array.from(document.querySelectorAll('.st-clan-cb'))
+                .filter(cb => cb.checked).map(cb => cb.value);
+            const payload = {
+                name: document.getElementById('stName').value.trim(),
+                alternateSpellings: linesToArray(document.getElementById('stAlternateSpellings').value),
+                meaning: document.getElementById('stMeaning').value.trim(),
+                isActive: document.getElementById('stIsActive').checked,
+                sortOrder: Number(document.getElementById('stSortOrder').value) || 0,
+                origin: document.getElementById('stOrigin').value.trim(),
+                usagePattern: document.getElementById('stUsagePattern').value.trim(),
+                usageType: document.getElementById('stUsageType').value,
+                applicableClans,
+                statePresence: collectStateRows('stStateRows', 'surnameTitle'),
+            };
+            try {
+                if (id) await window.apiRequest(`${ST_EP}/${id}`, 'PUT', payload);
+                else await window.apiRequest(ST_EP, 'POST', payload);
+                window.showNotification('Surname/Title saved successfully', 'success');
+                closeModal('stModal');
+                await loadSurnameTitles();
+            } catch (err) {
+                window.showNotification('Failed to save: ' + err.message, 'danger');
+            }
+        }
+
+        async function deleteSurnameTitle(id) {
+            if (!window.confirm('Delete this surname/title?')) return;
+            try {
+                await window.apiRequest(`${ST_EP}/${id}`, 'DELETE');
+                window.showNotification('Surname/Title deleted', 'success');
+                await loadSurnameTitles();
+            } catch (err) {
+                window.showNotification('Failed to delete: ' + err.message, 'danger');
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) return;
+            await loadClans();
+            await loadGotras();
+            await loadSurnameTitles();
+        });
+    </script>
+</body>
+</html>

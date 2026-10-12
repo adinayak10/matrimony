@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Complete Your Profile - Banjara Match</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <!--== CSS FILES ==-->
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+    
+    <style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    .onboarding-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    .welcome-section {
+        text-align: center;
+        color: #fff;
+        margin-bottom: 30px;
+        animation: fadeInDown 0.6s ease;
+    }
+    .welcome-section h1 {
+        font-size: 42px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+    .welcome-section p {
+        font-size: 18px;
+        opacity: 0.95;
+    }
+    .onboarding-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+        animation: fadeInUp 0.6s ease;
+    }
+    .progress-bar-container {
+        background: #f0f0f0;
+        height: 6px;
+        position: relative;
+    }
+    .progress-bar-fill {
+        background: linear-gradient(90deg, #f6af04, #ff8c00);
+        height: 100%;
+        width: 33.33%;
+        transition: width 0.4s ease;
+    }
+    .step-content {
+        padding: 50px 60px;
+    }
+    .step-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .step-number {
+        display: inline-block;
+        width: 60px;
+        height: 60px;
+        line-height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f6af04, #ff8c00);
+        color: #fff;
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 15px;
+    }
+    .step-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    .step-description {
+        color: #777;
+        font-size: 16px;
+    }
+    .form-group {
+        margin-bottom: 25px;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .form-label .required {
+        color: #f6af04;
+        margin-left: 3px;
+    }
+    .form-control, .form-select {
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 12px 18px;
+        font-size: 15px;
+        transition: all 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #f6af04;
+        box-shadow: 0 0 0 0.2rem rgba(246, 175, 4, 0.15);
+    }
+    .row-cols-2 > * {
+        padding: 0 10px;
+    }
+    .upload-photo-container {
+        text-align: center;
+        padding: 40px;
+        border: 2px dashed #e0e0e0;
+        border-radius: 15px;
+        background: #f9f9f9;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .upload-photo-container:hover {
+        border-color: #f6af04;
+        background: #fff8f0;
+    }
+    .upload-icon {
+        font-size: 60px;
+        color: #f6af04;
+        margin-bottom: 15px;
+    }
+    .preview-image {
+        max-width: 300px;
+        max-height: 300px;
+        border-radius: 15px;
+        margin: 20px auto;
+        display: none;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .btn-container {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 40px;
+        gap: 15px;
+    }
+    .btn-onboarding {
+        flex: 1;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-back {
+        background: #e0e0e0;
+        color: #666;
+    }
+    .btn-back:hover {
+        background: #d0d0d0;
+        transform: translateY(-2px);
+    }
+    .btn-next, .btn-finish {
+        background: linear-gradient(135deg, #f6af04, #ff8c00);
+        color: #fff;
+    }
+    .btn-next:hover, .btn-finish:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(246, 175, 4, 0.4);
+    }
+    .btn-skip {
+        background: transparent;
+        color: #999;
+        border: 2px solid #e0e0e0;
+    }
+    .btn-skip:hover {
+        border-color: #f6af04;
+        color: #f6af04;
+    }
+    .step {
+        display: none;
+    }
+    .step.active {
+        display: block;
+        animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .help-text {
+        font-size: 13px;
+        color: #999;
+        margin-top: 5px;
+    }
+    @media (max-width: 768px) {
+        .step-content {
+            padding: 30px 25px;
+        }
+        .welcome-section h1 {
+            font-size: 32px;
+        }
+        .btn-container {
+            flex-direction: column;
+        }
+    }
+    </style>
+</head>
+
+<body>
+    <div class="onboarding-container">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <h1>👋 Welcome to BanjaraMatch!</h1>
+            <p>Let's complete your profile in just 2 simple steps</p>
+        </div>
+
+        <!-- Onboarding Card -->
+        <div class="onboarding-card">
+            <!-- Progress Bar -->
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar" style="width: 50%;"></div>
+            </div>
+
+            <!-- Step 1: Personal Information -->
+            <div class="step active" id="step1">
+                <div class="step-content">
+                    <div class="step-header">
+                        <div class="step-number">1</div>
+                        <h2 class="step-title">Personal Information</h2>
+                        <p class="step-description">Tell us about yourself to help us find your perfect match</p>
+                    </div>
+
+                    <form id="step1Form">
+                        <div class="row row-cols-1 row-cols-md-2">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Gender <span class="required">*</span></label>
+                                    <select class="form-select" id="gender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Date of Birth <span class="required">*</span></label>
+                                    <input type="date" class="form-control" id="dob" required>
+                                    <div class="help-text">You must be 18 or older</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row row-cols-1 row-cols-md-2">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Height <span class="required">*</span></label>
+                                    <select class="form-select" id="height" required>
+                                        <option value="">Select Height</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Marital Status <span class="required">*</span></label>
+                                    <select class="form-select" id="maritalStatus" required>
+                                        <option value="">Select Status</option>
+                                        <option value="Never Married">Never Married</option>
+                                        <option value="Divorced">Divorced</option>
+                                        <option value="Widowed">Widowed</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row row-cols-1 row-cols-md-2">
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Caste <span class="required">*</span></label>
+                                    <select class="form-select" id="caste" required>
+                                        <option value="">Loading castes...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <div class="form-group">
+                                    <label class="form-label">Gotra <span class="required">*</span></label>
+                                    <select class="form-select" id="gotra" required>
+                                        <option value="">Loading gotras...</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="btn-container">
+                        <button type="button" class="btn-onboarding btn-next" onclick="nextStep()">
+                            Continue <i class="fa fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Profile Photo -->
+            <div class="step" id="step2">
+                <div class="step-content">
+                    <div class="step-header">
+                        <div class="step-number">2</div>
+                        <h2 class="step-title">Add Your Photo</h2>
+                        <p class="step-description">Profiles with photos get 10x more responses (Optional)</p>
+                    </div>
+
+                    <form id="step3Form">
+                        <div class="upload-photo-container" onclick="document.getElementById('photoInput').click()">
+                            <div class="upload-icon">
+                                <i class="fa fa-camera"></i>
+                            </div>
+                            <h4>Click to upload your photo</h4>
+                            <p class="help-text">JPG, PNG or GIF (Max 5MB)</p>
+                            <input type="file" id="photoInput" accept="image/*" style="display: none;" onchange="previewPhoto(this)">
+                        </div>
+                        <img id="photoPreview" class="preview-image" alt="Photo preview">
+                    </form>
+
+                    <div class="btn-container">
+                        <button type="button" class="btn-onboarding btn-back" onclick="prevStep()">
+                            <i class="fa fa-arrow-left"></i> Back
+                        </button>
+                        <button type="button" class="btn-onboarding btn-skip" onclick="finishOnboarding(true)">
+                            Skip for Now
+                        </button>
+                        <button type="button" class="btn-onboarding btn-finish" onclick="finishOnboarding(false)">
+                            Finish <i class="fa fa-check"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/js/jquery.min.js"></script>
+    <script>
+    const API_BASE_URL = 'https://api.banjaramatch.com/api';
+    const USER_ID = '<%= user?._id %>';
+    let currentStep = 1;
+    let formData = {};
+
+    // Get auth token
+    function getAuthToken() {
+        return document.cookie.split('; ')
+            .find(row => row.startsWith('token='))
+            ?.split('=')[1];
+    }
+
+    // Convert cm to feet and inches display
+    function cmToFeetInches(cm) {
+        const totalInches = cm / 2.54;
+        const feet = Math.floor(totalInches / 12);
+        const inches = Math.round(totalInches % 12);
+        return `${feet}'${inches}"`;
+    }
+
+    // Populate height dropdown
+    function populateHeightDropdown() {
+        const heightOptions = [];
+        // Generate heights from 4'0" (122cm) to 7'0" (213cm)
+        for (let cm = 122; cm <= 213; cm++) {
+            const display = cmToFeetInches(cm);
+            heightOptions.push(`<option value="${cm}">${display}</option>`);
+        }
+        $('#height').html('<option value="">Select Height</option>' + heightOptions.join(''));
+    }
+
+    // Load castes and gotras
+    async function loadDropdownData() {
+        try {
+            // Load castes
+            const casteResponse = await fetch(`${API_BASE_URL}/fetchCasteList`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getAuthToken()}`
+                },
+                body: JSON.stringify({})
+            });
+            const casteData = await casteResponse.json();
+            
+            if (casteData.status && casteData.data) {
+                const casteOptions = casteData.data.map(c => 
+                    `<option value="${c._id}">${c.name}</option>`
+                ).join('');
+                $('#caste').html('<option value="">Select Caste</option>' + casteOptions);
+            }
+
+            // Load gotras
+            const gotraResponse = await fetch(`${API_BASE_URL}/fetchGotraList`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getAuthToken()}`
+                },
+                body: JSON.stringify({})
+            });
+            const gotraData = await gotraResponse.json();
+            
+            if (gotraData.status && gotraData.data) {
+                const gotraOptions = gotraData.data.map(g => 
+                    `<option value="${g._id}">${g.name}</option>`
+                ).join('');
+                $('#gotra').html('<option value="">Select Gotra</option>' + gotraOptions);
+            }
+        } catch (error) {
+            console.error('Error loading dropdown data:', error);
+        }
+    }
+
+    // Preview photo
+    function previewPhoto(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#photoPreview').attr('src', e.target.result).show();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // Navigate steps
+    function nextStep() {
+        if (currentStep === 1) {
+            if (!$('#step1Form')[0].checkValidity()) {
+                $('#step1Form')[0].reportValidity();
+                return;
+            }
+            
+            // Save step 1 data
+            formData.gender = $('#gender').val();
+            formData.dob = $('#dob').val();
+            formData.height = parseInt($('#height').val());
+            formData.maritalStatus = $('#maritalStatus').val();
+            formData.caste = $('#caste').val();
+            formData.gotra = $('#gotra').val();
+        }
+
+        currentStep++;
+        updateStep();
+    }
+
+    function prevStep() {
+        currentStep--;
+        updateStep();
+    }
+
+    function updateStep() {
+        $('.step').removeClass('active');
+        $(`#step${currentStep}`).addClass('active');
+        
+        // Update progress bar (2 steps total)
+        const progress = (currentStep / 2) * 100;
+        $('#progressBar').css('width', progress + '%');
+    }
+
+    // Finish onboarding
+    async function finishOnboarding(skipPhoto) {
+        const submitBtn = skipPhoto ? $('.btn-skip') : $('.btn-finish');
+        submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Saving...');
+
+        try {
+            const formDataToSend = new FormData();
+            formDataToSend.append('user_id', USER_ID);
+            formDataToSend.append('gender', formData.gender);
+            formDataToSend.append('dob', formData.dob);
+            formDataToSend.append('height', formData.height);
+            formDataToSend.append('marital_status', formData.maritalStatus); // Backend expects marital_status
+            formDataToSend.append('casteId', formData.caste); // Backend expects casteId
+            formDataToSend.append('gotraId', formData.gotra); // Backend expects gotraId
+
+            // Add photo if uploaded
+            if (!skipPhoto && $('#photoInput')[0].files.length > 0) {
+                formDataToSend.append('profile', $('#photoInput')[0].files[0]);
+            }
+
+            const response = await fetch(`${API_BASE_URL}/editProfile`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getAuthToken()}`
+                },
+                body: formDataToSend
+            });
+
+            const data = await response.json();
+
+            if (data.status) {
+                alert('🎉 Profile completed successfully! Welcome to BanjaraMatch!');
+                // Force reload to refresh session with updated user data
+                window.location.replace('/dashboard');
+            } else {
+                alert(data.message || 'Failed to save profile. Please try again.');
+                submitBtn.prop('disabled', false).html(skipPhoto ? 'Skip for Now' : 'Finish <i class="fa fa-check"></i>');
+            }
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            alert('An error occurred. Please try again.');
+            submitBtn.prop('disabled', false).html(skipPhoto ? 'Skip for Now' : 'Finish <i class="fa fa-check"></i>');
+        }
+    }
+
+    // Load data on page load
+    $(document).ready(function() {
+        populateHeightDropdown();
+        loadDropdownData();
+        
+        // Set max date to 18 years ago
+        const maxDate = new Date();
+        maxDate.setFullYear(maxDate.getFullYear() - 18);
+        $('#dob').attr('max', maxDate.toISOString().split('T')[0]);
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1038 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Browse Profiles - BanjaraMatch | Find Your Perfect Match</title>
+    
+    <!-- META TAGS -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Browse verified Banjara profiles with advanced filters">
+    <meta name="keyword" content="Banjara matrimony, profiles, matches">
+    <link rel="canonical" href="https://www.banjaramatch.com/all-profiles">
+    
+    <!-- FAV ICON -->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <!-- Google Analytics (SEO & Traffic Tracking) -->
+    <%- include('../partials/analytics', { pageCategory: 'profiles' }) %>
+    
+    <!-- Structured Data: BreadcrumbList -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [{
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": "https://www.banjaramatch.com"
+      },{
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Browse Profiles",
+        "item": "https://www.banjaramatch.com/all-profiles"
+      }]
+    }
+    </script>
+    
+    <!-- CSS FILES -->
+    <link rel="preload" href="/css/style.min.css" as="style">
+    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/style.min.css">
+    <noscript>
+      <link rel="stylesheet" href="/css/bootstrap.css">
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+      <link rel="stylesheet" href="/css/animate.min.css">
+    </noscript>
+    
+    <style>
+        /* Button state styles */
+        .cta-connected {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        
+        .cta-pending {
+            cursor: pointer;
+        }
+        
+        .cta-accept {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        /* Shortlist saved state */
+        .enq-sav.saved i {
+            color: #f6af04;
+        }
+        
+        .enq-sav.saved {
+            background: #fff5e6;
+        }
+        
+        /* Range slider styles */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        
+        input[type="range"]:hover {
+            opacity: 1;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #f6af04;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: #f6af04;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .filt-com label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .filt-com label span {
+            font-weight: bold;
+            color: #f6af04;
+        }
+        
+        /* Dual range slider container */
+        .range-slider {
+            position: relative;
+            height: 6px;
+            background: #ddd;
+            border-radius: 5px;
+            margin: 20px 0 10px 0;
+        }
+        
+        .range-slider .slider-track {
+            position: absolute;
+            height: 100%;
+            background: #f6af04;
+            border-radius: 5px;
+        }
+        
+        .range-slider input[type="range"] {
+            position: absolute;
+            width: 100%;
+            background: transparent;
+            pointer-events: none;
+        }
+        
+        .range-slider input[type="range"]::-webkit-slider-thumb {
+            pointer-events: all;
+        }
+        
+        .range-slider input[type="range"]::-moz-range-thumb {
+            pointer-events: all;
+        }
+        
+        .range-values {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+    <%- include('../partials/breadcrumb') %>
+
+    <!-- SUB-HEADING -->
+    <section>
+        <div class="all-pro-head">
+            <div class="container">
+                <div class="row">
+                    <h1>Browse Banjara Profiles</h1>
+                    <a href="/register">Join now for Free <i class="fa fa-handshake-o" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        </div>
+        <!--FILTER ON MOBILE VIEW-->
+        <div class="fil-mob fil-mob-act">
+            <h4>Profile filters <i class="fa fa-filter" aria-hidden="true"></i> </h4>
+        </div>
+    </section>
+    <!-- END -->
+
+    <!-- START -->
+    <section>
+        <div class="all-weddpro all-jobs all-serexp chosenini">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-3 fil-mob-view">
+                        <span class="filter-clo">+</span>
+                        
+                        <!-- AGE FILTER -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-clock-o" aria-hidden="true"></i> Age</h4>
+                            <div class="form-group">
+                                <label>Range: <span id="ageMinValue">18</span> - <span id="ageMaxValue">60</span> years</label>
+                                <div class="range-slider">
+                                    <div class="slider-track" id="ageTrack"></div>
+                                    <input type="range" id="ageMin" min="18" max="70" value="18" step="1">
+                                    <input type="range" id="ageMax" min="18" max="70" value="60" step="1">
+                                </div>
+                                <div class="range-values">
+                                    <span>18</span>
+                                    <span>70</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- HEIGHT FILTER -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-arrows-v" aria-hidden="true"></i> Height</h4>
+                            <div class="form-group">
+                                <label>Range: <span id="heightMinValue">4'7"</span> - <span id="heightMaxValue">6'7"</span></label>
+                                <div class="range-slider">
+                                    <div class="slider-track" id="heightTrack"></div>
+                                    <input type="range" id="heightMin" min="120" max="220" value="140" step="1">
+                                    <input type="range" id="heightMax" min="120" max="220" value="200" step="1">
+                                </div>
+                                <div class="range-values">
+                                    <span>4'0"</span>
+                                    <span>7'3"</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- MARITAL STATUS -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-heart" aria-hidden="true"></i> Marital Status</h4>
+                            <div class="form-group">
+                                <select class="chosen-select" id="maritalFilter">
+                                    <option value="">Any</option>
+                                    <option value="Never Married">Never Married</option>
+                                    <option value="Divorced">Divorced</option>
+                                    <option value="Widowed">Widowed</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- CASTE -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-users" aria-hidden="true"></i> Caste</h4>
+                            <div class="form-group">
+                                <select class="chosen-select" id="casteFilter">
+                                    <option value="">Select Caste</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- GOTRA -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-sitemap" aria-hidden="true"></i> Gotra</h4>
+                            <div class="form-group">
+                                <select class="chosen-select" id="gotraFilter">
+                                    <option value="">Select Gotra</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- QUALIFICATION -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-graduation-cap" aria-hidden="true"></i> Qualification</h4>
+                            <div class="form-group">
+                                <select class="chosen-select" id="qualificationFilter">
+                                    <option value="">Any</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- PROFESSION -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-briefcase" aria-hidden="true"></i> Profession</h4>
+                            <div class="form-group">
+                                <select class="chosen-select" id="professionFilter">
+                                    <option value="">Any</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- INCOME -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-money" aria-hidden="true"></i> Income</h4>
+                            <div class="form-group">
+                                <select class="chosen-select" id="incomeFilter">
+                                    <option value="">Any</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- APPLY FILTERS BUTTON -->
+                        <div class="filt-com filt-send-query">
+                            <div class="send-query">
+                                <button onclick="applyFilters()" class="btn btn-primary btn-block" style="width: 100%; padding: 12px; border-radius: 5px;">
+                                    <i class="fa fa-filter"></i> Apply Filters
+                                </button>
+                                <button onclick="resetFilters()" class="btn btn-default btn-block" style="width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px;">
+                                    <i class="fa fa-refresh"></i> Reset All
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- HELP BOX -->
+                        <div class="filt-com filt-send-query">
+                            <div class="send-query">
+                                <h5>What are you looking for?</h5>
+                                <p>We will help you to arrage the best match to you.</p>
+                                <a href="#!" data-toggle="modal" data-target="#expfrm">Send your queries</a>
+                            </div>
+                        </div>
+                        <!-- END HELP BOX -->
+                    
+                    </div>
+                    
+                    <div class="col-md-9">
+                        <div class="short-all">
+                            <div class="short-lhs">
+                                Showing <b id="profileCount">0</b> profiles
+                            </div>
+                            <div class="short-rhs">
+                                <ul>
+                                    <li>Sort by:</li>
+                                    <li>
+                                        <div class="form-group">
+                                            <select class="chosen-select" id="sortBy" onchange="applyFilters()">
+                                                <option value="newest">Date listed: Newest</option>
+                                                <option value="oldest">Date listed: Oldest</option>
+                                            </select>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="sort-grid sort-grid-1">
+                                            <i class="fa fa-th-large" aria-hidden="true"></i>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div class="sort-grid sort-grid-2 act">
+                                            <i class="fa fa-bars" aria-hidden="true"></i>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="all-list-sh">
+                            <ul id="profilesList">
+                                <!-- Profiles will be loaded here -->
+                                <li style="text-align: center; padding: 40px;">
+                                    <i class="fa fa-spinner fa-spin" style="font-size: 32px; color: #667eea;"></i>
+                                    <p style="margin-top: 15px; color: #999;">Loading profiles...</p>
+                                </li>
+                            </ul>
+                        </div>
+                        
+                        <!-- PAGINATION -->
+                        <div class="pgnt" id="paginationSection" style="display: none;">
+                            <ul>
+                                <li class="page-item" id="prevPageBtn">
+                                    <a href="javascript:void(0)" onclick="changePage(-1)">
+                                        <i class="fa fa-angle-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item active">
+                                    <span id="currentPageNum">1</span>
+                                </li>
+                                <li class="page-item" id="nextPageBtn">
+                                    <a href="javascript:void(0)" onclick="changePage(1)">
+                                        <i class="fa fa-angle-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END -->
+
+    <%- include('../partials/footer') %>
+
+
+    <!-- Scripts -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+    <script src="/js/esc.js"></script>
+
+    <script>
+        const API_BASE_URL = 'https://api.banjaramatch.com/api';
+        const USER_ID = '<%= user?._id %>';
+        
+        let currentPage = 1;
+        let totalProfiles = 0;
+        let allProfiles = [];
+
+        function getAuthToken() {
+            return document.cookie.split('; ')
+                .find(row => row.startsWith('token='))
+                ?.split('=')[1];
+        }
+
+        // Calculate age from DOB
+        function calculateAge(dob) {
+            if (!dob) return 'N/A';
+            const birth = new Date(dob);
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        // Convert cm to feet and inches
+        function cmToFeetInches(cm) {
+            if (!cm || cm <= 0) return 'N/A';
+            const totalInches = cm / 2.54;
+            const feet = Math.floor(totalInches / 12);
+            const inches = Math.round(totalInches % 12);
+            return `${feet}'${inches}" (${cm}cm)`;
+        }
+        
+        // Convert cm to feet'inches" format for display (without cm)
+        function cmToFeetInchesOnly(cm) {
+            if (!cm || cm <= 0) return 'N/A';
+            const totalInches = cm / 2.54;
+            const feet = Math.floor(totalInches / 12);
+            const inches = Math.round(totalInches % 12);
+            return `${feet}'${inches}"`;
+        }
+
+        // Initialize page
+        $(document).ready(function() {
+            loadDropdownData();
+            loadProfiles();
+            
+            // Initialize range sliders
+            initRangeSliders();
+        });
+
+        // Initialize range sliders
+        function initRangeSliders() {
+            // Age range sliders
+            const ageMin = $('#ageMin');
+            const ageMax = $('#ageMax');
+            const ageTrack = $('#ageTrack');
+            
+            function updateAgeTrack() {
+                const min = parseInt(ageMin.val());
+                const max = parseInt(ageMax.val());
+                const minPercent = ((min - 18) / (70 - 18)) * 100;
+                const maxPercent = ((max - 18) / (70 - 18)) * 100;
+                
+                ageTrack.css({
+                    left: minPercent + '%',
+                    width: (maxPercent - minPercent) + '%'
+                });
+                
+                $('#ageMinValue').text(min);
+                $('#ageMaxValue').text(max);
+            }
+            
+            ageMin.on('input', function() {
+                const min = parseInt($(this).val());
+                const max = parseInt(ageMax.val());
+                if (min > max) {
+                    ageMax.val(min);
+                }
+                updateAgeTrack();
+            });
+            
+            ageMax.on('input', function() {
+                const max = parseInt($(this).val());
+                const min = parseInt(ageMin.val());
+                if (max < min) {
+                    ageMin.val(max);
+                }
+                updateAgeTrack();
+            });
+            
+            updateAgeTrack();
+            
+            // Height range sliders
+            const heightMin = $('#heightMin');
+            const heightMax = $('#heightMax');
+            const heightTrack = $('#heightTrack');
+            
+            function updateHeightTrack() {
+                const min = parseInt(heightMin.val());
+                const max = parseInt(heightMax.val());
+                const minPercent = ((min - 120) / (220 - 120)) * 100;
+                const maxPercent = ((max - 120) / (220 - 120)) * 100;
+                
+                heightTrack.css({
+                    left: minPercent + '%',
+                    width: (maxPercent - minPercent) + '%'
+                });
+                
+                // Display in feet and inches
+                $('#heightMinValue').text(cmToFeetInchesOnly(min));
+                $('#heightMaxValue').text(cmToFeetInchesOnly(max));
+            }
+            
+            heightMin.on('input', function() {
+                const min = parseInt($(this).val());
+                const max = parseInt(heightMax.val());
+                if (min > max) {
+                    heightMax.val(min);
+                }
+                updateHeightTrack();
+            });
+            
+            heightMax.on('input', function() {
+                const max = parseInt($(this).val());
+                const min = parseInt(heightMin.val());
+                if (max < min) {
+                    heightMin.val(max);
+                }
+                updateHeightTrack();
+            });
+            
+            updateHeightTrack();
+        }
+
+        // Load dropdown data
+        async function loadDropdownData() {
+            try {
+                const token = getAuthToken();
+
+                // Load castes
+                const casteRes = await fetch(`${API_BASE_URL}/fetchCasteList`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+                const casteData = await casteRes.json();
+                if (casteData.status && casteData.data) {
+                    const options = casteData.data.map(item => 
+                        `<option value="${item._id}">${item.name}</option>`
+                    ).join('');
+                    $('#casteFilter').append(options);
+                }
+
+                // Load gotras
+                const gotraRes = await fetch(`${API_BASE_URL}/fetchGotraList`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+                const gotraData = await gotraRes.json();
+                if (gotraData.status && gotraData.data) {
+                    const options = gotraData.data.map(item => 
+                        `<option value="${item._id}">${item.name}</option>`
+                    ).join('');
+                    $('#gotraFilter').append(options);
+                }
+
+                // Load qualifications
+                const qualRes = await fetch(`${API_BASE_URL}/fetchQualificationList`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+                const qualData = await qualRes.json();
+                if (qualData.status && qualData.data) {
+                    const options = qualData.data.map(item => 
+                        `<option value="${item._id}">${item.name}</option>`
+                    ).join('');
+                    $('#qualificationFilter').append(options);
+                }
+
+                // Load professions
+                const profRes = await fetch(`${API_BASE_URL}/fetchProfessionList`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+                const profData = await profRes.json();
+                if (profData.status && profData.data) {
+                    const options = profData.data.map(item => 
+                        `<option value="${item._id}">${item.name}</option>`
+                    ).join('');
+                    $('#professionFilter').append(options);
+                }
+
+                // Load income ranges
+                const incomeRes = await fetch(`${API_BASE_URL}/fetchIncomeRange`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({})
+                });
+                const incomeData = await incomeRes.json();
+                if (incomeData.status && incomeData.data) {
+                    const options = incomeData.data.map(item => 
+                        `<option value="${item._id}">${item.range || item.name}</option>`
+                    ).join('');
+                    $('#incomeFilter').append(options);
+                }
+
+                // Reinitialize chosen selects
+                if (typeof $.fn.chosen !== 'undefined') {
+                    $('.chosen-select').chosen('destroy');
+                    $('.chosen-select').chosen();
+                }
+
+            } catch (error) {
+                console.error('Error loading dropdown data:', error);
+            }
+        }
+
+        // Load profiles
+        async function loadProfiles() {
+            try {
+                const token = getAuthToken();
+                const filters = {};
+
+                // Age filter from range sliders
+                const ageMin = parseInt($('#ageMin').val());
+                const ageMax = parseInt($('#ageMax').val());
+                if (ageMin && ageMax) {
+                    filters.age_range = { min: ageMin, max: ageMax };
+                }
+
+                // Height filter from range sliders
+                const heightMin = parseInt($('#heightMin').val());
+                const heightMax = parseInt($('#heightMax').val());
+                if (heightMin && heightMax) {
+                    filters.height_range = { min: heightMin, max: heightMax };
+                }
+
+                // Marital status
+                const maritalStatus = $('#maritalFilter').val();
+                if (maritalStatus) {
+                    filters.marital_status = maritalStatus;
+                }
+
+                // Caste
+                const caste = $('#casteFilter').val();
+                if (caste) {
+                    filters.caste = [caste];
+                }
+
+                // Gotra
+                const gotra = $('#gotraFilter').val();
+                if (gotra) {
+                    filters.gotra = [gotra];
+                }
+
+                // Qualification
+                const qualification = $('#qualificationFilter').val();
+                if (qualification) {
+                    filters.qualification = [qualification];
+                }
+
+                // Profession
+                const profession = $('#professionFilter').val();
+                if (profession) {
+                    filters.profession = [profession];
+                }
+
+                // Income
+                const income = $('#incomeFilter').val();
+                if (income) {
+                    filters.income = income;
+                }
+
+                // Sort
+                const sortByNewest = $('#sortBy').val() === 'newest';
+
+                const payload = {
+                    my_user_id: USER_ID,
+                    page: currentPage,
+                    limit: 12,
+                    filters: filters,
+                    sortByNewUsers: sortByNewest
+                };
+
+                const response = await fetch(`${API_BASE_URL}/searchProfiles`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+
+                if (data.status && data.data) {
+                    allProfiles = data.data;
+                    totalProfiles = data.totalCount || data.data.length;
+                    renderProfiles(data.data);
+                    updatePagination();
+                } else {
+                    renderProfiles([]);
+                }
+
+            } catch (error) {
+                console.error('Error loading profiles:', error);
+                renderProfiles([]);
+            }
+        }
+
+        // Render profiles
+        function renderProfiles(profiles) {
+            const list = $('#profilesList');
+            list.empty();
+
+            $('#profileCount').text(totalProfiles);
+
+            if (profiles.length === 0) {
+                list.html(`
+                    <li style="text-align: center; padding: 60px;">
+                        <i class="fa fa-search" style="font-size: 48px; color: #ddd;"></i>
+                        <h3 style="color: #999; margin-top: 20px;">No profiles found</h3>
+                        <p style="color: #aaa;">Try adjusting your filters</p>
+                    </li>
+                `);
+                $('#paginationSection').hide();
+                return;
+            }
+
+            profiles.forEach(profile => {
+                const age = profile.age || calculateAge(profile.dob);
+                const height = cmToFeetInches(profile.height);
+                const education = profile.qualification?.name || 'Not specified';
+                const profession = profile.profession?.name || 'Not specified';
+                const location = profile.location?.city?.name || profile.location?.state?.name || 'Not specified';
+                const profileImage = profile.profile ? (profile.profile.startsWith('http') ? profile.profile : `https://api.banjaramatch.com/${profile.profile}`) : '/images/profiles/default-avatar.jpg';
+                const isOnline = profile.lastSeen && (new Date() - new Date(profile.lastSeen)) < 600000; // 10 mins
+                
+                const onlineClass = isOnline ? 'user-avil-onli' : '';
+                const availStatus = isOnline ? 'avilyes' : 'avilno';
+                const availText = isOnline ? 'Available online' : 'Offline';
+                
+                let statusHtml = '';
+                if (isOnline) {
+                    statusHtml = '<div class="pro-avl-status"><h5>Available Online</h5></div>';
+                } else {
+                    const lastSeen = profile.lastSeen ? getLastSeenText(profile.lastSeen) : 'Last seen recently';
+                    statusHtml = `<div class="pro-avl-status"><span class="marqu">${esc(lastSeen)}</span></div>`;
+                }
+
+                // Determine button states based on relationship status
+                // searchProfiles API excludes connected/pending users, so we only show Send interest
+                let interestButton = '<a href="javascript:void(0)" onclick="sendInterest(\'' + profile._id + '\')" class="cta cta-sendint">Send interest</a>';
+                
+                let saveButtonClass = 'enq-sav';
+                let saveButtonTitle = 'Click to save this profile.';
+
+                const card = `
+                    <li>
+                        <div class="all-pro-box ${onlineClass}" data-useravil="${availStatus}" data-aviltxt="${availText}">
+                            <!--PROFILE IMAGE-->
+                            <div class="pro-img">
+                                <a href="/profile/${profile._id}">
+                                    <img src="${esc(profileImage)}" alt="${esc(profile.full_name)}" onerror="this.src='/images/profiles/default-avatar.jpg'">
+                                </a>
+                                <div class="pro-ave" title="User currently available">
+                                    <span class="pro-ave-yes"></span>
+                                </div>
+                                ${statusHtml}
+                            </div>
+                            <!--END PROFILE IMAGE-->
+
+                            <!--PROFILE NAME-->
+                            <div class="pro-detail">
+                                <h4><a href="/profile/${profile._id}">${esc(profile.full_name || profile.username || 'Anonymous')}</a>${profile.is_verified ? ' <span title="Verified profile" style="display:inline-flex;align-items:center;gap:3px;background:#e8f5e9;color:#2e7d32;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;vertical-align:middle;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>Verified</span>' : ''}</h4>
+                                <div class="pro-bio">
+                                    <span>${esc(education)}</span>
+                                    <span>${esc(profession)}</span>
+                                    <span>${esc(age)} years old</span>
+                                    <span>Height: ${esc(height)}</span>
+                                </div>
+                                <div class="links">
+                                    <a href="/user-chat" class="cta-chat">Chat now</a>
+                                    ${interestButton}
+                                    <a href="/profile/${profile._id}">More details</a>
+                                </div>
+                            </div>
+                            <!--END PROFILE NAME-->
+                            
+                            <!--SAVE-->
+                            <span class="${saveButtonClass}" data-toggle="tooltip" title="${saveButtonTitle}" onclick="shortlistProfile('${profile._id}')">
+                                <i class="fa fa-thumbs-o-up" aria-hidden="true"></i>
+                            </span>
+                            <!--END SAVE-->
+                        </div>
+                    </li>
+                `;
+                
+                list.append(card);
+            });
+        }
+
+        // Get last seen text
+        function getLastSeenText(lastSeen) {
+            const now = new Date();
+            const lastSeenDate = new Date(lastSeen);
+            const diffMs = now - lastSeenDate;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return 'Last seen just now';
+            if (diffMins < 60) return `Last login ${diffMins} mins ago`;
+            if (diffHours < 24) return `Last login ${diffHours} hours ago`;
+            if (diffDays < 7) return `Last login ${diffDays} days ago`;
+            return 'Last seen recently';
+        }
+
+        // Update pagination
+        function updatePagination() {
+            const totalPages = Math.ceil(totalProfiles / 12);
+            
+            if (totalPages <= 1) {
+                $('#paginationSection').hide();
+                return;
+            }
+
+            $('#paginationSection').show();
+            $('#currentPageNum').text(currentPage);
+
+            if (currentPage === 1) {
+                $('#prevPageBtn').addClass('disabled');
+            } else {
+                $('#prevPageBtn').removeClass('disabled');
+            }
+
+            if (currentPage >= totalPages) {
+                $('#nextPageBtn').addClass('disabled');
+            } else {
+                $('#nextPageBtn').removeClass('disabled');
+            }
+        }
+
+        // Change page
+        function changePage(direction) {
+            currentPage += direction;
+            if (currentPage < 1) currentPage = 1;
+            loadProfiles();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Apply filters
+        function applyFilters() {
+            currentPage = 1;
+            loadProfiles();
+        }
+
+        // Reset filters
+        function resetFilters() {
+            // Reset range sliders
+            $('#ageMin').val(18);
+            $('#ageMax').val(60);
+            $('#ageMinValue').text(18);
+            $('#ageMaxValue').text(60);
+            
+            $('#heightMin').val(140);
+            $('#heightMax').val(200);
+            $('#heightMinValue').text(cmToFeetInchesOnly(140));
+            $('#heightMaxValue').text(cmToFeetInchesOnly(200));
+            
+            // Update visual tracks
+            const ageMinPercent = ((18 - 18) / (70 - 18)) * 100;
+            const ageMaxPercent = ((60 - 18) / (70 - 18)) * 100;
+            $('#ageTrack').css({
+                left: ageMinPercent + '%',
+                width: (ageMaxPercent - ageMinPercent) + '%'
+            });
+            
+            const heightMinPercent = ((140 - 120) / (220 - 120)) * 100;
+            const heightMaxPercent = ((200 - 120) / (220 - 120)) * 100;
+            $('#heightTrack').css({
+                left: heightMinPercent + '%',
+                width: (heightMaxPercent - heightMinPercent) + '%'
+            });
+            
+            // Reset dropdowns
+            $('#maritalFilter, #casteFilter, #gotraFilter, #qualificationFilter, #professionFilter, #incomeFilter').val('');
+            $('#sortBy').val('newest');
+            
+            if (typeof $.fn.chosen !== 'undefined') {
+                $('.chosen-select').trigger('chosen:updated');
+            }
+            
+            applyFilters();
+        }
+
+        // Send interest
+        async function sendInterest(userId) {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/sendInterestRequest`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        my_user_id: USER_ID,
+                        user_id: userId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.status) {
+                    alert('Interest sent successfully!');
+                    // Remove this profile from list since searchProfiles excludes pending connections
+                    loadProfiles();
+                } else {
+                    alert(data.message || 'Failed to send interest');
+                }
+            } catch (error) {
+                console.error('Error sending interest:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        // Cancel interest request
+        async function cancelInterest(userId) {
+            if (!confirm('Are you sure you want to cancel this interest request?')) {
+                return;
+            }
+
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/cancelInterestRequest`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        my_user_id: USER_ID,
+                        user_id: userId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.status) {
+                    alert('Interest request cancelled');
+                    loadProfiles(); // Reload to show updated button state
+                } else {
+                    alert(data.message || 'Failed to cancel interest');
+                }
+            } catch (error) {
+                console.error('Error cancelling interest:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        // Accept interest request
+        async function acceptInterest(userId) {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/acceptInterestRequest`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        my_user_id: USER_ID,
+                        user_id: userId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.status) {
+                    alert('Interest accepted! You are now connected.');
+                    loadProfiles(); // Reload to show updated button state
+                } else {
+                    alert(data.message || 'Failed to accept interest');
+                }
+            } catch (error) {
+                console.error('Error accepting interest:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+
+        // Shortlist profile
+        async function shortlistProfile(userId) {
+            try {
+                const token = getAuthToken();
+                const response = await fetch(`${API_BASE_URL}/toggleShortlist`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        userId: USER_ID,
+                        shortlistedUserId: userId
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.status) {
+                    loadProfiles(); // Reload to show updated button state
+                } else {
+                    alert(data.message || 'Failed to update shortlist');
+                }
+            } catch (error) {
+                console.error('Error updating shortlist:', error);
+                alert('An error occurred. Please try again.');
+            }
+        }
+    </script>
+</body>
+</html>

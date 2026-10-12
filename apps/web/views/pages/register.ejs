@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+
+
+<head>
+  <title>Register Free on BanjaraMatch | #1 Banjara Matrimony Website</title>
+
+  <!-- META TAGS FOR SEO -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="theme-color" content="#f6af04">
+  <meta name="description" content="Join the most trusted Banjara matrimony platform – BanjaraMatch.com. Create your free profile today and find your ideal Banjara bride or groom. 100% verified matches. Safe & secure.">
+  <meta name="keywords" content="Banjara Matrimony, BanjaraMatch, Banjara marriage, Banjara brides, Banjara grooms, matrimony site for Banjara, register for marriage, free Banjara matrimonial">
+  <meta name="author" content="Banjaramatch.com">
+  <meta property="og:title" content="Register Free on BanjaraMatch | Trusted Banjara Matrimony">
+  <meta property="og:description" content="Create your free BanjaraMatch profile and start your search for a perfect life partner from the Banjara community.">
+  <meta property="og:url" content="https://www.banjaramatch.com/register">
+  <meta property="og:image" content="https://www.banjaramatch.com/images/social-preview.jpg">
+  <link rel="canonical" href="https://www.banjaramatch.com/register">
+
+  <!-- FAVICON -->
+  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+
+  <!-- Google Analytics (SEO & Traffic Tracking) -->
+  <%- include('../partials/analytics', { pageCategory: 'register' }) %>
+
+  <!-- CSS FILES -->
+  <link rel="stylesheet" href="css/bootstrap.css">
+  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/animate.min.css">
+  <link rel="stylesheet" href="css/style.min.css">
+
+  <!-- Firebase SDK for Email/Password Auth -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  
+  <!-- Prevent Firebase auto-initialization -->
+  <script>
+    window.FIREBASE_APPCHECK_DEBUG_TOKEN = false;
+  </script>
+
+  <style>
+    .password-input-wrapper {
+      position: relative;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #666;
+    }
+
+    .toggle-password:hover {
+      color: #f6af04;
+    }
+
+    .loading-spinner {
+      display: none;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #f6af04;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    .loading-spinner.active {
+      display: block;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- SUPPORT FOR OLDER BROWSERS -->
+  <!--[if lt IE 9]>
+    <script src="js/html5shiv.min.js"></script>
+    <script src="js/respond.min.js"></script>
+  <![endif]-->
+</head>
+
+
+
+
+
+<body>
+  <%- include('../partials/header') %>
+
+    <!-- REGISTER -->
+<section class="login">
+  <div class="container">
+    <div class="row">
+      <div class="inn">
+
+        <!-- LEFT SIDE INFO -->
+        <div class="lhs">
+          <div class="tit">
+            <h2>Create Your <b>Banjara Matrimony Profile</b> – Free, Fast & Secure</h2>
+          </div>
+          <div class="im">
+            <img src="images/login-couple.png" alt="Join Banjara Matrimony - BanjaraMatch.com">
+          </div>
+          <div class="log-bg">&nbsp;</div>
+        </div>
+
+        <!-- RIGHT SIDE FORM -->
+        <div class="rhs">
+          <div>
+            <div class="form-tit">
+              <h4>Start Your Matrimony Journey</h4>
+              <h1>Register on BanjaraMatch</h1>
+              <p>Already a member? <a href="login">Sign in here</a></p>
+            </div>
+
+            <div class="form-login">
+              <form id="registerForm">
+                <div class="form-group">
+                  <label class="lb">Full Name:</label>
+                  <input type="text" class="form-control" id="full_name" placeholder="Enter your full name" name="full_name" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="lb">Email:</label>
+                  <input type="email" class="form-control" id="email" placeholder="Enter email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="lb">Mobile Number:</label>
+                  <div style="display: flex;">
+                    <input type="text" class="form-control" value="+91" readonly style="width: 70px; margin-right: 10px;">
+                    <input type="tel" class="form-control" id="phone" placeholder="10-digit mobile number" name="phone" maxlength="10" pattern="[0-9]{10}" required>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="lb">Password:</label>
+                  <div class="password-input-wrapper">
+                    <input type="password" class="form-control" id="password" placeholder="Create a password (min. 6 characters)" name="password" minlength="6" required>
+                    <i class="fa fa-eye toggle-password" onclick="togglePassword('password')"></i>
+                  </div>
+
+                </div>
+
+                <div class="form-group form-check">
+                  <label class="form-check-label">
+                    <input class="form-check-input" type="checkbox" name="agree" id="agree" required>
+                    I agree to the 
+                    <a href="/terms-conditions" target="_blank">Terms & Conditions</a> and 
+                    <a href="/privacy-policy" target="_blank">Privacy Policy</a>
+                  </label>
+                </div>
+
+                <div class="loading-spinner" id="register-spinner"></div>
+                <button type="submit" class="btn btn-primary" id="registerBtn">Create My Profile</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <!-- END RIGHT SIDE -->
+
+      </div>
+    </div>
+  </div>
+</section>
+    <!-- END -->
+
+    <!-- FOOTER -->
+  <%- include('../partials/footer') %>
+
+    <!-- END -->
+    <!-- END -->
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/select-opt.min.js"></script>
+    <script src="js/custom.min.js"></script>
+
+    
+<script>
+  // Firebase Configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBEQVygTdSOOUczWmUezTt0CyoGm4l5Qe8",
+    authDomain: "socialmedia-dcdd8.firebaseapp.com",
+    databaseURL: "https://socialmedia-dcdd8-default-rtdb.firebaseio.com",
+    projectId: "socialmedia-dcdd8",
+    storageBucket: "socialmedia-dcdd8.firebasestorage.app",
+    messagingSenderId: "799990198329",
+    appId: "1:799990198329:web:ee65ff58d4992177a21de8",
+    measurementId: "G-3RE8KG7MXG"
+  };
+
+  // Initialize Firebase only if not already initialized
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+      console.log('✅ Firebase initialized successfully');
+    } else {
+      console.log('ℹ️ Firebase already initialized');
+    }
+  } catch (error) {
+    console.error('❌ Firebase initialization error:', error);
+  }
+
+  // Toggle password visibility
+  function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling;
+    
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+
+  // Register Form Handler
+  document.getElementById('registerForm').addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    console.log('=== REGISTER: START ===');
+    const full_name = document.getElementById('full_name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = '+91' + document.getElementById('phone').value.trim();
+    const password = document.getElementById('password').value;
+
+    // Validation
+    if (!full_name || !email || !phone || !password) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    if (password.length < 6) {
+      alert('Password must be at least 6 characters');
+      return;
+    }
+
+    if (!document.getElementById('agree').checked) {
+      alert('Please agree to Terms & Conditions');
+      return;
+    }
+
+    document.getElementById('register-spinner').classList.add('active');
+    document.getElementById('registerBtn').disabled = true;
+
+    try {
+      console.log('📝 Creating Firebase account for:', email);
+      
+      // Create user with Firebase
+      const auth = firebase.auth();
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const firebaseUser = userCredential.user;
+      
+      console.log('✅ Firebase account created');
+      console.log('🆔 Firebase UID:', firebaseUser.uid);
+      
+      // Update display name in Firebase
+      await firebaseUser.updateProfile({
+        displayName: full_name
+      });
+      
+      const firebaseToken = await firebaseUser.getIdToken();
+      console.log('🎫 Firebase ID Token obtained');
+
+      // Register user in backend
+      console.log('📤 Sending registration request to backend...');
+      const response = await fetch('https://api.banjaramatch.com/api/auth/firebase-email-register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email,
+          full_name: full_name,
+          phone: phone,
+          firebaseUid: firebaseUser.uid,
+          firebaseToken: firebaseToken
+        }),
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+      console.log('📥 Registration response:', data);
+
+      if (data.status && data.token) {
+        // Set token in cookie
+        document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}; domain=.banjaramatch.com; SameSite=Lax`;
+
+        // Track Google Ads Conversion
+        if (typeof window.trackRegistrationConversion === 'function') {
+          window.trackRegistrationConversion();
+        }
+        
+        // Track in GA4
+        if (typeof gtag !== 'undefined') {
+          gtag('event', 'sign_up', {
+            'event_category': 'engagement',
+            'method': 'email',
+            'value': 1.00,
+            'currency': 'INR'
+          });
+        }
+        
+        console.log('🎉 Registration successful - redirecting to thank you page');
+        alert('Registration successful! Welcome to BanjaraMatch!');
+        window.location.href = '/thank-you';
+      } else {
+        alert(data.message || 'Registration failed. Please try again.');
+        document.getElementById('register-spinner').classList.remove('active');
+        document.getElementById('registerBtn').disabled = false;
+      }
+    } catch (error) {
+      console.error('=== REGISTER: FAILED ===');
+      console.error('❌ Error:', error);
+      console.error('❌ Error code:', error.code);
+      console.error('❌ Error message:', error.message);
+      
+      document.getElementById('register-spinner').classList.remove('active');
+      document.getElementById('registerBtn').disabled = false;
+      
+      let errorMsg = 'Registration failed. ';
+      if (error.code === 'auth/email-already-in-use') {
+        errorMsg = 'This email is already registered. Please login instead.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMsg = 'Invalid email format.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMsg = 'Password is too weak. Use at least 6 characters.';
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMsg = 'Email/password authentication is not enabled. Please contact administrator.';
+      } else {
+        errorMsg += error.message || 'Please try again.';
+      }
+      
+      alert(errorMsg);
+    }
+  });
+</script>
+
+</body>
+
+
+</html>

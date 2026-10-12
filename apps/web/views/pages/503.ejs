@@ -1,0 +1,37 @@
+<%#
+  503 page rendered by middleware/errorHandler.js. Self-contained on purpose:
+  no API calls, no head.ejs (whose helpers may be the thing that failed), only
+  the legacy stylesheet paths that always exist. header/footer partials are
+  included because they need no API data (user is passed as null).
+%>
+<!doctype html>
+<html lang="en-IN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Temporarily unavailable | BanjaraMatch</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/css/bootstrap.css">
+  <link rel="stylesheet" href="/css/style.min.css">
+  <style>
+    .bm-err{padding:80px 16px;text-align:center;max-width:640px;margin:0 auto}
+    .bm-err h1{font-size:32px;margin:0 0 12px}
+    .bm-err h1 b{color:#f6af04}
+    .bm-err p{color:#555;font-size:16px;line-height:1.6}
+    .bm-err .cta-4{display:inline-block;margin-top:20px}
+  </style>
+</head>
+<body>
+  <%- include('../partials/header', { user: null }) %>
+  <main>
+    <section class="bm-err">
+      <h1>Temporarily unavailable <b>503</b></h1>
+      <p>We are briefly unable to load this page.</p>
+      <p>Our servers are busy or being updated. Nothing is wrong with your account — please try again in a couple of minutes.</p>
+      <a href="<%= (typeof currentPath !== 'undefined' && currentPath) ? currentPath : '/' %>" class="cta-4">Try again</a>
+    </section>
+  </main>
+  <%- include('../partials/footer') %>
+</body>
+</html>

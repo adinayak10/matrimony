@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Constants - Banjara Match Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">📊 Dashboard</a></li>
+                <li><a href="/users">👥 Users</a></li>
+                <li><a href="/reports">🚩 Reports</a></li>
+                <li><a href="/photo-moderation">🖼️ Photo Moderation</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="/community-data">🌳 Community Data</a></li>
+                <li><a href="/constants" class="active">⚙️ Constants</a></li>
+                <li><a href="/settings">🔧 Settings</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <h1>System Constants & Data</h1>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- Castes -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Castes</h3>
+                        <button class="btn btn-primary" onclick="openAddModal('caste')">+ Add Caste</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="castesContent" class="loading">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Moved notice: Gotras/Clans/Surname Titles now live on the dedicated Community Data page -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🌳 Gotras, Clans &amp; Surname Titles</h3>
+                        <a href="/community-data" class="btn btn-primary">Open Community Data Manager</a>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: var(--text-secondary);">Gotra management has moved to a dedicated page that also supports Clan assignment, lineage details, and Surname Titles. Use the link above to add, edit, or assign gotras to clans.</p>
+                    </div>
+                </div>
+
+                <!-- Professions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Professions</h3>
+                        <button class="btn btn-primary" onclick="openAddModal('profession')">+ Add Profession</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="professionsContent" class="loading">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Qualifications -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Qualifications</h3>
+                        <button class="btn btn-primary" onclick="openAddModal('qualification')">+ Add Qualification</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="qualificationsContent" class="loading">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Income Ranges -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Income Ranges</h3>
+                        <button class="btn btn-primary" onclick="openAddModal('incomeRange')">+ Add Income Range</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="incomeRangesContent" class="loading">Loading...</div>
+                    </div>
+                </div>
+
+                <!-- Interests -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Interests</h3>
+                        <button class="btn btn-primary" onclick="openAddModal('interest')">+ Add Interest</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="interestsContent" class="loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Modal -->
+    <div id="constantModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add Item</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <form id="constantForm" onsubmit="saveConstant(event)">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label id="fieldLabel">Name</label>
+                        <input type="text" id="constantName" name="name" required>
+                    </div>
+                    <div class="form-group" id="rangeGroup" style="display: none;">
+                        <label>Range (for Income)</label>
+                        <input type="text" id="constantRange" name="range">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/auth.js?v=1764497821"></script>
+    <script src="/js/api.js?v=1764497821"></script>
+    <script>
+        let currentType = null;
+        let editingId = null;
+
+        const typeConfig = {
+            caste: { endpoint: '/api/admin/constants/castes', label: 'Caste Name' },
+            profession: { endpoint: '/api/admin/constants/professions', label: 'Profession Name' },
+            qualification: { endpoint: '/api/admin/constants/qualifications', label: 'Qualification Name' },
+            incomeRange: { endpoint: '/api/admin/constants/income-ranges', label: 'Range Name', hasRange: true },
+            interest: { endpoint: '/api/admin/constants/interests', label: 'Interest Name' }
+        };
+
+        async function loadAllConstants() {
+            await Promise.all([
+                loadConstants('caste', 'castesContent'),
+                loadConstants('profession', 'professionsContent'),
+                loadConstants('qualification', 'qualificationsContent'),
+                loadConstants('incomeRange', 'incomeRangesContent'),
+                loadConstants('interest', 'interestsContent')
+            ]);
+        }
+
+        async function loadConstants(type, contentId) {
+            try {
+                const config = typeConfig[type];
+                const response = await window.apiRequest(config.endpoint);
+                const items = response.data || [];
+                
+                const container = document.getElementById(contentId);
+                
+                if (items.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-secondary);">No items found</p>';
+                    return;
+                }
+
+                container.innerHTML = `
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        ${items.map(item => `
+                            <div style="background: var(--light); padding: 10px 15px; border-radius: 6px; display: flex; align-items: center; gap: 10px;">
+                                <span>${item.name}${item.range ? ` (${item.range})` : ''}</span>
+                                <button class="btn btn-sm btn-danger" onclick="deleteConstant('${type}', '${item._id}')" style="padding: 4px 8px;">×</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                console.error(`Error loading ${type}:`, error);
+                document.getElementById(contentId).innerHTML = '<p style="color: var(--danger-color);">Failed to load</p>';
+            }
+        }
+
+        function openAddModal(type) {
+            currentType = type;
+            editingId = null;
+            const config = typeConfig[type];
+            
+            document.getElementById('modalTitle').textContent = `Add ${type.charAt(0).toUpperCase() + type.slice(1)}`;
+            document.getElementById('fieldLabel').textContent = config.label;
+            document.getElementById('constantForm').reset();
+            
+            if (config.hasRange) {
+                document.getElementById('rangeGroup').style.display = 'block';
+            } else {
+                document.getElementById('rangeGroup').style.display = 'none';
+            }
+            
+            document.getElementById('constantModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('constantModal').classList.remove('active');
+        }
+
+        async function saveConstant(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+            
+            try {
+                const config = typeConfig[currentType];
+                await window.apiRequest(config.endpoint, 'POST', data);
+                
+                window.showNotification('Item added successfully', 'success');
+                closeModal();
+                
+                const contentId = currentType + (currentType.endsWith('s') ? '' : 's') + 'Content';
+                loadConstants(currentType, contentId);
+            } catch (error) {
+                window.showNotification('Failed to add item', 'danger');
+            }
+        }
+
+        async function deleteConstant(type, id) {
+            if (!window.confirm('Are you sure you want to delete this item?')) return;
+
+            try {
+                const config = typeConfig[type];
+                await window.apiRequest(`${config.endpoint}/${id}`, 'DELETE');
+                
+                window.showNotification('Item deleted successfully', 'success');
+                
+                const contentId = type + (type.endsWith('s') ? '' : 's') + 'Content';
+                loadConstants(type, contentId);
+            } catch (error) {
+                window.showNotification('Failed to delete item', 'danger');
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadAllConstants();
+            }
+        });
+    </script>
+</body>
+</html>

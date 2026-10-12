@@ -1,0 +1,28 @@
+<section class="card">
+  <div class="card__header card__header--stack">
+    <%- include('../partials/table-toolbar', {
+      id: 'user-filters',
+      search: { name: 'search', placeholder: 'Search name, email or phone' },
+      filters: [
+        { name: 'gender', label: 'Gender', options: [
+          { value: '', label: 'Any gender' }, { value: 'Male', label: 'Male' }, { value: 'Female', label: 'Female' }, { value: 'Not specified', label: 'Not specified' }
+        ] },
+        { name: 'platform', label: 'Platform', options: [
+          { value: '', label: 'Any platform' }, { value: 'mobile', label: 'Mobile' }, { value: 'web', label: 'Web' }
+        ] },
+        { name: 'verified', label: 'Verified', options: [
+          { value: '', label: 'Any' }, { value: '1', label: 'Verified' }, { value: '0', label: 'Unverified' }
+        ] },
+        { name: 'blocked', label: 'Blocked', options: [
+          { value: '', label: 'Any' }, { value: '0', label: 'Active' }, { value: '1', label: 'Blocked' }
+        ] },
+        { name: 'sort', label: 'Sort', options: [
+          { value: '-createdAt', label: 'Newest first' }, { value: 'createdAt', label: 'Oldest first' }, { value: '-lastSeen', label: 'Recently active' }, { value: 'full_name', label: 'Name A–Z' }
+        ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="users-table" data-table-mount></div>
+  </div>
+</section>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Moderation - Banjara Match Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .filters-row { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: end; }
+        .filters-row .form-group { margin: 0; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+        .photo-card { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .photo-card img { width: 100%; height: 200px; object-fit: cover; display: block; background: #f0f0f0; }
+        .photo-card .photo-body { padding: 10px 12px; }
+        .photo-card .photo-user { font-weight: 600; font-size: 0.9rem; margin: 0 0 4px; }
+        .photo-card .photo-meta { color: #888; font-size: 0.78rem; margin: 0 0 8px; }
+        .photo-card .photo-actions { display: flex; gap: 6px; }
+        .badge-status { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-approved { background: #d4edda; color: #155724; }
+        .badge-rejected { background: #f8d7da; color: #721c24; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard">📊 Dashboard</a></li>
+                <li><a href="/users">👥 Users</a></li>
+                <li><a href="/reports">🚩 Reports</a></li>
+                <li><a href="/photo-moderation" class="active">🖼️ Photo Moderation</a></li>
+                <li><a href="/contact-enquiries">📧 Contact Enquiries</a></li>
+                <li><a href="/community-feedback">💡 Community Feedback</a></li>
+                <li><a href="/beta-testers">🧪 Beta Testers</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="/regional-pages">🌍 Regional Pages</a></li>
+                <li><a href="/community-data">🌳 Community Data</a></li>
+                <li><a href="/constants">⚙️ Constants</a></li>
+                <li><a href="/settings">🔧 Settings</a></li>
+                <li><a href="/apk-manager">📱 APK Manager</a></li>
+                <li><a href="/broadcast-email">📨 Broadcast Email</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <div class="topbar">
+                <h1>Photo Moderation</h1>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span>Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <p style="color:#666; margin-top:0;">
+                    New uploads are visible immediately (no staffing to gate every upload yet) — the
+                    <a href="/reports">Reports</a> queue is the primary safety net. Use this page to proactively
+                    review photos; rejecting one hides it from the user's public gallery immediately.
+                </p>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Photos</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="filters-row">
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select id="statusFilter" onchange="currentPage=1;loadPhotos()">
+                                    <option value="pending" selected>Pending review</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                    <option value="all">All</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="photo-grid" id="photoGrid">
+                            <div class="empty-state"><div class="spinner"></div>Loading photos...</div>
+                        </div>
+
+                        <nav>
+                            <ul id="pagination" style="display:flex; gap:6px; list-style:none; padding:0; margin-top:20px;"></ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js"></script>
+    <script>
+        let currentPage = 1;
+
+        async function loadPhotos() {
+            const grid = document.getElementById('photoGrid');
+            grid.innerHTML = '<div class="empty-state"><div class="spinner"></div>Loading photos...</div>';
+            try {
+                const status = document.getElementById('statusFilter').value;
+                const res = await apiRequest(`/api/admin/photos?status=${status}&page=${currentPage}&limit=40`);
+                const photos = res.data || [];
+
+                if (photos.length === 0) {
+                    grid.innerHTML = '<div class="empty-state">No photos in this category.</div>';
+                    renderPagination(res.pagination);
+                    return;
+                }
+
+                grid.innerHTML = photos.map(p => `
+                    <div class="photo-card">
+                        <img src="${photoUrl(p.imageUrl)}" alt="Profile photo" loading="lazy" onerror="this.src='';this.style.background='#eee';">
+                        <div class="photo-body">
+                            <p class="photo-user">${p.userId?.full_name || 'Unknown user'}</p>
+                            <p class="photo-meta">
+                                <span class="badge-status badge-${p.moderationStatus}">${p.moderationStatus}</span>
+                                &middot; ${formatDate(p.uploadedAt)}
+                            </p>
+                            <div class="photo-actions">
+                                ${p.moderationStatus !== 'approved' ? `<button class="btn btn-success btn-sm" onclick="approvePhoto('${p._id}')">Approve</button>` : ''}
+                                ${p.moderationStatus !== 'rejected' ? `<button class="btn btn-danger btn-sm" onclick="rejectPhoto('${p._id}')">Reject</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+
+                renderPagination(res.pagination);
+            } catch (error) {
+                console.error('Error loading photos:', error);
+                grid.innerHTML = '<div class="empty-state" style="color:#dc3545;">Failed to load photos.</div>';
+            }
+        }
+
+        function photoUrl(imageUrl) {
+            if (!imageUrl) return '';
+            if (imageUrl.startsWith('http')) return imageUrl;
+            const path = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+            return `https://api.banjaramatch.com${path}`;
+        }
+
+        function renderPagination(pagination) {
+            const el = document.getElementById('pagination');
+            if (!pagination || pagination.pages <= 1) { el.innerHTML = ''; return; }
+            let html = '';
+            for (let i = 1; i <= pagination.pages; i++) {
+                html += `<li><button class="btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-secondary'}" onclick="currentPage=${i};loadPhotos()">${i}</button></li>`;
+            }
+            el.innerHTML = html;
+        }
+
+        async function approvePhoto(id) {
+            try {
+                await apiRequest(`/api/admin/photos/${id}/approve`, { method: 'POST' });
+                showNotification('Photo approved', 'success');
+                loadPhotos();
+            } catch (error) {
+                showNotification('Failed to approve photo', 'danger');
+            }
+        }
+
+        async function rejectPhoto(id) {
+            const reason = window.prompt('Reason for rejecting this photo (optional):') || '';
+            try {
+                await apiRequest(`/api/admin/photos/${id}/reject`, { method: 'POST', body: JSON.stringify({ reason }) });
+                showNotification('Photo rejected and hidden from gallery', 'success');
+                loadPhotos();
+            } catch (error) {
+                showNotification('Failed to reject photo', 'danger');
+            }
+        }
+
+        window.addEventListener('load', async () => {
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                loadPhotos();
+            }
+        });
+    </script>
+</body>
+</html>

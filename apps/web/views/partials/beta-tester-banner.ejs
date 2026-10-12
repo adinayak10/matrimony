@@ -1,0 +1,291 @@
+<!-- Beta Tester Program Banner -->
+<section class="beta-tester-banner-section" style="margin: 60px 0; position: relative; z-index: 10; clear: both; padding-top: 40px;">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="beta-tester-banner">
+          <div class="beta-banner-content">
+            <div class="beta-banner-icon">
+              <i class="fa fa-rocket"></i>
+            </div>
+            <div class="beta-banner-text">
+              <div class="beta-badge-small">🚀 EARLY ACCESS PROGRAM</div>
+              <h3>Get Advanced Features Before Everyone Else</h3>
+              <p>BanjaraMatch is <strong>FREE forever</strong> - but beta testers get AI-powered features <strong>3-6 months early!</strong></p>
+              <ul class="beta-benefits-list">
+                <li><i class="fa fa-check-circle"></i> AI Matching Algorithm First</li>
+                <li><i class="fa fa-check-circle"></i> Advanced Search Filters Early</li>
+                <li><i class="fa fa-check-circle"></i> AI Profile Verification Beta</li>
+                <li><i class="fa fa-check-circle"></i> Mobile App Beta Access</li>
+              </ul>
+            </div>
+            <div class="beta-banner-cta">
+              <a href="/beta-tester" class="beta-cta-button">
+                <span>Apply for Beta Access</span>
+                <i class="fa fa-arrow-right"></i>
+              </a>
+              <p class="beta-urgency" id="bannerSlotsCount">⚡ Limited Beta Spots Available!</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Beta Tester Banner Styles */
+  .beta-tester-banner-section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .beta-tester-banner {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 15px 50px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .beta-tester-banner:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.4);
+  }
+
+  .beta-tester-banner::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+  }
+
+  @keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  .beta-banner-content {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    position: relative;
+    z-index: 2;
+    flex-wrap: wrap;
+  }
+
+  .beta-banner-icon {
+    flex-shrink: 0;
+  }
+
+  .beta-banner-icon i {
+    font-size: 4rem;
+    color: #f6af04;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .beta-banner-text {
+    flex: 1;
+    min-width: 300px;
+    color: white;
+  }
+
+  .beta-badge-small {
+    display: inline-block;
+    background: rgba(246, 175, 4, 0.9);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: 0.5px;
+  }
+
+  .beta-banner-text h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: white;
+    line-height: 1.2;
+  }
+
+  .beta-banner-text p {
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+    color: rgba(255,255,255,0.95);
+    line-height: 1.5;
+  }
+
+  .beta-banner-text strong {
+    color: #f6af04;
+    font-weight: 600;
+  }
+
+  .beta-benefits-list {
+    list-style: none;
+    padding: 0;
+    margin: 20px 0 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+  }
+
+  .beta-benefits-list li {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.9);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .beta-benefits-list i {
+    color: #f6af04;
+    font-size: 1rem;
+  }
+
+  .beta-banner-cta {
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .beta-cta-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #f6af04;
+    color: white;
+    padding: 18px 35px;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(246, 175, 4, 0.3);
+    white-space: nowrap;
+  }
+
+  .beta-cta-button:hover {
+    background: #e09900;
+    transform: translateX(5px);
+    box-shadow: 0 10px 30px rgba(246, 175, 4, 0.4);
+    color: white;
+    text-decoration: none;
+  }
+
+  .beta-cta-button i {
+    transition: transform 0.3s ease;
+  }
+
+  .beta-cta-button:hover i {
+    transform: translateX(5px);
+  }
+
+  .beta-urgency {
+    margin-top: 15px;
+    color: #f6af04;
+    font-weight: 600;
+    font-size: 0.95rem;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+
+  /* Responsive Design */
+  @media (max-width: 992px) {
+    .beta-banner-content {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .beta-banner-icon i {
+      font-size: 3rem;
+    }
+
+    .beta-banner-text h3 {
+      font-size: 1.6rem;
+    }
+
+    .beta-banner-text p {
+      font-size: 1rem;
+    }
+
+    .beta-benefits-list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .beta-tester-banner {
+      padding: 30px 20px;
+    }
+
+    .beta-banner-text h3 {
+      font-size: 1.4rem;
+    }
+
+    .beta-benefits-list li {
+      font-size: 0.85rem;
+    }
+
+    .beta-cta-button {
+      padding: 15px 25px;
+      font-size: 1rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .beta-banner-icon i {
+      font-size: 2.5rem;
+    }
+
+    .beta-banner-text h3 {
+      font-size: 1.2rem;
+    }
+
+    .beta-banner-text p {
+      font-size: 0.9rem;
+    }
+
+    .beta-cta-button {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  // Load dynamic slot count for banner (vanilla JS - no jQuery dependency)
+  document.addEventListener('DOMContentLoaded', function() {
+    fetch('https://api.banjaramatch.com/api/beta-tester/stats')
+      .then(function(res) { return res.json(); })
+      .then(function(response) {
+        var el = document.getElementById('bannerSlotsCount');
+        if (!el) return;
+        var total = (response.data && response.data.total) || 0;
+        var maxSlots = 15;
+        var available = maxSlots - total;
+        el.textContent = available > 0
+          ? '⚡ Only ' + available + ' Beta Spots Left!'
+          : '🔥 Beta Program Full - Join Waitlist!';
+      })
+      .catch(function() {
+        var el = document.getElementById('bannerSlotsCount');
+        if (el) el.textContent = '⚡ Limited Beta Spots Available!';
+      });
+  });
+</script>

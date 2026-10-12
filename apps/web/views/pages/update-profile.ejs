@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'Edit Profile - Banjara Match' %></title>
+    <!--== META TAGS ==-->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Edit your matrimony profile">
+    <meta name="keyword" content="matrimony, profile, edit">
+    <!--== FAV ICON(BROWSER TAB ICON) ==-->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    <!--== CSS FILES ==-->
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+      <script src="js/respond.min.js"></script>
+      <![endif]-->
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <!-- EDIT PROFILE -->
+<section>
+  <div class="db">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-4 col-lg-3">
+          <div class="db-nav">
+            <div class="db-nav-pro">
+              <% const editProfileNavImg = user?.profile ? (user.profile.startsWith('http') ? user.profile : `https://api.banjaramatch.com/${user.profile}`) : '/images/default-user.jpg'; %>
+              <img src="<%= editProfileNavImg %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+            </div>
+            <div class="db-nav-list">
+              <ul>
+                <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                <li><a href="/update-profile" class="act"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8 col-lg-9">
+          <div class="form-login">
+            <div id="updateMessage" class="alert" style="display:none;"></div>
+
+              <form id="profileForm" enctype="multipart/form-data">
+                <input type="hidden" name="user_id" value="<%= user._id %>">
+                
+                <!--PROFILE BIO-->
+                <div class="edit-pro-parti">
+                  <div class="form-tit">
+                    <h4>Basic info</h4>
+                    <h1>Edit my profile</h1>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Profile Picture:</label>
+                    <div class="mb-3">
+                      <img src="<%= user.profile || '/images/default-user.jpg' %>" alt="Profile" style="width: 150px; height: 150px; object-fit: cover; border-radius: 10px;" onerror="this.src='/images/default-user.jpg'">
+                    </div>
+                    <input type="file" class="form-control" name="profile" accept="image/*">
+                    <small class="text-muted">Upload a new profile picture (optional)</small>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Full Name: <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="full_name" value="<%= user.full_name || '' %>" placeholder="Enter your full name" required>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Username:</label>
+                    <input type="text" class="form-control" name="username" value="<%= user.username || '' %>" placeholder="Enter username">
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Email:</label>
+                    <input type="email" class="form-control" value="<%= user.email || '' %>" disabled>
+                    <small class="text-muted">Email cannot be changed</small>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Phone:</label>
+                    <input type="tel" class="form-control" value="<%= user.phone || '' %>" disabled>
+                    <small class="text-muted">Phone cannot be changed</small>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Bio/About:</label>
+                    <textarea class="form-control" name="bio" rows="3" placeholder="Tell something about yourself"><%= user.bio || '' %></textarea>
+                  </div>
+                </div>
+
+                <!-- Personal Details -->
+                <div class="edit-pro-parti">
+                  <div class="form-tit">
+                    <h4>Personal Details</h4>
+                    <h2>Personal Information</h2>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Gender: <span class="text-danger">*</span></label>
+                      <select class="form-select chosen-select" name="gender" disabled>
+                        <option value="">Select Gender</option>
+                        <option value="Male" <%= user.gender === 'Male' ? 'selected' : '' %>>Male</option>
+                        <option value="Female" <%= user.gender === 'Female' ? 'selected' : '' %>>Female</option>
+                      </select>
+                      <small class="text-muted">Gender cannot be changed</small>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Date of Birth: <span class="text-danger">*</span></label>
+                      <input type="date" class="form-control" name="dob" value="<%= user.dob ? new Date(user.dob).toISOString().split('T')[0] : '' %>" required>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Height (cm):</label>
+                      <input type="number" class="form-control" name="height" value="<%= user.height || '' %>" placeholder="Enter height in cm" min="30" max="250">
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Marital Status:</label>
+                      <select class="form-select" name="maritalStatus">
+                        <option value="">Select Status</option>
+                        <option value="Never Married" <%= user.maritalStatus === 'Never Married' ? 'selected' : '' %>>Never Married</option>
+                        <option value="Divorced" <%= user.maritalStatus === 'Divorced' ? 'selected' : '' %>>Divorced</option>
+                        <option value="Widowed" <%= user.maritalStatus === 'Widowed' ? 'selected' : '' %>>Widowed</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Complexion:</label>
+                      <select class="form-select" name="complexion">
+                        <option value="">Select Complexion</option>
+                        <option value="Very Fair" <%= user.complexion === 'Very Fair' ? 'selected' : '' %>>Very Fair</option>
+                        <option value="Fair" <%= user.complexion === 'Fair' ? 'selected' : '' %>>Fair</option>
+                        <option value="Wheatish" <%= user.complexion === 'Wheatish' ? 'selected' : '' %>>Wheatish</option>
+                        <option value="Dark" <%= user.complexion === 'Dark' ? 'selected' : '' %>>Dark</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Mother Tongue:</label>
+                      <input type="text" class="form-control" name="motherTongue" value="<%= user.motherTongue || '' %>" placeholder="E.g., Telugu, Hindi, Lambadi">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cultural & Religious -->
+                <div class="edit-pro-parti">
+                  <div class="form-tit">
+                    <h4>Cultural Details</h4>
+                    <h2>Cultural & Religious Information</h2>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Caste:</label>
+                      <select class="form-select" name="casteId" id="casteSelect">
+                        <option value="">Loading castes...</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Gotra:</label>
+                      <select class="form-select" name="gotraId" id="gotraSelect">
+                        <option value="">Loading gotras...</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Manglik Status:</label>
+                      <select class="form-select" name="manglikStatus">
+                        <option value="">Select Status</option>
+                        <option value="Yes" <%= user.manglikStatus === 'Yes' ? 'selected' : '' %>>Yes</option>
+                        <option value="No" <%= user.manglikStatus === 'No' ? 'selected' : '' %>>No</option>
+                        <option value="Partial" <%= user.manglikStatus === 'Partial' ? 'selected' : '' %>>Partial</option>
+                        <option value="Not specified" <%= user.manglikStatus === 'Not specified' ? 'selected' : '' %>>Don't Know</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Spiritual Belief:</label>
+                      <select class="form-select" name="spiritualBelief">
+                        <option value="">Select Belief</option>
+                        <option value="Very Religious" <%= user.spiritualBelief === 'Very Religious' ? 'selected' : '' %>>Very Religious</option>
+                        <option value="Occasionally Religious" <%= user.spiritualBelief === 'Occasionally Religious' ? 'selected' : '' %>>Occasionally Religious</option>
+                        <option value="Spiritual" <%= user.spiritualBelief === 'Spiritual' ? 'selected' : '' %>>Spiritual</option>
+                        <option value="Atheist" <%= user.spiritualBelief === 'Atheist' ? 'selected' : '' %>>Atheist</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-12">
+                      <p style="color:#777; font-size:13px; margin: 10px 0 4px;">
+                        Optional — add your Rashi and Nakshatra to see horoscope compatibility on profiles you view. This is a simplified match, not a full Kundli reading.
+                      </p>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Rashi (Moon sign):</label>
+                      <select class="form-select" id="horoscopeRashi">
+                        <option value="">Select Rashi</option>
+                        <% ['Mesha','Vrishabha','Mithuna','Karka','Simha','Kanya','Tula','Vrishchika','Dhanu','Makara','Kumbha','Meena'].forEach(function(r) { %>
+                          <option value="<%= r %>" <%= user.horoscope?.rashi === r ? 'selected' : '' %>><%= r %></option>
+                        <% }) %>
+                      </select>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Nakshatra:</label>
+                      <select class="form-select" id="horoscopeNakshatra">
+                        <option value="">Select Nakshatra</option>
+                        <% ['Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra','Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni','Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha','Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishta','Shatabhisha','Purva Bhadrapada','Uttara Bhadrapada','Revati'].forEach(function(n) { %>
+                          <option value="<%= n %>" <%= user.horoscope?.nakshatra === n ? 'selected' : '' %>><%= n %></option>
+                        <% }) %>
+                      </select>
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Birth Time (optional):</label>
+                      <input type="text" class="form-control" id="horoscopeBirthTime" placeholder="e.g. 14:30" value="<%= user.horoscope?.birthTime || '' %>">
+                    </div>
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Birth Place (optional):</label>
+                      <input type="text" class="form-control" id="horoscopeBirthPlace" placeholder="e.g. Nagpur, Maharashtra" value="<%= user.horoscope?.birthPlace || '' %>">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Education & Career -->
+                <div class="edit-pro-parti">
+                  <div class="form-tit">
+                    <h4>Career Details</h4>
+                    <h2>Education & Career</h2>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Profession:</label>
+                    <select class="form-select" name="profession" id="professionSelect">
+                      <option value="">Loading professions...</option>
+                    </select>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Qualification:</label>
+                    <select class="form-select" name="qualification" id="qualificationSelect">
+                      <option value="">Loading qualifications...</option>
+                    </select>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Education Field:</label>
+                      <input type="text" class="form-control" name="educationField" value="<%= user.educationField || '' %>" placeholder="E.g., Engineering, Medicine">
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">College Name:</label>
+                      <input type="text" class="form-control" name="collegeName" value="<%= user.collegeName || '' %>" placeholder="Enter college name">
+                    </div>
+                  </div>
+                  
+                  <div class="form-group">
+                    <label class="lb">Income Range:</label>
+                    <select class="form-select" name="income_range" id="incomeRangeSelect">
+                      <option value="">Select Income Range</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Lifestyle -->
+                <div class="edit-pro-parti">
+                  <div class="form-tit">
+                    <h4>Lifestyle</h4>
+                    <h1>Lifestyle & Habits</h1>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-4 form-group">
+                      <label class="lb">Diet:</label>
+                      <select class="form-select" name="diet">
+                        <option value="">Select Diet</option>
+                        <option value="Vegetarian" <%= user.diet === 'Vegetarian' ? 'selected' : '' %>>Vegetarian</option>
+                        <option value="Non-Vegetarian" <%= user.diet === 'Non-Vegetarian' ? 'selected' : '' %>>Non-Vegetarian</option>
+                        <option value="Eggetarian" <%= user.diet === 'Eggetarian' ? 'selected' : '' %>>Eggetarian</option>
+                        <option value="Vegan" <%= user.diet === 'Vegan' ? 'selected' : '' %>>Vegan</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-4 form-group">
+                      <label class="lb">Smoking:</label>
+                      <select class="form-select" name="smoke">
+                        <option value="">Select</option>
+                        <option value="Yes" <%= user.smoke === 'Yes' ? 'selected' : '' %>>Yes</option>
+                        <option value="No" <%= user.smoke === 'No' ? 'selected' : '' %>>No</option>
+                        <option value="Occasionally" <%= user.smoke === 'Occasionally' ? 'selected' : '' %>>Occasionally</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-4 form-group">
+                      <label class="lb">Drinking:</label>
+                      <select class="form-select" name="drink">
+                        <option value="">Select</option>
+                        <option value="Yes" <%= user.drink === 'Yes' ? 'selected' : '' %>>Yes</option>
+                        <option value="No" <%= user.drink === 'No' ? 'selected' : '' %>>No</option>
+                        <option value="Occasionally" <%= user.drink === 'Occasionally' ? 'selected' : '' %>>Occasionally</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Family Details -->
+                <div class="edit-pro-parti">
+                  <div class="form-tit">
+                    <h4>Family Background</h4>
+                    <h2>Family Details</h2>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Father's Occupation:</label>
+                      <select class="form-select" name="family_father_profession" id="fatherOccupationSelect">
+                        <option value="">Loading professions...</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Mother's Occupation:</label>
+                      <select class="form-select" name="family_mother_profession" id="motherOccupationSelect">
+                        <option value="">Loading professions...</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Brothers:</label>
+                      <input type="number" class="form-control" name="family_brothers_total" value="<%= user.family?.brothers?.total || 0 %>" min="0">
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Sisters:</label>
+                      <input type="number" class="form-control" name="family_sisters_total" value="<%= user.family?.sisters?.total || 0 %>" min="0">
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Family Type:</label>
+                      <select class="form-select" name="family_familyType">
+                        <option value="">Select Type</option>
+                        <option value="Nuclear" <%= user.family?.familyType === 'Nuclear' ? 'selected' : '' %>>Nuclear</option>
+                        <option value="Joint" <%= user.family?.familyType === 'Joint' ? 'selected' : '' %>>Joint</option>
+                        <option value="Others" <%= user.family?.familyType === 'Others' ? 'selected' : '' %>>Others</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Family Status:</label>
+                      <select class="form-select" name="family_familyStatus">
+                        <option value="">Select Status</option>
+                        <option value="Middle Class" <%= user.family?.familyStatus === 'Middle Class' ? 'selected' : '' %>>Middle Class</option>
+                        <option value="Upper Middle Class" <%= user.family?.familyStatus === 'Upper Middle Class' ? 'selected' : '' %>>Upper Middle Class</option>
+                        <option value="Affluent" <%= user.family?.familyStatus === 'Affluent' ? 'selected' : '' %>>Affluent</option>
+                        <option value="Rich" <%= user.family?.familyStatus === 'Rich' ? 'selected' : '' %>>Rich</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Family Values:</label>
+                      <select class="form-select" name="family_familyValues">
+                        <option value="">Select Values</option>
+                        <option value="Traditional" <%= user.family?.familyValues === 'Traditional' ? 'selected' : '' %>>Traditional</option>
+                        <option value="Moderate" <%= user.family?.familyValues === 'Moderate' ? 'selected' : '' %>>Moderate</option>
+                        <option value="Liberal" <%= user.family?.familyValues === 'Liberal' ? 'selected' : '' %>>Liberal</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-6 form-group">
+                      <label class="lb">Number of Siblings:</label>
+                      <input type="number" class="form-control" name="family_siblingsCount" value="<%= user.family?.siblingsCount || 0 %>" min="0">
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Location -->
+                <div class="edit-pro-parti">
+                  <div class="form-tit">
+                    <h4>Location</h4>
+                    <h2>Location Details</h2>
+                  </div>
+                  
+                  <div class="row">
+                    <div class="col-md-4 form-group">
+                      <label class="lb">Country:</label>
+                      <select class="form-select" name="location_country" id="countrySelect">
+                        <option value="">Loading countries...</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-4 form-group">
+                      <label class="lb">State:</label>
+                      <select class="form-select" name="location_state" id="stateSelect">
+                        <option value="">Select country first</option>
+                      </select>
+                    </div>
+                    
+                    <div class="col-md-4 form-group">
+                      <label class="lb">City:</label>
+                      <select class="form-select" name="location_city" id="citySelect">
+                        <option value="">Select state first</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="text-center mt-4">
+                  <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                    <i class="fa fa-save"></i> Update Profile
+                  </button>
+                  <a href="/dashboard" class="btn btn-secondary btn-lg">
+                    <i class="fa fa-times"></i> Cancel
+                  </a>
+                </div>
+              </form>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+    <!-- END -->
+
+    <!-- FOOTER -->
+    <%- include('../partials/footer') %>
+
+    <!-- END -->
+    <!-- END -->
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+    
+    <script>
+const API_BASE_URL = 'https://api.banjaramatch.com/api';
+const MY_USER_ID = '<%= user._id %>';
+
+// Store user's current selections
+const userSelections = {
+    caste: '<%= user.caste?._id || user.caste || "" %>',
+    gotra: '<%= user.gotra?._id || user.gotra || "" %>',
+    profession: '<%= user.profession?._id || user.profession || "" %>',
+    qualification: '<%= user.qualification?._id || user.qualification || "" %>',
+    incomeRange: '<%= user.incomeRange?._id || user.incomeRange || "" %>',
+    country: '<%= user.location?.country?._id || user.location?.country || "" %>',
+    state: '<%= user.location?.state?._id || user.location?.state || "" %>',
+    city: '<%= user.location?.city?._id || user.location?.city || "" %>',
+    fatherProfession: '<%= user.family?.father?.profession || user.family?.fatherOccupation || "" %>',
+    motherProfession: '<%= user.family?.mother?.profession || user.family?.motherOccupation || "" %>'
+};
+
+function getAuthToken() {
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+}
+
+// Load Castes
+async function loadCastes() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchCasteList`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select Caste</option>';
+            data.data.forEach(c => {
+                const selected = (c._id === userSelections.caste || c._id.toString() === userSelections.caste) ? 'selected' : '';
+                options += `<option value="${c._id}" ${selected}>${c.name}</option>`;
+            });
+            $('#casteSelect').html(options);
+        }
+    } catch (error) {
+        $('#casteSelect').html('<option value="">Error loading castes</option>');
+    }
+}
+
+// Load Gotras
+async function loadGotras() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchGotraList`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select Gotra</option>';
+            data.data.forEach(g => {
+                const selected = (g._id === userSelections.gotra || g._id.toString() === userSelections.gotra) ? 'selected' : '';
+                options += `<option value="${g._id}" ${selected}>${g.name}</option>`;
+            });
+            $('#gotraSelect').html(options);
+        }
+    } catch (error) {
+        $('#gotraSelect').html('<option value="">Error loading gotras</option>');
+    }
+}
+
+// Load Professions
+async function loadProfessions() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchProfessionList`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select Profession</option>';
+            data.data.forEach(p => {
+                const selected = (p._id === userSelections.profession || p._id.toString() === userSelections.profession) ? 'selected' : '';
+                options += `<option value="${p._id}" ${selected}>${p.name}</option>`;
+            });
+            $('#professionSelect').html(options);
+            console.log('Professions loaded, selected:', userSelections.profession);
+            
+            // Also populate father and mother occupation dropdowns
+            loadParentOccupations(data.data);
+        }
+    } catch (error) {
+        console.error('Error loading professions:', error);
+        $('#professionSelect').html('<option value="">Error loading professions</option>');
+    }
+}
+
+// Load Parent Occupations (reuse profession list)
+function loadParentOccupations(professions) {
+    // Father occupation
+    let fatherOptions = '<option value="">Select Occupation</option>';
+    fatherOptions += '<option value="Housewife">Housewife</option>';
+    fatherOptions += '<option value="Retired">Retired</option>';
+    fatherOptions += '<option value="Deceased">Deceased</option>';
+    professions.forEach(p => {
+        const selected = (p.name === userSelections.fatherProfession || p._id === userSelections.fatherProfession || p._id.toString() === userSelections.fatherProfession) ? 'selected' : '';
+        fatherOptions += `<option value="${p.name}" ${selected}>${p.name}</option>`;
+    });
+    $('#fatherOccupationSelect').html(fatherOptions);
+    
+    // Mother occupation
+    let motherOptions = '<option value="">Select Occupation</option>';
+    motherOptions += '<option value="Housewife">Housewife</option>';
+    motherOptions += '<option value="Retired">Retired</option>';
+    motherOptions += '<option value="Deceased">Deceased</option>';
+    professions.forEach(p => {
+        const selected = (p.name === userSelections.motherProfession || p._id === userSelections.motherProfession || p._id.toString() === userSelections.motherProfession) ? 'selected' : '';
+        motherOptions += `<option value="${p.name}" ${selected}>${p.name}</option>`;
+    });
+    $('#motherOccupationSelect').html(motherOptions);
+    
+    console.log('Parent occupations loaded');
+}
+
+// Load Qualifications
+async function loadQualifications() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchQualificationList`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select Qualification</option>';
+            data.data.forEach(q => {
+                const selected = (q._id === userSelections.qualification || q._id.toString() === userSelections.qualification) ? 'selected' : '';
+                options += `<option value="${q._id}" ${selected}>${q.name}</option>`;
+            });
+            $('#qualificationSelect').html(options);
+        }
+    } catch (error) {
+        $('#qualificationSelect').html('<option value="">Select Qualification</option>');
+    }
+}
+
+// Load Income Ranges
+async function loadIncomeRanges() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchIncomeRange`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select Income Range</option>';
+            data.data.forEach(ir => {
+                const selected = (ir._id === userSelections.incomeRange || ir._id.toString() === userSelections.incomeRange) ? 'selected' : '';
+                const label = ir.range || `${ir.min || '0'} - ${ir.max || 'Above'}`;
+                options += `<option value="${ir._id}" ${selected}>${label}</option>`;
+            });
+            $('#incomeRangeSelect').html(options);
+        }
+    } catch (error) {
+        $('#incomeRangeSelect').html('<option value="">Error loading income ranges</option>');
+    }
+}
+
+// Load Countries
+async function loadCountries() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/countries`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({})
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select Country</option>';
+            data.data.forEach(c => {
+                const selected = (c._id === userSelections.country || c._id.toString() === userSelections.country) ? 'selected' : '';
+                options += `<option value="${c._id}" ${selected}>${c.name}</option>`;
+            });
+            $('#countrySelect').html(options);
+            console.log('Countries loaded, selected:', userSelections.country);
+            
+            if (userSelections.country) {
+                await loadStates(userSelections.country);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading countries:', error);
+        $('#countrySelect').html('<option value="">Error loading countries</option>');
+    }
+}
+
+// Load States
+async function loadStates(countryId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/states`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({ country_id: countryId })
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select State</option>';
+            data.data.forEach(s => {
+                const selected = (s._id === userSelections.state || s._id.toString() === userSelections.state) ? 'selected' : '';
+                options += `<option value="${s._id}" ${selected}>${s.name}</option>`;
+            });
+            $('#stateSelect').html(options);
+            console.log('States loaded, selected:', userSelections.state);
+            
+            if (userSelections.state) {
+                await loadCities(userSelections.state);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading states:', error);
+        $('#stateSelect').html('<option value="">Error loading states</option>');
+    }
+}
+
+// Load Cities
+async function loadCities(stateId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/cities`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({ state_id: stateId })
+        });
+        const data = await response.json();
+        if (data.status && data.data) {
+            let options = '<option value="">Select City</option>';
+            data.data.forEach(c => {
+                const selected = (c._id === userSelections.city || c._id.toString() === userSelections.city) ? 'selected' : '';
+                options += `<option value="${c._id}" ${selected}>${c.name}</option>`;
+            });
+            $('#citySelect').html(options);
+            console.log('Cities loaded, selected:', userSelections.city);
+        }
+    } catch (error) {
+        console.error('Error loading cities:', error);
+        $('#citySelect').html('<option value="">Error loading cities</option>');
+    }
+}
+
+// Country change handler
+$('#countrySelect').on('change', function() {
+    const countryId = $(this).val();
+    if (countryId) {
+        loadStates(countryId);
+    } else {
+        $('#stateSelect').html('<option value="">Select country first</option>');
+        $('#citySelect').html('<option value="">Select state first</option>');
+    }
+});
+
+// State change handler
+$('#stateSelect').on('change', function() {
+    const stateId = $(this).val();
+    if (stateId) {
+        loadCities(stateId);
+    } else {
+        $('#citySelect').html('<option value="">Select state first</option>');
+    }
+});
+
+// Form submission
+$('#profileForm').on('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = $('#submitBtn');
+    const originalText = submitBtn.html();
+    submitBtn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Updating...');
+    
+    try {
+        const formData = new FormData(this);
+
+        // Horoscope fields (Guna Milan) — sent as a JSON string, same
+        // pattern as `settings`, since multer doesn't parse bracket keys.
+        const horoscope = {
+            rashi: document.getElementById('horoscopeRashi')?.value || '',
+            nakshatra: document.getElementById('horoscopeNakshatra')?.value || '',
+            birthTime: document.getElementById('horoscopeBirthTime')?.value || '',
+            birthPlace: document.getElementById('horoscopeBirthPlace')?.value || '',
+        };
+        if (horoscope.rashi || horoscope.nakshatra || horoscope.birthTime || horoscope.birthPlace) {
+            formData.append('horoscope', JSON.stringify(horoscope));
+        }
+
+        // Transform nested field names for API compatibility
+        // Location fields: location_country -> location[country]
+        if (formData.has('location_country')) {
+            formData.append('location[country]', formData.get('location_country'));
+            formData.delete('location_country');
+        }
+        if (formData.has('location_state')) {
+            formData.append('location[state]', formData.get('location_state'));
+            formData.delete('location_state');
+        }
+        if (formData.has('location_city')) {
+            formData.append('location[city]', formData.get('location_city'));
+            formData.delete('location_city');
+        }
+        
+        // Family fields
+        const familyFields = [
+            'family_father_profession', 'family_mother_profession',
+            'family_brothers_total', 'family_sisters_total',
+            'family_familyType', 'family_familyStatus', 'family_familyValues'
+        ];
+        
+        familyFields.forEach(field => {
+            if (formData.has(field)) {
+                const value = formData.get(field);
+                const fieldName = field.replace('family_', '');
+                
+                // Handle nested family fields
+                if (fieldName === 'father_profession') {
+                    formData.append('family[father][profession]', value);
+                } else if (fieldName === 'mother_profession') {
+                    formData.append('family[mother][profession]', value);
+                } else if (fieldName === 'brothers_total') {
+                    formData.append('family[brothers][total]', value);
+                } else if (fieldName === 'sisters_total') {
+                    formData.append('family[sisters][total]', value);
+                } else {
+                    formData.append(`family[${fieldName}]`, value);
+                }
+                
+                formData.delete(field);
+            }
+        });
+        
+        const response = await fetch(`${API_BASE_URL}/editProfile`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.status) {
+            $('#updateMessage')
+                .removeClass('alert-danger')
+                .addClass('alert alert-success')
+                .text('Profile updated successfully!')
+                .show();
+            
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 2000);
+        } else {
+            $('#updateMessage')
+                .removeClass('alert-success')
+                .addClass('alert alert-danger')
+                .text(data.message || 'Failed to update profile')
+                .show();
+            submitBtn.prop('disabled', false).html(originalText);
+        }
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        $('#updateMessage')
+            .removeClass('alert-success')
+            .addClass('alert alert-danger')
+            .text('An error occurred. Please try again.')
+            .show();
+        submitBtn.prop('disabled', false).html(originalText);
+    }
+    
+    // Scroll to message
+    $('html, body').animate({
+        scrollTop: $('#updateMessage').offset().top - 100
+    }, 500);
+});
+
+// Load all dropdowns on page load
+$(document).ready(async function() {
+    console.log('Loading dropdowns with user selections:', userSelections);
+    
+    // Load all dropdowns
+    await Promise.all([
+        loadCastes(),
+        loadGotras(),
+        loadProfessions(),
+        loadQualifications(),
+        loadIncomeRanges()
+    ]);
+    
+    // Load location dropdowns (these need to be sequential for cascading)
+    await loadCountries();
+    
+    console.log('All dropdowns loaded');
+});
+    </script>
+</body>
+
+</html>

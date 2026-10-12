@@ -1,0 +1,4 @@
+# /etc/cron.d/banjaramatch-uptime - public health probe every 5 minutes; alerts only on state change
+SHELL=/bin/bash
+PATH=/root/.nvm/versions/node/v22.23.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+*/5 * * * * root bash /var/www/banjaramatch/deploy/uptime-check.sh >> /var/www/banjaramatch-shared/logs/uptime.log 2>&1

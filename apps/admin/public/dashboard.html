@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Banjara Match Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .badge-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-warning {
+            background: #fff3cd;
+            color: #856404;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-danger {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        textarea {
+            font-family: inherit;
+            resize: vertical;
+        }
+        @media (max-width: 768px) {
+            #blogForm {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🔐 Admin Panel</h2>
+                <p>Banjara Match</p>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#" onclick="hideBlogSection(); hideRegionalSection(); return false;" id="dashboardMenuLink" class="active">📊 Dashboard</a></li>
+                <li><a href="/users">👥 Users</a></li>
+                <li><a href="/reports">🚩 Reports</a></li>
+                <li><a href="/photo-moderation">🖼️ Photo Moderation</a></li>
+                <li><a href="/contact-enquiries">📧 Contact Enquiries</a></li>
+                <li><a href="/community-feedback">💡 Community Feedback</a></li>
+                <li><a href="/beta-testers">🧪 Beta Testers</a></li>
+                <li><a href="/banners">🖼️ Banners</a></li>
+                <li><a href="#" onclick="showBlogSection(); return false;" id="blogsMenuLink">📝 Blogs</a></li>
+                <li><a href="/regional-pages">🌍 Regional Pages</a></li>
+                <li><a href="/community-data">🌳 Community Data</a></li>
+                <li><a href="/constants">⚙️ Constants</a></li>
+                <li><a href="/settings">🔧 Settings</a></li>
+                <li><a href="/apk-manager">📱 APK Manager</a></li>
+                <li><a href="/broadcast-email">📨 Broadcast Email</a></li>
+                <li><a href="#" onclick="logout()">🚪 Logout</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="topbar">
+                <h1>Dashboard</h1>
+                <div class="topbar-right">
+                    <div class="user-info">
+                        <div class="user-avatar">A</div>
+                        <span id="adminName">Admin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-value" id="totalUsers">0</div>
+                                <div class="stat-label">Total Users</div>
+                            </div>
+                            <div class="stat-icon primary">👥</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-value" id="activeUsers">0</div>
+                                <div class="stat-label">Active Users</div>
+                            </div>
+                            <div class="stat-icon success">✅</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-value" id="verifiedUsers">0</div>
+                                <div class="stat-label">Verified Users</div>
+                            </div>
+                            <div class="stat-icon warning">🔰</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <div>
+                                <div class="stat-value" id="blockedUsers">0</div>
+                                <div class="stat-label">Blocked Users</div>
+                            </div>
+                            <div class="stat-icon danger">🚫</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics -->
+                <div class="card" style="margin-bottom: 30px;">
+                    <div class="card-header">
+                        <h3>📈 Analytics</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; align-items: start;">
+                            <div>
+                                <h4 style="margin: 0 0 10px; font-size: 15px; color: #555;">New signups (last 30 days)</h4>
+                                <div style="position: relative; height: 240px;">
+                                    <canvas id="userGrowthChart"></canvas>
+                                </div>
+                                <p id="userGrowthEmpty" style="display:none; color:#999; text-align:center; margin-top:80px;">Not enough signup data yet.</p>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 10px; font-size: 15px; color: #555;">Engagement (last 7 days)</h4>
+                                <div style="position: relative; height: 240px;">
+                                    <canvas id="engagementChart"></canvas>
+                                </div>
+                                <p id="engagementEmpty" style="display:none; color:#999; text-align:center; margin-top:80px;">Not enough activity data yet.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Access Panel -->
+                <div class="card" style="margin-bottom: 30px;">
+                    <div class="card-header">
+                        <h3>⚡ Quick Access to All Panels</h3>
+                    </div>
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 10px;">
+                            <!-- Users Management -->
+                            <a href="/users" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">👥</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Users Management</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Manage all registered users, profiles, and verifications</p>
+                                </div>
+                            </a>
+
+                            <!-- Contact Enquiries -->
+                            <a href="/contact-enquiries" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">📧</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Contact Enquiries</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">View and respond to contact form submissions</p>
+                                </div>
+                            </a>
+
+                            <!-- Community Feedback -->
+                            <a href="/community-feedback" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">💡</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Community Feedback</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Manage feedback, suggestions and feature requests</p>
+                                </div>
+                            </a>
+
+                            <!-- Beta Testers -->
+                            <a href="/beta-testers" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">🧪</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Beta Testers</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Manage beta tester applications and invitations</p>
+                                </div>
+                            </a>
+
+                            <!-- Banners Management -->
+                            <a href="/banners" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">🖼️</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Banners</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Upload and manage promotional banners</p>
+                                </div>
+                            </a>
+
+                            <!-- Blog Management -->
+                            <a href="#" onclick="showBlogSection(); return false;" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">📝</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Blogs</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Create, edit and publish blog posts</p>
+                                </div>
+                            </a>
+
+                            <!-- Regional Pages -->
+                            <a href="/regional-pages" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">🌍</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Regional Pages</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Manage location-based landing pages</p>
+                                </div>
+                            </a>
+
+                            <!-- Constants -->
+                            <a href="/constants" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">⚙️</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Constants</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">Configure app constants and categories</p>
+                                </div>
+                            </a>
+
+                            <!-- Settings -->
+                            <a href="/settings" style="text-decoration: none; color: inherit;">
+                                <div style="background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%); padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s; cursor: pointer; height: 100%;" 
+                                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)';" 
+                                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)';">
+                                    <div style="font-size: 48px; margin-bottom: 15px;">🔧</div>
+                                    <h4 style="color: #fff; margin-bottom: 8px; font-size: 18px;">Settings</h4>
+                                    <p style="color: rgba(255,255,255,0.9); font-size: 14px; margin: 0;">System settings and configurations</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Users -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Recent Users</h3>
+                        <a href="/users" class="btn btn-primary btn-sm">View All</a>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Profile</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Gender</th>
+                                        <th>Status</th>
+                                        <th>Joined</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentUsersTable">
+                                    <tr>
+                                        <td colspan="7" class="loading">
+                                            <div class="spinner"></div>
+                                            Loading users...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Stats -->
+                <div class="stats-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Gender Distribution</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="genderStats" style="padding: 20px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="activityStats" style="padding: 20px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Blog Management Section (Hidden by default) -->
+                <div id="blogManagementSection" style="display: none;">
+                    <!-- Blog Stats -->
+                    <div class="stats-grid" style="margin-bottom: 30px;">
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-value" id="totalBlogs">0</div>
+                                    <div class="stat-label">Total Blogs</div>
+                                </div>
+                                <div class="stat-icon primary">📝</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-value" id="publishedBlogs">0</div>
+                                    <div class="stat-label">Published</div>
+                                </div>
+                                <div class="stat-icon success">✅</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-value" id="draftBlogs">0</div>
+                                    <div class="stat-label">Drafts</div>
+                                </div>
+                                <div class="stat-icon warning">📋</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-card-header">
+                                <div>
+                                    <div class="stat-value" id="totalViews">0</div>
+                                    <div class="stat-label">Total Views</div>
+                                </div>
+                                <div class="stat-icon info">👁️</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Blog Form -->
+                    <div class="card" style="margin-bottom: 30px;">
+                        <div class="card-header">
+                            <h3 id="blogFormTitle">Create New Blog Post</h3>
+                            <button type="button" id="cancelEditBtn" class="btn btn-secondary btn-sm" style="display: none;" onclick="resetBlogForm()">Cancel</button>
+                        </div>
+                        <div class="card-body">
+                            <form id="blogForm" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <input type="hidden" id="blogId" name="blogId" />
+                                
+                                <div class="form-group">
+                                    <label>Title *</label>
+                                    <input type="text" id="blogTitle" name="title" required class="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Category *</label>
+                                    <select id="blogCategory" name="category" required class="form-control">
+                                        <option value="Wedding">Wedding</option>
+                                        <option value="Relationship">Relationship</option>
+                                        <option value="Culture">Culture</option>
+                                        <option value="Tradition">Tradition</option>
+                                        <option value="Tips">Tips</option>
+                                        <option value="Events">Events</option>
+                                        <option value="Decoration">Decoration</option>
+                                        <option value="Stories">Stories</option>
+                                        <option value="Community">Community</option>
+                                        <option value="General">General</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Description (Short Summary) *</label>
+                                    <textarea id="blogDescription" name="description" rows="3" required class="form-control"></textarea>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Full Content (HTML supported) *</label>
+                                    <textarea id="blogContent" name="content" rows="8" required class="form-control"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Featured Image</label>
+                                    <input type="file" id="blogImage" name="featuredImage" accept="image/*" class="form-control" />
+                                    <small style="color: #666; display: block; margin-top: 5px;">Current: <span id="currentImage">None</span></small>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tags (comma separated)</label>
+                                    <input type="text" id="blogTags" name="tags" placeholder="marriage, wedding, tips" class="form-control" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Author Name</label>
+                                    <input type="text" id="authorName" name="authorName" value="BanjaraMatch Team" class="form-control" />
+                                </div>
+                                <div class="form-group">
+                                    <label>Author Role</label>
+                                    <input type="text" id="authorRole" name="authorRole" value="Author" class="form-control" />
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>Read Time (minutes)</label>
+                                    <input type="number" id="readTime" name="readTime" value="5" min="1" class="form-control" />
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Status *</label>
+                                    <select id="blogStatus" name="status" required class="form-control">
+                                        <option value="draft">Draft</option>
+                                        <option value="published">Published</option>
+                                        <option value="archived">Archived</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Featured Post</label>
+                                    <select id="blogFeatured" name="isFeatured" class="form-control">
+                                        <option value="false">No</option>
+                                        <option value="true">Yes</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
+                                    <button type="submit" id="submitBlogBtn" class="btn btn-primary">Create Blog Post</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Blogs List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>All Blog Posts</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Title</th>
+                                            <th>Category</th>
+                                            <th>Status</th>
+                                            <th>Views</th>
+                                            <th>Likes</th>
+                                            <th>Featured</th>
+                                            <th>Published</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="blogsTable">
+                                        <tr>
+                                            <td colspan="8" style="text-align: center; padding: 20px;">Loading blogs...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Regional Pages Management Section -->
+                <div id="regionalManagementSection" style="display: none;">
+                    <!-- Regional Pages Stats -->
+                    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                        <div class="card">
+                            <div class="card-body" style="text-align: center;">
+                                <h3 id="totalRegionalPages" style="font-size: 2.5rem; color: #0066cc; margin: 10px 0;">0</h3>
+                                <p style="color: #666; margin: 0;">Total Pages</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body" style="text-align: center;">
+                                <h3 id="publishedPages" style="font-size: 2.5rem; color: #28a745; margin: 10px 0;">0</h3>
+                                <p style="color: #666; margin: 0;">Published</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body" style="text-align: center;">
+                                <h3 id="draftPages" style="font-size: 2.5rem; color: #ffc107; margin: 10px 0;">0</h3>
+                                <p style="color: #666; margin: 0;">Drafts</p>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <div class="card-body" style="text-align: center;">
+                                <h3 id="totalPageViews" style="font-size: 2.5rem; color: #17a2b8; margin: 10px 0;">0</h3>
+                                <p style="color: #666; margin: 0;">Total Views</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Create/Edit Regional Page Form -->
+                    <div class="card">
+                        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 id="regionalFormTitle">Create Regional Landing Page</h3>
+                            </div>
+                            <button type="button" id="cancelRegionalEditBtn" class="btn btn-secondary btn-sm" style="display: none;" onclick="resetRegionalForm()">Cancel</button>
+                        </div>
+                        <div class="card-body">
+                            <form id="regionalPageForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                                <input type="hidden" id="regionalPageId" name="regionalPageId" />
+                                
+                                <!-- City Selection -->
+                                <div class="form-group">
+                                    <label>Select State *</label>
+                                    <select id="regionalState" name="stateId" required class="form-control" onchange="loadCitiesForRegional()">
+                                        <option value="">Choose State</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Select City *</label>
+                                    <select id="regionalCity" name="cityId" required class="form-control">
+                                        <option value="">Choose City</option>
+                                    </select>
+                                </div>
+
+                                <!-- SEO Fields -->
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Hero Title *</label>
+                                    <input type="text" id="heroTitle" name="heroTitle" required class="form-control" placeholder="e.g., Find Your Perfect Match in Hyderabad" />
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Hero Subtitle</label>
+                                    <input type="text" id="heroSubtitle" name="heroSubtitle" class="form-control" placeholder="e.g., Join the most trusted Banjara matrimony platform" />
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Meta Title (SEO)</label>
+                                    <input type="text" id="metaTitle" name="metaTitle" class="form-control" placeholder="Auto-generated if left empty" />
+                                    <small style="color: #666;">Auto-generates: "Banjara Matrimony in [City], [State] | Find Lambadi Brides & Grooms"</small>
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Meta Description (SEO)</label>
+                                    <textarea id="metaDescription" name="metaDescription" rows="2" class="form-control" placeholder="Auto-generated if left empty"></textarea>
+                                    <small style="color: #666;">Auto-generates with city name and stats</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Status *</label>
+                                    <select id="regionalStatus" name="isPublished" required class="form-control">
+                                        <option value="false" selected>Draft</option>
+                                        <option value="true">Published</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Active</label>
+                                    <select id="regionalActive" name="isActive" class="form-control">
+                                        <option value="true" selected>Yes</option>
+                                        <option value="false">No</option>
+                                    </select>
+                                </div>
+
+                                <!-- Popular Localities -->
+                                <div class="form-group" style="grid-column: 1 / -1;">
+                                    <label>Popular Localities (comma separated)</label>
+                                    <input type="text" id="popularLocalities" name="popularLocalities" class="form-control" placeholder="e.g., Banjara Hills, Madhapur, Kukatpally" />
+                                </div>
+
+                                <div class="form-group" style="grid-column: 1 / -1; margin-top: 10px;">
+                                    <button type="submit" id="submitRegionalBtn" class="btn btn-primary">Create Regional Page</button>
+                                    <button type="button" class="btn btn-secondary" onclick="showBulkCreateModal()">Bulk Create</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Regional Pages List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>All Regional Pages</h3>
+                            <div>
+                                <input type="text" id="regionalSearch" placeholder="Search city..." class="form-control" style="width: 200px; display: inline-block; margin-right: 10px;" onkeyup="filterRegionalPages()">
+                                <button class="btn btn-primary btn-sm" onclick="fetchRegionalPages()">🔄 Refresh</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>City</th>
+                                            <th>State</th>
+                                            <th>Status</th>
+                                            <th>Members</th>
+                                            <th>Views</th>
+                                            <th>Slug</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="regionalPagesTable">
+                                        <tr>
+                                            <td colspan="7" style="text-align: center; padding: 20px;">Loading regional pages...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Bulk Create Modal -->
+    <div id="bulkCreateModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;">
+        <div class="modal-content" style="background: white; margin: 50px auto; padding: 30px; max-width: 600px; border-radius: 10px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Bulk Create Regional Pages</h2>
+                <button onclick="closeBulkCreateModal()" style="background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label>Select State *</label>
+                <select id="bulkState" class="form-control" onchange="loadCitiesForBulk()">
+                    <option value="">Choose State</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Select Cities (hold Ctrl/Cmd for multiple)</label>
+                <select id="bulkCities" class="form-control" multiple size="15">
+                    <option value="">Select state first</option>
+                </select>
+                <small style="color: #666;">Hold Ctrl (Windows) or Cmd (Mac) to select multiple cities</small>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="executeBulkCreate()">Create Pages</button>
+                <button class="btn btn-secondary" onclick="closeBulkCreateModal()">Cancel</button>
+            </div>
+
+            <div id="bulkProgress" style="display: none; margin-top: 20px;">
+                <div style="background: #f0f0f0; height: 30px; border-radius: 5px; overflow: hidden;">
+                    <div id="bulkProgressBar" style="background: #28a745; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                </div>
+                <p id="bulkProgressText" style="margin-top: 10px; text-align: center;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/api.js?v=1764600897"></script>
+    <script>
+        // Wait for all scripts to load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM loaded, initializing dashboard...');
+        });
+        
+        // Load dashboard stats from new admin API
+        async function loadDashboardStats() {
+            try {
+                console.log('📊 Loading dashboard stats...');
+                console.log('apiRequest available?', typeof window.apiRequest);
+                
+                if (typeof window.apiRequest !== 'function') {
+                    throw new Error('apiRequest is not available');
+                }
+                
+                // Use new admin API endpoint
+                const response = await window.apiRequest('/api/admin/dashboard/stats');
+                
+                if (response.status && response.data) {
+                    const stats = response.data;
+                    
+                    // Update overview stats
+                    document.getElementById('totalUsers').textContent = stats.overview.totalUsers || 0;
+                    document.getElementById('activeUsers').textContent = stats.overview.activeUsers || 0;
+                    document.getElementById('verifiedUsers').textContent = stats.overview.verifiedUsers || 0;
+                    document.getElementById('blockedUsers').textContent = stats.overview.blockedUsers || 0;
+
+                    // Update gender distribution
+                    const total = stats.overview.totalUsers || 1;
+                    document.getElementById('genderStats').innerHTML = `
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Male</span>
+                                <strong>${stats.gender.male || 0}</strong>
+                            </div>
+                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px;">
+                                <div style="background: #6366f1; width: ${(stats.gender.male/total*100).toFixed(1)}%; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 10px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Female</span>
+                                <strong>${stats.gender.female || 0}</strong>
+                            </div>
+                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px;">
+                                <div style="background: #ec4899; width: ${(stats.gender.female/total*100).toFixed(1)}%; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>Other</span>
+                                <strong>${stats.gender.other || 0}</strong>
+                            </div>
+                            <div style="background: #e5e7eb; height: 8px; border-radius: 4px;">
+                                <div style="background: #10b981; width: ${(stats.gender.other/total*100).toFixed(1)}%; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Update activity stats
+                    document.getElementById('activityStats').innerHTML = `
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>💬 Total Messages</span>
+                                <strong>${stats.activity.totalMessages || 0}</strong>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>🤝 Friend Requests</span>
+                                <strong>${stats.activity.totalFriendRequests || 0}</strong>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                                <span>💭 Chat Rooms</span>
+                                <strong>${stats.activity.totalChatRooms || 0}</strong>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                // Load recent users
+                await loadRecentUsers();
+                
+                console.log('✅ Dashboard stats loaded successfully');
+            } catch (error) {
+                console.error('❌ Error loading dashboard:', error);
+                if (typeof window.showNotification === 'function') {
+                    window.showNotification('Error loading dashboard stats', 'error');
+                }
+            }
+        }
+
+        async function loadRecentUsers() {
+            try {
+                console.log('📋 Loading recent users...');
+                const response = await window.apiRequest('/api/admin/dashboard/recent-users?limit=10');
+                
+                console.log('📋 Recent users response:', response);
+                
+                if (response.status && response.data) {
+                    const users = response.data;
+                    const tbody = document.getElementById('recentUsersTable');
+                    
+                    console.log('📋 Found users:', users.length);
+                    
+                    if (users.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No users found</td></tr>';
+                        return;
+                    }
+
+                    tbody.innerHTML = users.map(user => {
+                        let profileImage = user.profile || user.profilePicture || user.profile_picture;
+                        
+                        // If profile image exists and is relative path, prepend API URL
+                        if (profileImage && !profileImage.startsWith('http')) {
+                            profileImage = `https://api.banjaramatch.com/${profileImage}`;
+                        }
+                        
+                        // Use data URL placeholder if no image
+                        const placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="50" height="50"%3E%3Crect width="50" height="50" fill="%23ddd"/%3E%3Ctext x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle" font-family="Arial" font-size="20" fill="%23999"%3E?%3C/text%3E%3C/svg%3E';
+                        
+                        return `
+                        <tr>
+                            <td>
+                                <img src="${profileImage || placeholder}" 
+                                     alt="${user.full_name}" 
+                                     class="profile-img"
+                                     onerror="this.src='${placeholder}'">
+                            </td>
+                            <td>${user.full_name || 'N/A'}</td>
+                            <td>${user.email || 'N/A'}</td>
+                            <td>${user.phone || 'N/A'}</td>
+                            <td>${user.gender || 'N/A'}</td>
+                            <td>
+                                <span class="badge ${user.is_block ? 'badge-danger' : 'badge-success'}">
+                                    ${user.is_block ? 'Blocked' : 'Active'}
+                                </span>
+                            </td>
+                            <td>${new Date(user.createdAt).toLocaleDateString()}</td>
+                        </tr>
+                    `}).join('');
+                    
+                    console.log('✅ Recent users loaded successfully');
+                } else {
+                    console.log('❌ Invalid response format:', response);
+                }
+            } catch (error) {
+                console.error('❌ Error loading recent users:', error);
+                const tbody = document.getElementById('recentUsersTable');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error loading users</td></tr>';
+                }
+            }
+        }
+
+        // Blog Management Functions
+        const API_URL = 'https://api.banjaramatch.com';
+        let editingBlogId = null;
+
+        function showBlogSection() {
+            // Hide dashboard stats
+            const contentArea = document.querySelector('.content-area');
+            if (contentArea) {
+                const children = Array.from(contentArea.children);
+                children.forEach(child => {
+                    if (child.id !== 'blogManagementSection') {
+                        child.style.display = 'none';
+                    }
+                });
+            }
+
+            // Show blog management
+            const blogSection = document.getElementById('blogManagementSection');
+            if (blogSection) blogSection.style.display = 'block';
+
+            // Update active menu
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            const blogsLink = document.getElementById('blogsMenuLink');
+            if (blogsLink) blogsLink.classList.add('active');
+
+            // Load blog data
+            fetchBlogStats();
+            fetchBlogs();
+        }
+
+        function hideBlogSection() {
+            // Show dashboard stats
+            const contentArea = document.querySelector('.content-area');
+            if (contentArea) {
+                const children = Array.from(contentArea.children);
+                children.forEach(child => {
+                    if (child.id !== 'blogManagementSection' && child.id !== 'regionalManagementSection') {
+                        child.style.display = '';
+                    }
+                });
+            }
+
+            // Hide blog management
+            const blogSection = document.getElementById('blogManagementSection');
+            if (blogSection) blogSection.style.display = 'none';
+
+            // Update active menu
+            document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+            const dashboardLink = document.getElementById('dashboardMenuLink');
+            if (dashboardLink) dashboardLink.classList.add('active');
+        }
+
+        async function fetchBlogStats() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/admin/blogs/stats`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                if (json.status) {
+                    document.getElementById('totalBlogs').textContent = json.data.totalBlogs;
+                    document.getElementById('publishedBlogs').textContent = json.data.publishedBlogs;
+                    document.getElementById('draftBlogs').textContent = json.data.draftBlogs;
+                    document.getElementById('totalViews').textContent = json.data.totalViews;
+                }
+            } catch (err) {
+                console.error('Error fetching blog stats:', err);
+            }
+        }
+
+        async function fetchBlogs() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/admin/blogs?limit=100`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                const blogs = json.data || [];
+                
+                const table = document.getElementById('blogsTable');
+                table.innerHTML = '';
+
+                if (blogs.length === 0) {
+                    table.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px;">No blogs found. Create your first blog post!</td></tr>';
+                    return;
+                }
+
+                blogs.forEach(blog => {
+                    const publishedDate = blog.publishedAt ? new Date(blog.publishedAt).toLocaleDateString() : '-';
+                    const statusClass = blog.status === 'published' ? 'badge-success' : blog.status === 'draft' ? 'badge-warning' : 'badge-danger';
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${blog.title}</strong></td>
+                        <td>${blog.category}</td>
+                        <td><span class="badge ${statusClass}">${blog.status}</span></td>
+                        <td>${blog.views || 0}</td>
+                        <td>${blog.likes || 0}</td>
+                        <td>${blog.isFeatured ? '⭐ Yes' : 'No'}</td>
+                        <td>${publishedDate}</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editBlog('${blog._id}')">Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="togglePublish('${blog._id}', '${blog.status}')">
+                                ${blog.status === 'published' ? 'Unpublish' : 'Publish'}
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteBlog('${blog._id}')">Delete</button>
+                        </td>
+                    `;
+                    table.appendChild(row);
+                });
+            } catch (err) {
+                console.error('Error fetching blogs:', err);
+                document.getElementById('blogsTable').innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: red;">Error loading blogs. Please try again.</td></tr>';
+            }
+        }
+
+        document.getElementById('blogForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const form = e.target;
+            const blogId = document.getElementById('blogId').value;
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Create FormData to handle file upload
+                const formData = new FormData();
+                formData.append('title', form.title.value);
+                formData.append('category', form.category.value);
+                formData.append('description', form.description.value);
+                formData.append('content', form.content.value);
+                formData.append('tags', form.tags.value);
+                formData.append('status', form.status.value);
+                formData.append('isFeatured', form.isFeatured.value);
+                formData.append('readTime', form.readTime.value || '5');
+                
+                // Author data as JSON string
+                const authorData = {
+                    name: form.authorName.value,
+                    role: form.authorRole.value,
+                    image: 'images/user/default.jpg'
+                };
+                formData.append('author', JSON.stringify(authorData));
+                
+                // Handle featured image
+                const imageFile = form.featuredImage.files[0];
+                if (imageFile) {
+                    formData.append('featuredImage', imageFile);
+                }
+                
+                // Use correct admin API endpoint
+                let url = `${API_URL}/api/admin/blogs`;
+                let method = 'POST';
+                
+                if (blogId) {
+                    url = `${API_URL}/api/admin/blogs/${blogId}`;
+                    method = 'PUT';
+                }
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Authorization': `Bearer ${token}`
+                        // Don't set Content-Type - browser will set it with boundary for multipart/form-data
+                    },
+                    body: formData
+                });
+
+                const json = await res.json();
+                
+                if (json.status) {
+                    alert(blogId ? 'Blog updated successfully!' : 'Blog created successfully!');
+                    resetBlogForm();
+                    fetchBlogStats();
+                    fetchBlogs();
+                } else {
+                    alert('Error: ' + json.message);
+                }
+            } catch (err) {
+                alert('Error submitting blog: ' + err.message);
+            }
+        });
+
+        async function editBlog(blogId) {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/admin/blogs/${blogId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                
+                if (!json.status) {
+                    alert('Error loading blog');
+                    return;
+                }
+
+                const blog = json.data;
+                editingBlogId = blogId;
+
+                document.getElementById('blogId').value = blog._id;
+                document.getElementById('blogTitle').value = blog.title;
+                document.getElementById('blogCategory').value = blog.category;
+                document.getElementById('blogDescription').value = blog.description;
+                document.getElementById('blogContent').value = blog.content;
+                document.getElementById('blogTags').value = blog.tags ? blog.tags.join(', ') : '';
+                document.getElementById('authorName').value = blog.author.name;
+                document.getElementById('authorRole').value = blog.author.role;
+                document.getElementById('readTime').value = blog.readTime || 5;
+                document.getElementById('blogStatus').value = blog.status;
+                document.getElementById('blogFeatured').value = blog.isFeatured.toString();
+                document.getElementById('currentImage').textContent = blog.featuredImage;
+
+                document.getElementById('blogFormTitle').textContent = 'Edit Blog Post';
+                document.getElementById('submitBlogBtn').textContent = 'Update Blog Post';
+                document.getElementById('cancelEditBtn').style.display = 'inline-block';
+
+                document.querySelector('#blogForm').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                alert('Error loading blog: ' + err.message);
+            }
+        }
+
+        function resetBlogForm() {
+            document.getElementById('blogForm').reset();
+            document.getElementById('blogId').value = '';
+            document.getElementById('blogFormTitle').textContent = 'Create New Blog Post';
+            document.getElementById('submitBlogBtn').textContent = 'Create Blog Post';
+            document.getElementById('cancelEditBtn').style.display = 'none';
+            document.getElementById('currentImage').textContent = 'None';
+            editingBlogId = null;
+        }
+
+        async function deleteBlog(blogId) {
+            if (!confirm('Are you sure you want to delete this blog? This action cannot be undone.')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/admin/blogs/${blogId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                
+                if (json.status) {
+                    alert('Blog deleted successfully!');
+                    fetchBlogStats();
+                    fetchBlogs();
+                } else {
+                    alert('Error deleting blog: ' + json.message);
+                }
+            } catch (err) {
+                alert('Error deleting blog: ' + err.message);
+            }
+        }
+
+        async function togglePublish(blogId, currentStatus) {
+            const newStatus = currentStatus === 'published' ? 'draft' : 'published';
+            
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/admin/blogs/${blogId}/status`, {
+                    method: 'PATCH',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                const json = await res.json();
+                
+                if (json.status) {
+                    alert(`Blog ${newStatus} successfully!`);
+                    fetchBlogStats();
+                    fetchBlogs();
+                } else {
+                    alert('Error updating status: ' + json.message);
+                }
+            } catch (err) {
+                alert('Error updating status: ' + err.message);
+            }
+        }
+
+        // ============ REGIONAL PAGES FUNCTIONS ============
+
+        let regionalStatesData = [];
+        let regionalCitiesData = [];
+        let allCitiesData = [];
+
+        function showRegionalSection() {
+            const dashboardSection = document.getElementById('dashboardSection');
+            const blogSection = document.getElementById('blogManagementSection');
+            const regionalSection = document.getElementById('regionalManagementSection');
+            const dashboardLink = document.getElementById('dashboardMenuLink');
+            const blogsLink = document.getElementById('blogsMenuLink');
+            const regionalLink = document.getElementById('regionalMenuLink');
+            
+            if (dashboardSection) dashboardSection.style.display = 'none';
+            if (blogSection) blogSection.style.display = 'none';
+            if (regionalSection) regionalSection.style.display = 'block';
+            
+            if (dashboardLink) dashboardLink.classList.remove('active');
+            if (blogsLink) blogsLink.classList.remove('active');
+            if (regionalLink) regionalLink.classList.add('active');
+            
+            loadStatesForRegional();
+            fetchRegionalPages();
+            fetchRegionalStats();
+        }
+
+        function hideRegionalSection() {
+            const regionalSection = document.getElementById('regionalManagementSection');
+            const regionalLink = document.getElementById('regionalMenuLink');
+            
+            if (regionalSection) regionalSection.style.display = 'none';
+            if (regionalLink) regionalLink.classList.remove('active');
+        }
+
+        async function loadStatesForRegional() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/states`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                const json = await res.json();
+                
+                if (json.status && json.data) {
+                    regionalStatesData = json.data;
+                    
+                    let options = '<option value="">Choose State</option>';
+                    json.data.forEach(state => {
+                        options += `<option value="${state._id}">${state.name}</option>`;
+                    });
+                    
+                    document.getElementById('regionalState').innerHTML = options;
+                    document.getElementById('bulkState').innerHTML = options;
+                }
+            } catch (err) {
+                console.error('Error loading states:', err);
+            }
+        }
+
+        async function loadCitiesForRegional() {
+            const stateId = document.getElementById('regionalState').value;
+            if (!stateId) {
+                document.getElementById('regionalCity').innerHTML = '<option value="">Choose State first</option>';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/cities`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ stateId: stateId })
+                });
+                const json = await res.json();
+                
+                if (json.status && json.data) {
+                    regionalCitiesData = json.data;
+                    
+                    let options = '<option value="">Choose City</option>';
+                    json.data.forEach(city => {
+                        options += `<option value="${city._id}">${city.name}</option>`;
+                    });
+                    
+                    document.getElementById('regionalCity').innerHTML = options;
+                }
+            } catch (err) {
+                console.error('Error loading cities:', err);
+            }
+        }
+
+        async function loadCitiesForBulk() {
+            const stateId = document.getElementById('bulkState').value;
+            if (!stateId) {
+                document.getElementById('bulkCities').innerHTML = '<option value="">Choose State first</option>';
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/cities`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ stateId: stateId })
+                });
+                const json = await res.json();
+                
+                if (json.status && json.data) {
+                    allCitiesData = json.data;
+                    
+                    let options = '';
+                    json.data.forEach(city => {
+                        options += `<option value="${city._id}">${city.name}</option>`;
+                    });
+                    
+                    document.getElementById('bulkCities').innerHTML = options;
+                }
+            } catch (err) {
+                console.error('Error loading cities:', err);
+            }
+        }
+
+        async function fetchRegionalStats() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/city-pages/admin/all?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                const pages = json.data || [];
+                
+                const published = pages.filter(p => p.isPublished).length;
+                const totalViews = pages.reduce((sum, p) => sum + (p.views || 0), 0);
+                
+                document.getElementById('totalRegionalPages').textContent = pages.length;
+                document.getElementById('publishedPages').textContent = published;
+                document.getElementById('draftPages').textContent = pages.length - published;
+                document.getElementById('totalPageViews').textContent = totalViews;
+            } catch (err) {
+                console.error('Error fetching regional stats:', err);
+            }
+        }
+
+        async function fetchRegionalPages() {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/city-pages/admin/all?limit=1000`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                const pages = json.data || [];
+                
+                const table = document.getElementById('regionalPagesTable');
+                table.innerHTML = '';
+
+                if (pages.length === 0) {
+                    table.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No regional pages found. Create your first one!</td></tr>';
+                    return;
+                }
+
+                pages.forEach(page => {
+                    const statusClass = page.isPublished ? 'badge-success' : 'badge-warning';
+                    const statusText = page.isPublished ? 'Published' : 'Draft';
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><strong>${page.city?.name || 'N/A'}</strong></td>
+                        <td>${page.state?.name || 'N/A'}</td>
+                        <td><span class="badge ${statusClass}">${statusText}</span></td>
+                        <td>${page.stats?.totalMembers || 0}</td>
+                        <td>${page.views || 0}</td>
+                        <td><small>${page.slug}</small></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" onclick="editRegionalPage('${page._id}')">Edit</button>
+                            <button class="btn btn-info btn-sm" onclick="refreshStats('${page._id}')">🔄 Stats</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteRegionalPage('${page._id}')">Delete</button>
+                            <a href="https://www.banjaramatch.com/${page.slug}" target="_blank" class="btn btn-secondary btn-sm">View</a>
+                        </td>
+                    `;
+                    table.appendChild(row);
+                });
+            } catch (err) {
+                console.error('Error fetching regional pages:', err);
+                document.getElementById('regionalPagesTable').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: red;">Error loading pages.</td></tr>';
+            }
+        }
+
+        document.getElementById('regionalPageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const pageId = document.getElementById('regionalPageId').value;
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                const pageData = {
+                    cityId: formData.get('cityId'),
+                    stateId: formData.get('stateId'),
+                    heroTitle: formData.get('heroTitle'),
+                    heroSubtitle: formData.get('heroSubtitle'),
+                    metaTitle: formData.get('metaTitle'),
+                    metaDescription: formData.get('metaDescription'),
+                    isPublished: formData.get('isPublished') === 'true',
+                    isActive: formData.get('isActive') === 'true',
+                    popularLocalities: formData.get('popularLocalities') ? 
+                        formData.get('popularLocalities').split(',').map(l => l.trim()) : []
+                };
+
+                let url = `${API_URL}/api/city-pages/admin`;
+                let method = 'POST';
+                
+                if (pageId) {
+                    url = `${API_URL}/api/city-pages/admin/${pageId}`;
+                    method = 'PUT';
+                }
+
+                const res = await fetch(url, {
+                    method: method,
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(pageData)
+                });
+
+                const json = await res.json();
+                
+                if (json.status) {
+                    alert(pageId ? 'Regional page updated!' : 'Regional page created!');
+                    resetRegionalForm();
+                    fetchRegionalStats();
+                    fetchRegionalPages();
+                } else {
+                    alert('Error: ' + json.message);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        });
+
+        async function editRegionalPage(pageId) {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/city-pages/admin/${pageId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const json = await res.json();
+                
+                if (!json.status) {
+                    alert('Error loading page');
+                    return;
+                }
+
+                const page = json.data;
+
+                document.getElementById('regionalPageId').value = page._id;
+                document.getElementById('regionalState').value = page.state._id || page.state;
+                await loadCitiesForRegional();
+                document.getElementById('regionalCity').value = page.city._id || page.city;
+                document.getElementById('heroTitle').value = page.heroTitle || '';
+                document.getElementById('heroSubtitle').value = page.heroSubtitle || '';
+                document.getElementById('metaTitle').value = page.metaTitle || '';
+                document.getElementById('metaDescription').value = page.metaDescription || '';
+                document.getElementById('regionalStatus').value = page.isPublished.toString();
+                document.getElementById('regionalActive').value = page.isActive.toString();
+                document.getElementById('popularLocalities').value = page.popularLocalities ? page.popularLocalities.join(', ') : '';
+
+                document.getElementById('regionalFormTitle').textContent = 'Edit Regional Page';
+                document.getElementById('submitRegionalBtn').textContent = 'Update Page';
+                document.getElementById('cancelRegionalEditBtn').style.display = 'inline-block';
+
+                document.querySelector('#regionalPageForm').scrollIntoView({ behavior: 'smooth' });
+            } catch (err) {
+                alert('Error loading page: ' + err.message);
+            }
+        }
+
+        function resetRegionalForm() {
+            document.getElementById('regionalPageForm').reset();
+            document.getElementById('regionalPageId').value = '';
+            document.getElementById('regionalFormTitle').textContent = 'Create Regional Landing Page';
+            document.getElementById('submitRegionalBtn').textContent = 'Create Regional Page';
+            document.getElementById('cancelRegionalEditBtn').style.display = 'none';
+        }
+
+        async function deleteRegionalPage(pageId) {
+            if (!confirm('Are you sure you want to delete this regional page?')) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/city-pages/admin/${pageId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                
+                if (json.status) {
+                    alert('Page deleted successfully!');
+                    fetchRegionalStats();
+                    fetchRegionalPages();
+                } else {
+                    alert('Error: ' + json.message);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function refreshStats(pageId) {
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/city-pages/admin/${pageId}/refresh-stats`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const json = await res.json();
+                
+                if (json.status) {
+                    alert('Stats refreshed! Total members: ' + json.data.totalMembers);
+                    fetchRegionalPages();
+                } else {
+                    alert('Error: ' + json.message);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        function showBulkCreateModal() {
+            document.getElementById('bulkCreateModal').style.display = 'block';
+            loadStatesForRegional();
+        }
+
+        function closeBulkCreateModal() {
+            document.getElementById('bulkCreateModal').style.display = 'none';
+            document.getElementById('bulkProgress').style.display = 'none';
+            document.getElementById('bulkProgressBar').style.width = '0%';
+        }
+
+        async function executeBulkCreate() {
+            const selectedOptions = document.getElementById('bulkCities').selectedOptions;
+            const cityIds = Array.from(selectedOptions).map(opt => opt.value);
+
+            if (cityIds.length === 0) {
+                alert('Please select at least one city');
+                return;
+            }
+
+            if (!confirm(`Create regional pages for ${cityIds.length} cities?`)) {
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                
+                document.getElementById('bulkProgress').style.display = 'block';
+                document.getElementById('bulkProgressText').textContent = 'Creating pages...';
+                
+                const res = await fetch(`${API_URL}/api/city-pages/admin/bulk-create`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ cityIds })
+                });
+
+                const json = await res.json();
+                
+                document.getElementById('bulkProgressBar').style.width = '100%';
+                
+                if (json.status) {
+                    const results = json.data;
+                    alert(`✅ Created: ${results.created.length}\n⏭️ Skipped: ${results.skipped.length}\n❌ Errors: ${results.errors.length}`);
+                    
+                    fetchRegionalStats();
+                    fetchRegionalPages();
+                    closeBulkCreateModal();
+                } else {
+                    alert('Error: ' + json.message);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        function filterRegionalPages() {
+            const search = document.getElementById('regionalSearch').value.toLowerCase();
+            const rows = document.getElementById('regionalPagesTable').getElementsByTagName('tr');
+            
+            for (let row of rows) {
+                const cityCell = row.cells[0];
+                if (cityCell) {
+                    const cityName = cityCell.textContent.toLowerCase();
+                    row.style.display = cityName.includes(search) ? '' : 'none';
+                }
+            }
+        }
+
+        // Growth/engagement charts — these API endpoints already existed
+        // (dashboardController.getUserGrowth / getEngagementStats) but no
+        // page ever called them until now.
+        async function loadAnalyticsCharts() {
+            try {
+                const growthRes = await window.apiRequest('/api/admin/dashboard/user-growth?days=30');
+                const growth = (growthRes.status && growthRes.data) || [];
+
+                if (growth.length === 0) {
+                    document.getElementById('userGrowthEmpty').style.display = 'block';
+                } else {
+                    new Chart(document.getElementById('userGrowthChart'), {
+                        type: 'line',
+                        data: {
+                            labels: growth.map(g => g._id),
+                            datasets: [{
+                                label: 'New signups',
+                                data: growth.map(g => g.count),
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102,126,234,0.12)',
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading user growth chart:', error);
+                document.getElementById('userGrowthEmpty').textContent = 'Failed to load signup data.';
+                document.getElementById('userGrowthEmpty').style.display = 'block';
+            }
+
+            try {
+                const engagementRes = await window.apiRequest('/api/admin/dashboard/engagement');
+                const e = (engagementRes.status && engagementRes.data) || null;
+
+                if (!e || (e.activeMessagers === 0 && e.activeRequesters === 0 && e.totalActiveMessagers === 0)) {
+                    document.getElementById('engagementEmpty').style.display = 'block';
+                } else {
+                    new Chart(document.getElementById('engagementChart'), {
+                        type: 'bar',
+                        data: {
+                            labels: ['Active chatters', 'Active requesters', 'Total senders (all time)'],
+                            datasets: [{
+                                label: 'Users',
+                                data: [e.activeMessagers, e.activeRequesters, e.totalActiveMessagers],
+                                backgroundColor: ['#6366f1', '#f59e0b', '#10b981']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading engagement chart:', error);
+                document.getElementById('engagementEmpty').textContent = 'Failed to load engagement data.';
+                document.getElementById('engagementEmpty').style.display = 'block';
+            }
+        }
+
+        // Load on page load
+        window.addEventListener('load', async () => {
+            console.log('🚀 Dashboard page loaded');
+            
+            // Wait a bit to ensure all scripts are loaded
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            console.log('Checking for required functions...');
+            console.log('- checkAuth:', typeof window.checkAuth);
+            console.log('- getCurrentAdmin:', typeof window.getCurrentAdmin);
+            console.log('- apiRequest:', typeof window.apiRequest);
+            console.log('- showNotification:', typeof window.showNotification);
+            
+            if (typeof window.checkAuth !== 'function') {
+                console.error('❌ checkAuth not loaded!');
+                return;
+            }
+            
+            const isAuthenticated = await window.checkAuth();
+            
+            if (isAuthenticated) {
+                // Update admin name
+                if (typeof window.getCurrentAdmin === 'function') {
+                    const admin = window.getCurrentAdmin();
+                    if (admin) {
+                        const nameEl = document.getElementById('adminName');
+                        if (nameEl) {
+                            nameEl.textContent = admin.full_name || admin.email || 'Admin';
+                        }
+                    }
+                }
+                
+                // Load dashboard data
+                await loadDashboardStats();
+                await loadAnalyticsCharts();
+            }
+        });
+    </script>
+</body>
+</html>

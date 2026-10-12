@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= blog ? (blog.metaTitle || blog.title) : 'Blog Post' %> - BanjaraMatch</title>
+    
+    <!-- SEO Meta Tags -->
+    <% if (blog) { %>
+    <meta name="description" content="<%= blog.metaDescription || blog.description %>">
+    <% if (blog.metaKeywords && blog.metaKeywords.length > 0) { %>
+    <meta name="keywords" content="<%= blog.metaKeywords.join(', ') %>">
+    <% } %>
+    <link rel="canonical" href="https://www.banjaramatch.com/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="<%= blog.title %>">
+    <meta property="og:description" content="<%= blog.description %>">
+    <meta property="og:image" content="https://www.banjaramatch.com/<%= blog.featuredImage %>">
+    <meta property="og:url" content="https://www.banjaramatch.com/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>">
+    <meta property="og:type" content="article">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= blog.title %>">
+    <meta name="twitter:description" content="<%= blog.description %>">
+    <meta name="twitter:image" content="https://www.banjaramatch.com/<%= blog.featuredImage %>">
+
+    <!-- Structured Data: BlogPosting -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "headline": <%- JSON.stringify(blog.title) %>,
+      "description": <%- JSON.stringify(blog.metaDescription || blog.description) %>,
+      "image": "https://www.banjaramatch.com/<%= blog.featuredImage %>",
+      "datePublished": "<%= new Date(blog.publishedAt || blog.createdAt).toISOString() %>",
+      "dateModified": "<%= new Date(blog.updatedAt || blog.publishedAt || blog.createdAt).toISOString() %>",
+      "author": {
+        "@type": "Organization",
+        "name": <%- JSON.stringify(blog.author && blog.author.name ? blog.author.name : 'BanjaraMatch Team') %>
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "BanjaraMatch",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "https://www.banjaramatch.com/images/logo-bf.png"
+        }
+      },
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "https://www.banjaramatch.com/blogs/<%= blog.category.toLowerCase() %>/<%= blog.slug %>"
+      },
+      "articleSection": <%- JSON.stringify(blog.category) %>,
+      "keywords": <%- JSON.stringify((blog.metaKeywords && blog.metaKeywords.length ? blog.metaKeywords : blog.tags) || []) %>
+    }
+    </script>
+    <% } %>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <!-- Google Analytics (SEO & Traffic Tracking) -->
+    <%- include('../partials/analytics', { pageCategory: 'blog_post' }) %>
+    
+    <!--== PERFORMANCE: Resource Hints ==-->
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    
+    <!--== CSS FILES - Optimized Loading ==-->
+    <link rel="preload" href="/css/style.min.css" as="style">
+    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/style.min.css">
+    <noscript>
+      <link rel="stylesheet" href="/css/bootstrap.css">
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+      <link rel="stylesheet" href="/css/animate.min.css">
+    </noscript>
+</head>
+<body>
+
+<%- include('../partials/header') %>
+
+
+<% if (blog) { %>
+<!-- START -->
+<section>
+    <div class="inn-ban">
+        <div class="container">
+            <div class="row">
+                <h1><%= blog.title %></h1>
+                <ul class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="/blogs">All Posts</a></li>
+                    <li class="breadcrumb-item"><a href="/blogs/<%= blog.category.toLowerCase() %>"><%= blog.category %></a></li>
+                    <li class="breadcrumb-item active"><%= blog.title %></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- END -->
+
+<!-- START -->
+<section>
+    <div class="blog-main blog-detail">
+        <div class="container">
+            <div class="row">
+                <div class="inn">
+                    <div class="lhs">
+                        <!--BIG POST START-->
+                        <div class="blog-home-box">
+                            <div class="im">
+                                <img src="/<%= blog.featuredImage %>" alt="<%= blog.title %>" loading="lazy">
+                                <span class="blog-date"><%= new Date(blog.publishedAt || blog.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) %></span>
+                                <% const blogShareUrl = (typeof shareUrl !== 'undefined' && shareUrl) ? shareUrl : 'https://www.banjaramatch.com/blogs/' + blog.category.toLowerCase() + '/' + blog.slug; %>
+                                <div class="shar-1">
+                                    <i class="fa fa-share-alt" aria-hidden="true"></i>
+                                    <ul>
+                                        <li><a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent(blogShareUrl) %>" target="_blank"><i class="fa fa-facebook" aria-hidden="true"></i></a></li>
+                                        <li><a href="https://twitter.com/intent/tweet?url=<%= encodeURIComponent(blogShareUrl) %>&text=<%= encodeURIComponent(blog.title) %>" target="_blank"><i class="fa fa-twitter" aria-hidden="true"></i></a></li>
+                                        <li><a href="https://wa.me/?text=<%= encodeURIComponent(blog.title + ' - ' + blogShareUrl) %>" target="_blank"><i class="fa fa-whatsapp" aria-hidden="true"></i></a></li>
+                                        <li><span onclick="copyBlogLink()"><i class="fa fa-link" aria-hidden="true"></i></span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="txt">
+                                <span class="blog-cate"><%= blog.category %></span>
+                                <% if (blog.tags && blog.tags.length > 0) { %>
+                                    <% blog.tags.slice(0, 2).forEach(tag => { %>
+                                        <span class="blog-cate"><%= tag %></span>
+                                    <% }); %>
+                                <% } %>
+                                <h2><%= blog.title %></h2>
+                                
+                                <!-- Blog Content -->
+                                <div class="blog-content-section">
+                                    <%- blog.content %>
+                                </div>
+
+                                <div class="blog-info">
+                                    <div class="blog-pro-info">
+                                        <img src="/<%= blog.author.image %>" alt="<%= blog.author.name %>" loading="lazy">
+                                        <h5><%= blog.author.name %> <span><%= blog.author.role %></span></h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--END BIG POST START-->
+
+                        <!--START-->
+                        <div class="blog-nav">
+                            <% if (relatedBlogs && relatedBlogs.length > 0) { %>
+                                <% if (relatedBlogs[0]) { %>
+                                <div class="com lhs">
+                                    <span><i class="fa fa-long-arrow-left" aria-hidden="true"></i> Previous post</span>
+                                    <h4><%= relatedBlogs[0].title %></h4>
+                                    <a href="/blogs/<%= relatedBlogs[0].category.toLowerCase() %>/<%= relatedBlogs[0].slug %>" class="fclick"></a>
+                                </div>
+                                <% } %>
+                                <% if (relatedBlogs[1]) { %>
+                                <div class="com rhs">
+                                    <span>Next post <i class="fa fa-long-arrow-right" aria-hidden="true"></i></span>
+                                    <h4><%= relatedBlogs[1].title %></h4>
+                                    <a href="/blogs/<%= relatedBlogs[1].category.toLowerCase() %>/<%= relatedBlogs[1].slug %>" class="fclick"></a>
+                                </div>
+                                <% } %>
+                            <% } %>
+                        </div>
+                        <!--END-->
+                        
+                        <!-- SOCIAL SHARE BUTTONS (Link Building) -->
+                        <%- include('../partials/social-share') %>
+
+                    </div>
+                    <div class="rhs">
+                        <div class="blog-com-rhs">
+                            
+                            <!-- CATEGORY START-->
+                            <div class="blog-rhs-cate">
+                                <h4>Category</h4>
+                                <ul>
+                                    <li><a href="/blogs/wedding"><span>1</span><b>Wedding Planning</b></a></li>
+                                    <li><a href="/blogs/relationship"><span>2</span><b>Relationship</b></a></li>
+                                    <li><a href="/blogs/culture"><span>3</span><b>Culture</b></a></li>
+                                    <li><a href="/blogs/decoration"><span>4</span><b>Wedding Decorations</b></a></li>
+                                    <li><a href="/blogs/events"><span>5</span><b>Events</b></a></li>
+                                    <li><a href="/blogs/tradition"><span>6</span><b>Tradition</b></a></li>
+                                    <li><a href="/blogs/tips"><span>7</span><b>Tips</b></a></li>
+                                    <li><a href="/blogs/stories"><span>8</span><b>Stories</b></a></li>
+                                    <li><a href="/blogs/community"><span>9</span><b>Community</b></a></li>
+                                </ul>
+                            </div>
+                            <!-- CATEGORY END-->
+                            
+                            <!--TOP POSTS-->
+                            <% if (relatedBlogs && relatedBlogs.length > 0) { %>
+                            <div class="hot-page2-hom-pre blog-rhs-trends">
+                                <h4>Trending Posts</h4>
+                                <ul>
+                                    <% relatedBlogs.slice(0, 5).forEach(post => { %>
+                                    <li>
+                                        <div class="hot-page2-hom-pre-1">
+                                            <img src="/<%= post.featuredImage %>" alt="<%= post.title %>" loading="lazy">
+                                        </div>
+                                        <div class="hot-page2-hom-pre-2">
+                                            <h5><%= post.title %></h5>
+                                        </div>
+                                        <a href="/blogs/<%= post.category.toLowerCase() %>/<%= post.slug %>" class="fclick"></a>
+                                    </li>
+                                    <% }); %>
+                                </ul>
+                            </div>
+                            <% } %>
+                            <!--TOP POSTS END-->
+                            
+                            
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- END -->
+<% } else { %>
+<!-- Blog not found -->
+<section>
+    <div class="inn-ban">
+        <div class="container">
+            <div class="row">
+                <h1>Blog Post Not Found</h1>
+                <p>The blog post you're looking for doesn't exist.</p>
+                <a href="/blogs" class="btn btn-primary">Back to All Blogs</a>
+            </div>
+        </div>
+    </div>
+</section>
+<% } %>
+
+<%- include('../partials/footer') %>
+
+
+<!-- JavaScript Files -->
+<script src="/js/jquery.min.js"></script>
+<script src="/js/popper.min.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/custom.min.js"></script>
+
+<script>
+function copyBlogLink() {
+    const url = window.location.href;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Link copied to clipboard!');
+        });
+    } else {
+        // Fallback for older browsers
+        const input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        alert('Link copied to clipboard!');
+    }
+}
+</script>
+
+</body>
+</html>

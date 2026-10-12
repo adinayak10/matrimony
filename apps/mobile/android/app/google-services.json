@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "799990198329",
+    "firebase_url": "https://socialmedia-dcdd8-default-rtdb.firebaseio.com",
+    "project_id": "socialmedia-dcdd8",
+    "storage_bucket": "socialmedia-dcdd8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:799990198329:android:adb0603582a65e75a21de8",
+        "android_client_info": {
+          "package_name": "com.banjaramatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "799990198329-49h3il22dfb9ivf2mb4rpc451b59u5t9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.banjaramatch",
+            "certificate_hash": "bfcc4fc3437432c788bc04a40b07f43540b482d0"
+          }
+        },
+        {
+          "client_id": "799990198329-716vahtccuqhi7e9v2q0i3k0k91912ev.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.banjaramatch",
+            "certificate_hash": "3d7841a0ad096a16cf33180e48b918e0d0a4121e"
+          }
+        },
+        {
+          "client_id": "799990198329-s3m8amfivcsf1ndm08cvsse0vt49r95d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC488UNfbVlV0f6a0Q3bxLQdq4H-uPk_V8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "799990198329-s3m8amfivcsf1ndm08cvsse0vt49r95d.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

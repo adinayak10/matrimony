@@ -1,0 +1,9 @@
+<%
+// <%- include('../partials/icon', { name: 'users', size: 18, cls: '', label: '' }) %>
+// Same markup as lib/render.js icon(); kept as a partial for templates that
+// prefer include() over the helper. `name` is restricted to [a-z0-9-].
+var iName = /^[a-z0-9-]+$/.test(String(typeof name === 'string' ? name : '')) ? name : 'circle';
+var iSize = typeof size === 'number' ? size : 20;
+var iCls = typeof cls === 'string' ? cls : '';
+var iLabel = typeof label === 'string' ? label : '';
+%><svg class="icon<%= iCls ? ' ' + iCls : '' %>" width="<%= iSize %>" height="<%= iSize %>"<% if (iLabel) { %> role="img" aria-label="<%= iLabel %>"<% } else { %> aria-hidden="true" focusable="false"<% } %>><use href="/img/icons.svg?v=<%= assetVersion %>#<%= iName %>"></use></svg>

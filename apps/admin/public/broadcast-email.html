@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Broadcast Email - Banjara Match Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .navbar {
+            background: rgba(255,255,255,0.95) !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .content-wrapper { padding: 2rem; }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.2rem 1.5rem;
+        }
+        .card-header h5 { margin: 0; font-size: 1.1rem; }
+        .filter-section {
+            background: #f8f9fc;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #e0e0e0;
+        }
+        .preview-badge {
+            background: #e91e8c;
+            color: white;
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .btn-send {
+            background: linear-gradient(135deg, #e91e8c 0%, #c2185b 100%);
+            border: none;
+            color: white;
+            padding: 12px 30px;
+            font-weight: 600;
+            border-radius: 25px;
+            font-size: 1rem;
+        }
+        .btn-send:hover { background: linear-gradient(135deg, #c2185b 0%, #880e4f 100%); color: white; }
+        .btn-preview {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            padding: 10px 24px;
+            font-weight: 600;
+            border-radius: 25px;
+        }
+        .btn-preview:hover { opacity: 0.9; color: white; }
+        .template-card {
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 14px;
+            transition: all 0.2s;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .template-card:hover { border-color: #667eea; }
+        .template-card.selected { border-color: #e91e8c; background: #fef9fc; }
+        .template-card .template-icon { font-size: 1.8rem; }
+        .template-card .template-name { font-weight: 600; font-size: 0.95rem; margin-top: 6px; }
+        .template-card .template-desc { font-size: 0.8rem; color: #888; margin-top: 2px; }
+        #emailBodyHtml { font-family: monospace; font-size: 13px; }
+        .status-bar {
+            background: #fff;
+            border-radius: 10px;
+            padding: 1rem 1.5rem;
+            border: 1px solid #e0e0e0;
+            display: none;
+        }
+        .status-bar.show { display: block; }
+        .progress { height: 10px; border-radius: 5px; }
+        .progress-bar { background: linear-gradient(135deg, #e91e8c 0%, #c2185b 100%); }
+        .log-area {
+            background: #1a1a2e;
+            color: #00ff88;
+            font-family: monospace;
+            font-size: 12px;
+            border-radius: 8px;
+            padding: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+        .log-area.show { display: block; }
+        .tag { display: inline-block; background: #ede7f6; color: #5c35be; border-radius: 4px; padding: 2px 8px; font-size: 11px; font-family: monospace; margin: 2px; }
+        #previewModal .modal-header { background: linear-gradient(135deg, #e91e8c, #c2185b); color: white; }
+        #previewModal .modal-title { margin: 0; }
+        #emailPreviewFrame { width: 100%; height: 420px; border: 1px solid #eee; border-radius: 8px; }
+        /* User search dropdown */
+        .user-search-wrap { position: relative; }
+        .user-dropdown {
+            position: absolute; top: 100%; left: 0; right: 0; z-index: 999;
+            background: #fff; border: 1px solid #ddd; border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-height: 260px; overflow-y: auto; display: none;
+        }
+        .user-dropdown.show { display: block; }
+        .user-dropdown-item {
+            padding: 10px 14px; cursor: pointer; border-bottom: 1px solid #f0f0f0;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .user-dropdown-item:last-child { border-bottom: none; }
+        .user-dropdown-item:hover { background: #f5f0fc; }
+        .user-dropdown-item .uname { font-weight: 600; font-size: 0.9rem; }
+        .user-dropdown-item .uemail { font-size: 0.78rem; color: #777; }
+        .user-dropdown-item .noemail { font-size: 0.78rem; color: #e91e8c; }
+        .user-dropdown-empty { padding: 12px; color: #999; font-size: 0.85rem; text-align: center; }
+        .selected-user-badge {
+            display: none; background: #f0f9f0; border: 1px solid #b2dfdb;
+            border-radius: 8px; padding: 10px 14px; margin-top: 8px;
+            align-items: center; justify-content: space-between;
+        }
+        .selected-user-badge.show { display: flex; }
+        .selected-user-badge .info { font-size: 0.88rem; }
+        .selected-user-badge .info strong { color: #2e7d32; }
+        .btn-test-send {
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+            border: none; color: white; padding: 10px 22px;
+            font-weight: 600; border-radius: 25px; font-size: 0.9rem;
+        }
+        .btn-test-send:hover { opacity: 0.9; color: white; }
+    </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/dashboard">
+            <i class="bi bi-heart-fill text-danger"></i>
+            <strong>Banjara Match Admin</strong>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/users"><i class="bi bi-people"></i> Users</a></li>
+                <li class="nav-item"><a class="nav-link" href="/reports"><i class="bi bi-flag-fill"></i> Reports</a></li>
+                <li class="nav-item"><a class="nav-link" href="/photo-moderation"><i class="bi bi-image-fill"></i> Photo Moderation</a></li>
+                <li class="nav-item"><a class="nav-link active" href="/broadcast-email"><i class="bi bi-envelope-fill"></i> Broadcast Email</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="logout(); return false;"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Content -->
+<div class="content-wrapper container-fluid">
+
+    <div class="row">
+        <!-- Left column: Filters + Compose -->
+        <div class="col-lg-8">
+
+            <!-- Filter Section -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5><i class="bi bi-funnel me-2"></i>Filter Recipients</h5>
+                    <div>
+                        Match: <span class="preview-badge" id="recipientCount">–</span> users
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Gender</label>
+                            <select class="form-select" id="fGender">
+                                <option value="all">All Genders</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Min Age</label>
+                            <input type="number" class="form-control" id="fMinAge" placeholder="e.g. 18" min="18" max="99">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Max Age</label>
+                            <input type="number" class="form-control" id="fMaxAge" placeholder="e.g. 40" min="18" max="99">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Platform</label>
+                            <select class="form-select" id="fPlatform">
+                                <option value="all">All Platforms</option>
+                                <option value="mobile">📱 Mobile</option>
+                                <option value="web">🌐 Web</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Verification</label>
+                            <select class="form-select" id="fVerified">
+                                <option value="">All</option>
+                                <option value="1">Verified Only</option>
+                                <option value="0">Unverified Only</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" id="fBlocked">
+                                <option value="0">Active Users</option>
+                                <option value="">All Users</option>
+                                <option value="1">Blocked Only</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <button class="btn btn-preview" onclick="previewCount()">
+                                <i class="bi bi-search me-1"></i>Preview Count
+                            </button>
+                            <small class="text-muted ms-3" id="countNote"></small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Compose -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-pencil-square me-2"></i>Compose Email</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Subject <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="emailSubject" placeholder="e.g. Special Offer for BanjaraMatch Members!">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email Body (HTML) <span class="text-danger">*</span></label>
+                        <small class="text-muted d-block mb-1">
+                            Use <span class="tag">&#123;&#123;name&#125;&#125;</span> to personalise with the user's name.
+                            Your content is wrapped in the Banjara Match branded email template automatically.
+                        </small>
+                        <textarea class="form-control" id="emailBodyHtml" rows="12"
+                            placeholder="<h2>Hello {{name}}! 🎉</h2>&#10;<p>We have exciting news for you...</p>&#10;<a href='https://www.banjaramatch.com/' style='background:#e91e8c;color:white;padding:10px 24px;border-radius:20px;text-decoration:none;'>Open App</a>"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Plain Text Fallback <span class="text-muted">(optional)</span></label>
+                        <textarea class="form-control" id="emailBodyText" rows="4"
+                            placeholder="Hello {{name}}, We have exciting news for you on BanjaraMatch.com ..."></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-outline-secondary" onclick="showPreviewModal()">
+                            <i class="bi bi-eye me-1"></i>Preview Email
+                        </button>
+                        <button class="btn btn-send" onclick="sendBroadcast()" id="sendBtn">
+                            <i class="bi bi-send-fill me-1"></i>Send Broadcast
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="status-bar" id="statusBar">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong id="statusTitle">Sending...</strong>
+                    <span id="statusDetail" class="text-muted"></span>
+                </div>
+                <div class="progress mb-2">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" id="statusProgress" style="width:100%"></div>
+                </div>
+                <div class="log-area" id="logArea"></div>
+            </div>
+
+            <!-- Test Email (Single User) -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-bug me-2"></i>Test Email — Send to Single User</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Search for a specific user by name, email, or phone and send them the email above as a test.</p>
+                    <div class="user-search-wrap">
+                        <input type="text" class="form-control" id="userSearchInput"
+                            placeholder="Search by name, email or phone..."
+                            autocomplete="off"
+                            oninput="onUserSearch(this.value)">
+                        <div class="user-dropdown" id="userDropdown"></div>
+                    </div>
+                    <div class="selected-user-badge" id="selectedUserBadge">
+                        <div class="info">
+                            <i class="bi bi-person-check-fill text-success me-1"></i>
+                            <strong id="selUserName">–</strong>
+                            <span class="text-muted ms-2" id="selUserEmail"></span>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger ms-3" onclick="clearSelectedUser()">
+                            <i class="bi bi-x"></i> Clear
+                        </button>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-test-send" id="testSendBtn" onclick="sendTestEmail()" disabled>
+                            <i class="bi bi-send me-1"></i>Send Test Email
+                        </button>
+                        <small class="text-muted ms-3" id="testSendNote"></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right column: Templates -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-lightning-fill me-2"></i>Quick Templates</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Click a template to auto-fill the compose form.</p>
+                    <div class="d-grid gap-2">
+
+                        <div class="template-card" id="tpl-welcome" onclick="applyTemplate('welcome')">
+                            <div class="template-icon">🎉</div>
+                            <div class="template-name">Welcome / Re-Engagement</div>
+                            <div class="template-desc">Invite inactive users back to the app</div>
+                        </div>
+
+                        <div class="template-card" id="tpl-profile" onclick="applyTemplate('profile')">
+                            <div class="template-icon">👤</div>
+                            <div class="template-name">Complete Your Profile</div>
+                            <div class="template-desc">Nudge users to fill in their profile</div>
+                        </div>
+
+                        <div class="template-card" id="tpl-offer" onclick="applyTemplate('offer')">
+                            <div class="template-icon">💎</div>
+                            <div class="template-name">Premium Offer</div>
+                            <div class="template-desc">Promote membership plan upgrade</div>
+                        </div>
+
+                        <div class="template-card" id="tpl-festival" onclick="applyTemplate('festival')">
+                            <div class="template-icon">🪔</div>
+                            <div class="template-name">Festival / Seasonal Greetings</div>
+                            <div class="template-desc">Send festive greetings to all users</div>
+                        </div>
+
+                        <div class="template-card" id="tpl-newfeature" onclick="applyTemplate('newfeature')">
+                            <div class="template-icon">✨</div>
+                            <div class="template-name">New Feature Announcement</div>
+                            <div class="template-desc">Let users know about new features</div>
+                        </div>
+
+                        <div class="template-card" id="tpl-beta" onclick="applyTemplate('beta')">
+                            <div class="template-icon">🚀</div>
+                            <div class="template-name">Join Beta Program</div>
+                            <div class="template-desc">Recruit 20 testers for the community app</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="bi bi-info-circle me-2"></i>Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0 small text-muted">
+                        <li class="mb-2">✅ Always <strong>Preview Count</strong> before sending</li>
+                        <li class="mb-2">✅ Use <code>&#123;&#123;name&#125;&#125;</code> for personalisation</li>
+                        <li class="mb-2">✅ Emails send in the background — you get a confirmation instantly</li>
+                        <li class="mb-2">⚠️ Only users with an email address will receive it</li>
+                        <li class="mb-2">⚠️ Avoid spammy subject lines (ALL CAPS, excessive !!!!)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-eye me-2"></i>Email Preview</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <iframe id="emailPreviewFrame" sandbox="allow-same-origin"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script>
+    // ── Helper ────────────────────────────────────────────────────────────────
+    function buildFilter() {
+        const raw = {
+            gender:   document.getElementById('fGender').value,
+            minAge:   document.getElementById('fMinAge').value,
+            maxAge:   document.getElementById('fMaxAge').value,
+            platform: document.getElementById('fPlatform').value,
+            verified: document.getElementById('fVerified').value,
+            blocked:  document.getElementById('fBlocked').value,
+        };
+        // Strip empty / 'all' values so backend doesn't see blank strings
+        const clean = {};
+        Object.entries(raw).forEach(([k, v]) => {
+            if (v !== '' && v !== null && v !== undefined && v !== 'all') clean[k] = v;
+        });
+        return clean;
+    }
+
+    function log(msg) {
+        const area = document.getElementById('logArea');
+        area.classList.add('show');
+        area.textContent += msg + '\n';
+        area.scrollTop = area.scrollHeight;
+    }
+
+    // ── Preview Count ─────────────────────────────────────────────────────────
+    let previewDebounceTimer = null;
+
+    async function previewCount() {
+        const filter = buildFilter();
+        // Only send non-empty, non-'all' params
+        const params = new URLSearchParams();
+        Object.entries(filter).forEach(([k, v]) => {
+            if (v !== '' && v !== null && v !== undefined) params.append(k, v);
+        });
+        document.getElementById('countNote').textContent = 'Loading...';
+        document.getElementById('recipientCount').textContent = '…';
+        try {
+            const data = await apiRequest(`/api/admin/broadcast-email/preview?${params}`);
+            document.getElementById('recipientCount').textContent = data.count;
+            document.getElementById('countNote').textContent = `${data.count} user(s) with email addresses will receive this broadcast.`;
+        } catch (err) {
+            document.getElementById('countNote').textContent = 'Error loading count.';
+            document.getElementById('recipientCount').textContent = '–';
+        }
+    }
+
+    function schedulePreview() {
+        clearTimeout(previewDebounceTimer);
+        previewDebounceTimer = setTimeout(previewCount, 400);
+    }
+
+    // ── Send Broadcast ────────────────────────────────────────────────────────
+    async function sendBroadcast() {
+        const subject   = document.getElementById('emailSubject').value.trim();
+        const bodyHtml  = document.getElementById('emailBodyHtml').value.trim();
+        const bodyText  = document.getElementById('emailBodyText').value.trim();
+
+        if (!subject) { alert('Please enter an email subject.'); return; }
+        if (!bodyHtml) { alert('Please enter the email body HTML.'); return; }
+
+        const countEl = document.getElementById('recipientCount').textContent;
+        const count = parseInt(countEl);
+        if (!count || count === 0) {
+            const confirmed = confirm('No users found for the current filter. Do you want to preview count first?');
+            if (confirmed) { await previewCount(); return; }
+        }
+
+        const msg = `Send broadcast to ${countEl !== '–' ? countEl : 'filtered'} users?\n\nSubject: ${subject}\n\nThis cannot be undone.`;
+        if (!confirm(msg)) return;
+
+        const sendBtn = document.getElementById('sendBtn');
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+
+        const statusBar = document.getElementById('statusBar');
+        statusBar.classList.add('show');
+        document.getElementById('statusTitle').textContent = 'Broadcasting emails...';
+        document.getElementById('statusDetail').textContent = '';
+        document.getElementById('statusProgress').style.width = '100%';
+
+        try {
+            const data = await apiRequest('/api/admin/broadcast-email/send', 'POST', {
+                subject, bodyHtml, bodyText, filter: buildFilter()
+            });
+
+            document.getElementById('statusProgress').classList.remove('progress-bar-animated');
+
+            if (data.success) {
+                document.getElementById('statusTitle').textContent = '✅ Broadcast Started!';
+                document.getElementById('statusDetail').textContent = data.message;
+                document.getElementById('statusProgress').style.width = '100%';
+                document.getElementById('statusProgress').classList.add('bg-success');
+                log(`✅ ${data.message}`);
+                log(`📨 Total recipients: ${data.total}`);
+            } else {
+                document.getElementById('statusTitle').textContent = '❌ Send Failed';
+                document.getElementById('statusDetail').textContent = data.message;
+                document.getElementById('statusProgress').classList.add('bg-danger');
+                log(`❌ Error: ${data.message}`);
+            }
+        } catch (err) {
+            document.getElementById('statusProgress').classList.remove('progress-bar-animated');
+            document.getElementById('statusTitle').textContent = '❌ Network Error';
+            document.getElementById('statusDetail').textContent = err.message;
+            log(`❌ Network Error: ${err.message}`);
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="bi bi-send-fill me-1"></i>Send Broadcast';
+        }
+    }
+
+    // ── User Search & Test Send ───────────────────────────────────────────────
+    let selectedUser = null;
+    let userSearchTimer = null;
+    let userSearchResults = [];   // store fetched users keyed by index
+
+    async function onUserSearch(val) {
+        clearTimeout(userSearchTimer);
+        const dropdown = document.getElementById('userDropdown');
+
+        if (!val || val.trim().length < 2) {
+            dropdown.classList.remove('show');
+            dropdown.innerHTML = '';
+            return;
+        }
+
+        userSearchTimer = setTimeout(async () => {
+            dropdown.innerHTML = '<div class="user-dropdown-empty">Searching…</div>';
+            dropdown.classList.add('show');
+            try {
+                const data = await apiRequest(`/api/admin/users?search=${encodeURIComponent(val.trim())}&limit=10`);
+                const users = data.data || data.users || [];
+                userSearchResults = users;   // cache so onclick can reference by index
+                if (!users.length) {
+                    dropdown.innerHTML = '<div class="user-dropdown-empty">No users found</div>';
+                    return;
+                }
+                dropdown.innerHTML = users.map((u, i) => `
+                    <div class="user-dropdown-item" onclick="selectUserByIndex(${i})">
+                        <i class="bi bi-person-circle" style="font-size:1.4rem;color:#667eea;flex-shrink:0"></i>
+                        <div>
+                            <div class="uname">${escHtml(u.full_name || 'No Name')} <span style="font-size:11px;color:#aaa">${escHtml(u.gender || '')}</span></div>
+                            ${u.email
+                                ? `<div class="uemail">${escHtml(u.email)}</div>`
+                                : `<div class="noemail">⚠ No email — test will fail</div>`}
+                            ${u.phone ? `<div style="font-size:11px;color:#aaa">${escHtml(u.phone)}</div>` : ''}
+                        </div>
+                    </div>`).join('');
+            } catch (err) {
+                dropdown.innerHTML = '<div class="user-dropdown-empty">Error searching users</div>';
+            }
+        }, 350);
+    }
+
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function selectUserByIndex(i) {
+        const u = userSearchResults[i];
+        if (!u) return;
+        selectedUser = { _id: u._id, full_name: u.full_name || '', email: u.email || '' };
+        document.getElementById('userSearchInput').value = u.full_name || '';
+        document.getElementById('userDropdown').classList.remove('show');
+        document.getElementById('userDropdown').innerHTML = '';
+
+        document.getElementById('selUserName').textContent = u.full_name || '(no name)';
+        document.getElementById('selUserEmail').textContent = u.email ? `<${u.email}>` : '(no email)';
+        document.getElementById('selectedUserBadge').classList.add('show');
+
+        const btn = document.getElementById('testSendBtn');
+        btn.disabled = !u.email;
+        document.getElementById('testSendNote').textContent = u.email ? '' : '⚠ This user has no email address.';
+    }
+
+    function clearSelectedUser() {
+        selectedUser = null;
+        document.getElementById('userSearchInput').value = '';
+        document.getElementById('selectedUserBadge').classList.remove('show');
+        document.getElementById('testSendBtn').disabled = true;
+        document.getElementById('testSendNote').textContent = '';
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.user-search-wrap')) {
+            const d = document.getElementById('userDropdown');
+            if (d) { d.classList.remove('show'); d.innerHTML = ''; }
+        }
+    });
+
+    async function sendTestEmail() {
+        if (!selectedUser) return;
+        const subject  = document.getElementById('emailSubject').value.trim();
+        const bodyHtml = document.getElementById('emailBodyHtml').value.trim();
+        const bodyText = document.getElementById('emailBodyText').value.trim();
+
+        if (!subject)  { alert('Please enter an email subject first.'); return; }
+        if (!bodyHtml) { alert('Please enter the email body HTML first.'); return; }
+
+        const btn = document.getElementById('testSendBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Sending...';
+        document.getElementById('testSendNote').textContent = '';
+
+        try {
+            const data = await apiRequest('/api/admin/broadcast-email/send-test', 'POST', {
+                userId: selectedUser._id,
+                subject,
+                bodyHtml,
+                bodyText,
+            });
+            if (data.success) {
+                document.getElementById('testSendNote').textContent = '✅ ' + data.message;
+                showNotification(data.message, 'success');
+            } else {
+                document.getElementById('testSendNote').textContent = '❌ ' + data.message;
+            }
+        } catch (err) {
+            document.getElementById('testSendNote').textContent = '❌ ' + err.message;
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send me-1"></i>Send Test Email';
+        }
+    }
+
+    // ── Templates ─────────────────────────────────────────────────────────────
+    const APP_CTA = `<div style="background:#fff3f8;border:1px solid #f0d6e8;border-radius:8px;padding:16px 18px;margin-top:20px;text-align:center;">
+  <p style="margin:0 0 6px;font-size:14px;font-weight:bold;color:#e91e8c;">📱 Get Real-Time Updates on Your Phone!</p>
+  <p style="margin:0 0 12px;font-size:12px;color:#555;">Never miss a match request, message, or profile visit — get instant notifications with the Banjara Match app.</p>
+  <a href="https://api.banjaramatch.com/api/download-apk" style="display:inline-block;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#ffffff;padding:9px 22px;border-radius:20px;text-decoration:none;font-weight:bold;font-size:12px;">⬇️ Download App Now</a>
+  <p style="margin:7px 0 0;font-size:11px;color:#aaa;">Available from our website &middot; Google Play Store coming soon</p>
+</div>`;
+
+    const templates = {
+        welcome: {
+            subject: '💑 We miss you on Banjara Match!',
+            bodyHtml: `<h2>Hi {{name}}! 👋 We miss you!</h2>
+<p>It's been a while since you last visited <strong>Banjara Match</strong>. We have hundreds of new profiles waiting for you!</p>
+<p>Log in today to discover your perfect match from the Banjara community.</p>
+<p style="margin-top:20px;">
+  <a href="https://www.banjaramatch.com/" style="background:#e91e8c;color:white;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Open Banjara Match</a>
+</p>
+${APP_CTA}`,
+            bodyText: `Hi {{name}},\n\nWe miss you! Log in to Banjara Match to discover new profiles.\n\nhttps://www.banjaramatch.com\n\n📱 Download now: https://api.banjaramatch.com/api/download-apk`
+        },
+        profile: {
+            subject: '📝 Complete your profile to get more matches!',
+            bodyHtml: `<h2>Hi {{name}}! Your profile needs a little love 💕</h2>
+<p>Users with complete profiles get <strong>5x more match requests</strong>. Take 2 minutes to complete yours!</p>
+<ul>
+  <li>Add your photo 📸</li>
+  <li>Fill in your family details 👨‍👩‍👧</li>
+  <li>Set your partner preferences 💑</li>
+</ul>
+<p style="margin-top:20px;">
+  <a href="https://www.banjaramatch.com/" style="background:#e91e8c;color:white;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Complete Profile Now</a>
+</p>
+${APP_CTA}`,
+            bodyText: `Hi {{name}},\n\nComplete your Banjara Match profile to get 5x more matches!\n\nhttps://www.banjaramatch.com\n\n📱 Download now: https://api.banjaramatch.com/api/download-apk`
+        },
+        offer: {
+            subject: '💎 Exclusive Premium Offer – Limited Time!',
+            bodyHtml: `<h2>Hi {{name}}! Special offer just for you 🎁</h2>
+<p>Upgrade to <strong>Banjara Match Premium</strong> and unlock:</p>
+<ul>
+  <li>✅ Unlimited profile views</li>
+  <li>✅ Send unlimited interests</li>
+  <li>✅ See who viewed your profile</li>
+  <li>✅ Priority match recommendations</li>
+</ul>
+<p>Use this exclusive offer to upgrade today!</p>
+<p style="margin-top:20px;">
+  <a href="https://www.banjaramatch.com/" style="background:#e91e8c;color:white;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Upgrade to Premium</a>
+</p>
+${APP_CTA}`,
+            bodyText: `Hi {{name}},\n\nUpgrade to Premium on Banjara Match and get unlimited matches!\n\nhttps://www.banjaramatch.com\n\n📱 Download now: https://api.banjaramatch.com/api/download-apk`
+        },
+        festival: {
+            subject: '🪔 Happy Diwali from Banjara Match!',
+            bodyHtml: `<h2 style="text-align:center;">🪔 Happy Diwali, {{name}}! 🪔</h2>
+<p style="text-align:center;font-size:16px;">May this festival of lights bring joy, prosperity, and love into your life!</p>
+<p style="text-align:center;margin-top:10px;">The entire Banjara Match family wishes you and your loved ones a very Happy Diwali.</p>
+<p style="text-align:center;margin-top:20px;">
+  <a href="https://www.banjaramatch.com/" style="background:#e91e8c;color:white;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Find Your Match This Diwali ✨</a>
+</p>
+${APP_CTA}`,
+            bodyText: `Happy Diwali, {{name}}!\n\nMay this festival bring love into your life.\n\nBanjara Match Team\nhttps://www.banjaramatch.com\n\n📱 Download now: https://api.banjaramatch.com/api/download-apk`
+        },
+        newfeature: {
+            subject: '✨ New Features Live on Banjara Match!',
+            bodyHtml: `<h2>Hi {{name}}! Something new is waiting for you 🚀</h2>
+<p>We've been busy building exciting new features on <strong>Banjara Match</strong>!</p>
+<p>Here's what's new:</p>
+<ul>
+  <li>🔔 Enhanced notification system</li>
+  <li>💬 Improved chat experience</li>
+  <li>🔍 Smarter match recommendations</li>
+</ul>
+<p>Log in today to explore all the updates!</p>
+<p style="margin-top:20px;">
+  <a href="https://www.banjaramatch.com/" style="background:#e91e8c;color:white;padding:12px 28px;border-radius:25px;text-decoration:none;font-weight:bold;">Explore New Features</a>
+</p>
+${APP_CTA}`,
+            bodyText: `Hi {{name}},\n\nWe have exciting new features on Banjara Match. Log in to explore!\n\nhttps://www.banjaramatch.com\n\n📱 Download now: https://api.banjaramatch.com/api/download-apk`
+        },
+        beta: {
+            subject: '🚀 You\'re Invited — Join the Banjara Match Beta Program!',
+            bodyHtml: `<h2>Hi {{name}}! You're Invited to Shape Our App 🚀</h2>
+<p>The <strong>Banjara Match community app</strong> is ready — and we need <strong>20 dedicated beta testers</strong> from our community to help us publish it on Google Play Store!</p>
+<div style="background:#fff8f0;border-left:4px solid #e91e8c;padding:14px 16px;border-radius:4px;margin:16px 0;">
+  <p style="margin:0;font-size:14px;font-weight:bold;color:#e91e8c;">Why we need you?</p>
+  <p style="margin:8px 0 0;font-size:13px;color:#555;">Google requires real user feedback from our community before we can go live on the Play Store. Your participation directly helps us launch for everyone in the Banjara community.</p>
+</div>
+<p><strong>What you need to do:</strong></p>
+<ul>
+  <li>📲 Download the app directly from our website</li>
+  <li>📅 Use it daily for <strong>14 days</strong></li>
+  <li>⭐ Share your honest feedback with us</li>
+  <li>🎉 Be among the first to enjoy the full mobile experience!</li>
+</ul>
+<p style="text-align:center;margin-top:24px;">
+  <a href="https://api.banjaramatch.com/api/download-apk" style="display:inline-block;background:linear-gradient(135deg,#e91e8c,#c2185b);color:white;padding:13px 32px;border-radius:25px;text-decoration:none;font-weight:bold;font-size:15px;">📲 Download &amp; Join Beta</a>
+</p>
+<p style="text-align:center;font-size:12px;color:#888;margin-top:8px;">Only <strong>20 spots</strong> available — be part of this journey from our Banjara community!</p>
+${APP_CTA}`,
+            bodyText: `Hi {{name}},\n\nYou're invited to join the Banjara Match Beta Program!\n\nWe need 20 community members to test our mobile app for 14 days before we publish it live on Google Play Store.\n\nWhat to do:\n- Download the app: https://api.banjaramatch.com/api/download-apk\n- Use it daily for 14 days\n- Share your feedback\n\nOnly 20 spots available — join the journey!\n\nBanjara Match Team\nhttps://www.banjaramatch.com`
+        }
+    };
+
+    function applyTemplate(key) {
+        // Deselect all
+        document.querySelectorAll('.template-card').forEach(el => el.classList.remove('selected'));
+        document.getElementById(`tpl-${key}`).classList.add('selected');
+
+        const tpl = templates[key];
+        document.getElementById('emailSubject').value = tpl.subject;
+        document.getElementById('emailBodyHtml').value = tpl.bodyHtml;
+        document.getElementById('emailBodyText').value = tpl.bodyText;
+    }
+
+    // ── Email Preview Modal ───────────────────────────────────────────────────
+    function showPreviewModal() {
+        const bodyHtml = document.getElementById('emailBodyHtml').value.trim();
+        const subject  = document.getElementById('emailSubject').value.trim() || 'Email Preview';
+
+        if (!bodyHtml) { alert('Please enter email body HTML first.'); return; }
+
+        // Build a preview HTML (mimic the email service template inline)
+        const sampleName = 'Priya Rathod';
+        const personalised = bodyHtml.replace(/\{\{name\}\}/g, sampleName);
+
+        const previewHtml = `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+  body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0}
+  .container{max-width:560px;margin:20px auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .header{background:linear-gradient(135deg,#e91e8c,#c2185b);padding:24px;text-align:center}
+  .header h1{color:#fff;margin:0;font-size:22px}
+  .header p{color:rgba(255,255,255,.85);margin:4px 0 0;font-size:13px}
+  .body{padding:24px;color:#333}
+  .body h2{color:#e91e8c;font-size:18px;margin-top:0}
+  .body p,.body li{line-height:1.6;color:#555}
+  .app-cta{background:#fff3f8;border:1px solid #f0d6e8;border-radius:8px;padding:16px 18px;margin:20px 0 0;text-align:center}
+  .footer{background:#f9f9f9;padding:14px 24px;text-align:center;font-size:12px;color:#999;border-top:1px solid #eee}
+</style></head>
+<body>
+  <div class="container">
+    <div class="header"><h1>💑 Banjara Match</h1><p>Your Trusted Banjara Matrimony Platform</p></div>
+    <div class="body">${personalised}
+      <div class="app-cta">
+        <p style="margin:0 0 5px;font-size:14px;font-weight:bold;color:#e91e8c;">📱 Get Real-Time Updates on Your Phone!</p>
+        <p style="margin:0 0 10px;font-size:12px;color:#555;">Never miss a match request, message, or profile visit — get instant notifications with the Banjara Match app.</p>
+        <a href="https://api.banjaramatch.com/api/download-apk" style="display:inline-block;background:linear-gradient(135deg,#e91e8c,#c2185b);color:#ffffff;padding:8px 20px;border-radius:18px;text-decoration:none;font-weight:bold;font-size:12px;">⬇️ Download App Now</a>
+        <p style="margin:6px 0 0;font-size:11px;color:#aaa;">Available from our website &middot; Google Play Store coming soon</p>
+      </div>
+    </div>
+    <div class="footer">© 2025 Banjara Match | Preview of: ${subject}</div>
+  </div>
+</body></html>`;
+
+        const frame = document.getElementById('emailPreviewFrame');
+        frame.srcdoc = previewHtml;
+
+        new bootstrap.Modal(document.getElementById('previewModal')).show();
+    }
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', async () => {
+        const ok = await checkAuth();
+        if (!ok) return;
+
+        // Auto-refresh count on any filter change
+        ['fGender', 'fMinAge', 'fMaxAge', 'fPlatform', 'fVerified', 'fBlocked'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('change', schedulePreview);
+            if (el && (el.tagName === 'INPUT')) el.addEventListener('input', schedulePreview);
+        });
+
+        previewCount();
+    });
+</script>
+</body>
+</html>

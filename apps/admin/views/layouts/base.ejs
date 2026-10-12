@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<%- include('../partials/head') %>
+</head>
+<body data-page="<%= activeKey || '' %>" data-api-public-url="<%= apiPublicUrl %>">
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="shell">
+  <%- include('../partials/sidebar') %>
+  <div class="sidebar-overlay" data-sidebar-overlay hidden></div>
+  <div class="main-content">
+    <%- include('../partials/topbar') %>
+    <main id="main" class="content-area" tabindex="-1">
+      <%- include('../partials/flash') %>
+      <%- body %>
+    </main>
+  </div>
+</div>
+<div id="modal-root"></div>
+<div id="toast-root" class="toast-root" aria-live="polite"></div>
+<script type="module" src="/js/core/boot.js?v=<%= assetVersion %>"></script>
+<% if (pageScript) { %>
+<script type="module" src="/js/pages/<%= pageScript %>.js?v=<%= assetVersion %>"></script>
+<% } %>
+</body>
+</html>

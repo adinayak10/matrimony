@@ -1,0 +1,757 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= profile?.full_name || 'Profile' %> - Banjara Match</title>
+    <!--== META TAGS ==-->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="View <%= profile?.full_name %>'s profile">
+    <meta name="keyword" content="matrimony, profile, <%= profile?.full_name %>">
+    <% if (profile) { %>
+    <link rel="canonical" href="https://www.banjaramatch.com/profile/<%= profile._id %>">
+    <% } %>
+    <!--== FAV ICON(BROWSER TAB ICON) ==-->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <% if (profile) { %>
+    <!-- Structured Data: Person -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "<%= profile.full_name %>",
+      "gender": "<%= profile.gender %>",
+      "birthPlace": "<%= profile.location?.city || profile.city %>",
+      "nationality": "Indian",
+      "memberOf": {
+        "@type": "Organization",
+        "name": "Banjara Community"
+      }
+    }
+    </script>
+    <% } %>
+    
+    <!--== PERFORMANCE: Resource Hints ==-->
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    
+    <!--== CSS FILES - Optimized Loading ==-->
+    <link rel="preload" href="/css/style.min.css" as="style">
+    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/style.min.css">
+    <noscript>
+      <link rel="stylesheet" href="/css/bootstrap.css">
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+      <link rel="stylesheet" href="/css/animate.min.css">
+    </noscript>
+    <style>
+    /* ── Premium Action Buttons ─────────────────────────────────── */
+    .action-btns-wrap {
+      background: linear-gradient(135deg,rgba(255,255,255,.97) 0%,rgba(255,246,253,.97) 100%);
+      border: 1px solid rgba(233,30,140,.12);
+      border-radius: 22px;
+      padding: 18px 20px 16px;
+      margin-top: 16px;
+      box-shadow: 0 6px 30px rgba(233,30,140,.08), 0 1px 6px rgba(0,0,0,.05);
+    }
+    .action-btns-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      align-items: stretch;
+    }
+    .action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-width: 86px;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1.5px solid transparent;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none !important;
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+      background: #fff;
+      outline: none;
+    }
+    .action-btn:hover:not(:disabled) { transform: translateY(-3px); }
+    .action-btn-icon { font-size: 1.4rem; line-height: 1; }
+    .action-btn-label { font-size: 0.7rem; font-weight: 700; white-space: nowrap; letter-spacing: .5px; text-transform: uppercase; }
+
+    /* Chat */
+    .action-btn-chat {
+      background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+      color: #fff !important;
+      box-shadow: 0 4px 16px rgba(102,126,234,.38);
+    }
+    .action-btn-chat:hover { box-shadow: 0 8px 26px rgba(102,126,234,.52); color:#fff !important; }
+
+    /* Send Interest */
+    .action-btn-interest {
+      background: linear-gradient(135deg,#e91e8c 0%,#c2185b 100%);
+      color: #fff !important;
+      box-shadow: 0 4px 16px rgba(233,30,140,.38);
+    }
+    .action-btn-interest:hover { box-shadow: 0 8px 26px rgba(233,30,140,.52); color:#fff !important; }
+
+    /* Request Sent / Cancel */
+    .action-btn-pending {
+      background: linear-gradient(135deg,#fff8e1 0%,#fff3cd 100%);
+      color: #b45309 !important;
+      border-color: #f59e0b;
+      box-shadow: 0 4px 16px rgba(245,158,11,.15);
+    }
+    .action-btn-pending:hover { box-shadow: 0 8px 26px rgba(245,158,11,.28); }
+
+    /* Accept */
+    .action-btn-accept {
+      background: linear-gradient(135deg,#22c55e 0%,#15803d 100%);
+      color: #fff !important;
+      box-shadow: 0 4px 16px rgba(34,197,94,.35);
+    }
+    .action-btn-accept:hover { box-shadow: 0 8px 26px rgba(34,197,94,.5); color:#fff !important; }
+
+    /* Connected → hover shows Disconnect */
+    .action-btn-connected {
+      background: linear-gradient(135deg,#e8f5e9 0%,#c8e6c9 100%);
+      color: #16a34a !important;
+      border-color: #86efac;
+      box-shadow: 0 4px 16px rgba(34,197,94,.12);
+    }
+    .action-btn-connected .lbl-default { display: block; }
+    .action-btn-connected .lbl-hover   { display: none; }
+    .action-btn-connected .ico-hover   { display: none; }
+    .action-btn-connected:hover {
+      background: linear-gradient(135deg,#fce4ec 0%,#fdd5e8 100%);
+      color: #c62828 !important;
+      border-color: #f48fb1;
+      box-shadow: 0 8px 26px rgba(233,30,140,.22);
+    }
+    .action-btn-connected:hover .lbl-default { display: none; }
+    .action-btn-connected:hover .lbl-hover   { display: block; }
+    .action-btn-connected:hover .ico-default { display: none; }
+    .action-btn-connected:hover .ico-hover   { display: inline; }
+
+    /* Rejected */
+    .action-btn-rejected {
+      background: #f5f5f5;
+      color: #9ca3af !important;
+      border-color: #e5e7eb;
+      cursor: not-allowed;
+    }
+
+    /* Shortlist */
+    .action-btn-shortlist {
+      background: #fff;
+      color: #9ca3af !important;
+      border-color: #e2e8f0;
+      box-shadow: 0 4px 16px rgba(0,0,0,.06);
+    }
+    .action-btn-shortlist:hover:not(:disabled) { border-color: #e91e8c; color: #e91e8c !important; box-shadow: 0 8px 26px rgba(233,30,140,.18); }
+    .action-btn-shortlist.shortlisted {
+      background: linear-gradient(135deg,#fff0f7 0%,#fce4f3 100%);
+      color: #e91e8c !important;
+      border-color: #f9a8d4;
+      box-shadow: 0 4px 16px rgba(233,30,140,.18);
+    }
+
+    .action-btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+    @media (max-width: 520px) {
+      .action-btns-wrap { padding: 14px 12px; border-radius: 16px; }
+      .action-btns-row { gap: 8px; }
+      .action-btn { min-width: 74px; padding: 11px 10px; }
+      .action-btn-icon { font-size: 1.2rem; }
+      .action-btn-label { font-size: 0.62rem; }
+    }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <%
+    // Helper functions
+    const calculateAge = (dob) => {
+        if (!dob) return 'N/A';
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        return age;
+    };
+    
+    const cmToFeetInches = (cm) => {
+        if (!cm || cm <= 0) return 'Not specified';
+        const totalInches = cm / 2.54;
+        const feet = Math.floor(totalInches / 12);
+        const inches = Math.round(totalInches % 12);
+        return `${feet}'${inches}" (${cm}cm)`;
+    };
+    
+    const age = calculateAge(profile?.dob);
+    const height = cmToFeetInches(profile?.height);
+    const city = profile?.location?.city?.name || 'Not specified';
+    const state = profile?.location?.state?.name || '';
+    const country = profile?.location?.country?.name || '';
+    const profession = profile?.profession?.name || 'Not specified';
+    const qualification = profile?.qualification?.name || 'Not specified';
+    const caste = profile?.caste?.name || 'Not specified';
+    const gotra = profile?.gotra?.name || 'Not specified';
+    const incomeRange = profile?.incomeRange?.range || 'Not specified';
+    const profileImage = profile?.profile ? (profile.profile.startsWith('http') ? profile.profile : `https://api.banjaramatch.com/${profile.profile}`) : '/images/default-user.jpg';
+    %>
+
+    <!-- PROFILE -->
+    <section>
+        <div class="profi-pg profi-ban">
+            <div class="">
+                <div class="">
+                    <div class="profile">
+                        <div class="pg-pro-big-im">
+                            <div class="s1">
+                                <img src="<%= profileImage %>" loading="lazy" class="pro" alt="<%= profile?.full_name %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="s3">
+                                <% if (user && profile && user._id.toString() !== profile._id.toString()) { %>
+                                <div class="action-btns-wrap">
+                                <div class="action-btns-row">
+
+                                    <%/* Chat */%>
+                                    <a href="/user-chat?userId=<%= profile._id %>" class="action-btn action-btn-chat">
+                                        <span class="action-btn-icon"><i class="fa fa-comments"></i></span>
+                                        <span class="action-btn-label">Chat Now</span>
+                                    </a>
+
+                                    <%/* Interest — dynamic state */%>
+                                    <% if (connectionStatus && connectionStatus.isFriend) { %>
+                                        <button class="action-btn action-btn-connected" id="disconnectBtn">
+                                            <span class="action-btn-icon">
+                                                <i class="fa fa-check-circle ico-default"></i>
+                                                <i class="fa fa-user-times ico-hover"></i>
+                                            </span>
+                                            <span class="action-btn-label lbl-default">Connected</span>
+                                            <span class="action-btn-label lbl-hover">Disconnect</span>
+                                        </button>
+                                    <% } else if (connectionStatus && connectionStatus.isRequestSent) { %>
+                                        <button class="action-btn action-btn-pending" id="cancelInterestBtn">
+                                            <span class="action-btn-icon"><i class="fa fa-paper-plane"></i></span>
+                                            <span class="action-btn-label">Req. Sent</span>
+                                        </button>
+                                    <% } else if (connectionStatus && connectionStatus.isRequestReceived) { %>
+                                        <button class="action-btn action-btn-accept" id="acceptInterestBtn">
+                                            <span class="action-btn-icon"><i class="fa fa-heart"></i></span>
+                                            <span class="action-btn-label">Accept</span>
+                                        </button>
+                                    <% } else if (connectionStatus && connectionStatus.requestStatus === 'rejected') { %>
+                                        <button class="action-btn action-btn-rejected" disabled>
+                                            <span class="action-btn-icon"><i class="fa fa-times-circle"></i></span>
+                                            <span class="action-btn-label">Rejected</span>
+                                        </button>
+                                    <% } else { %>
+                                        <button class="action-btn action-btn-interest" id="sendInterestBtn">
+                                            <span class="action-btn-icon"><i class="fa fa-heart-o"></i></span>
+                                            <span class="action-btn-label">Send Interest</span>
+                                        </button>
+                                    <% } %>
+
+                                    <%/* Shortlist */%>
+                                    <button class="action-btn action-btn-shortlist <%= connectionStatus?.isShortListed ? 'shortlisted' : '' %>" id="shortlistBtn">
+                                        <span class="action-btn-icon"><i class="fa fa-bookmark<%= connectionStatus?.isShortListed ? '' : '-o' %>"></i></span>
+                                        <span class="action-btn-label"><%= connectionStatus?.isShortListed ? 'Shortlisted' : 'Shortlist' %></span>
+                                    </button>
+
+                                </div>
+                                </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profi-pg profi-bio">
+                        <div class="lhs">
+                            <div class="pro-pg-intro">
+                                <h1>
+                                    <%= profile?.full_name || 'User' %>
+                                    <% if (profile?.is_verified) { %>
+                                        <span class="verified-badge" title="Verified profile" style="display:inline-flex; align-items:center; gap:4px; background:#e8f5e9; color:#2e7d32; font-size:13px; font-weight:600; padding:2px 10px; border-radius:12px; vertical-align:middle;">
+                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>
+                                            Verified
+                                        </span>
+                                    <% } %>
+                                </h1>
+                                <div class="pro-info-status">
+                                    <span class="stat-1"><b><%= profile?.profileViews || 0 %></b> viewers</span>
+                                    <span class="stat-2"><%= profile?.isOnline ? '<b>Available</b> online' : 'Offline' %></span>
+                                </div>
+                                <ul>
+                                    <li>
+                                        <div>
+                                            <img src="/images/icon/pro-city.png" loading="lazy" alt="" onerror="this.style.display='none'">
+                                            <span>City: <strong><%= city %></strong></span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div>
+                                            <img src="/images/icon/pro-age.png" loading="lazy" alt="Age icon" onerror="this.style.display='none'">
+                                            <span>Age: <strong><%= age %></strong></span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div>
+                                            <img src="/images/icon/pro-city.png" loading="lazy" alt="" onerror="this.style.display='none'">
+                                            <span>Height: <strong><%= height %></strong></span>
+                                        </div>
+                                    </li>
+                                    <li>
+                                        <div>
+                                            <img src="/images/icon/pro-city.png" loading="lazy" alt="" onerror="this.style.display='none'">
+                                            <span>Job: <strong><%= profession %></strong></span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <!-- PROFILE ABOUT -->
+                            <div class="pr-bio-c pr-bio-abo">
+                                <h3>About</h3>
+                                <p><%= profile?.bio || 'No bio available' %></p>
+                            </div>
+                            <!-- END PROFILE ABOUT -->
+
+                            <!-- COMPATIBILITY -->
+                            <% if (user && profile && user._id.toString() !== profile._id.toString()) { %>
+                            <div class="pr-bio-c pr-bio-compat" id="compatibilitySection" style="display:none;">
+                                <h3>Compatibility</h3>
+                                <div id="compatibilityContent"></div>
+                            </div>
+                            <% } %>
+                            <!-- END COMPATIBILITY -->
+
+                            <!-- PROFILE PHOTOS -->
+                            <% if (profile?.photos && profile.photos.length > 0) { %>
+                            <div class="pr-bio-c pr-bio-gal" id="gallery">
+                                <h3>Photo gallery</h3>
+                                <div id="image-gallery">
+                                    <% profile.photos.forEach(photo => { 
+                                        const photoUrl = photo.url ? (photo.url.startsWith('http') ? photo.url : `https://api.banjaramatch.com/${photo.url}`) : '/images/default-user.jpg';
+                                    %>
+                                    <div class="pro-gal-imag">
+                                        <div class="img-wrapper">
+                                            <a href="<%= photoUrl %>" target="_blank">
+                                                <img src="<%= photoUrl %>" class="img-responsive" alt="<%= profile?.full_name || 'User' %> profile photo" onerror="this.src='/images/default-user.jpg'">
+                                            </a>
+                                            <div class="img-overlay"><i class="fa fa-arrows-alt" aria-hidden="true"></i></div>
+                                        </div>
+                                    </div>
+                                    <% }) %>
+                                </div>
+                            </div>
+                            <% } %>
+                            <!-- END PROFILE PHOTOS -->
+                            
+                            <!-- CONTACT INFO -->
+                            <div class="pr-bio-c pr-bio-conta">
+                                <h3>Contact info</h3>
+                                <ul>
+                                    <% if (profile?.phone) { %>
+                                        <% if (profile?.settings?.mobileVisibility === 'public') { %>
+                                            <li><span><i class="fa fa-mobile" aria-hidden="true"></i><b>Phone:</b> <%= profile.phone %></span></li>
+                                        <% } else { %>
+                                            <li><span><i class="fa fa-mobile" aria-hidden="true"></i><b>Phone:</b> <i class="fa fa-lock" style="color: #999;"></i> Hidden (Private)</span></li>
+                                        <% } %>
+                                    <% } %>
+                                    <% if (profile?.email) { %>
+                                        <% if (profile?.settings?.emailVisibility === 'public') { %>
+                                            <li><span><i class="fa fa-envelope-o" aria-hidden="true"></i><b>Email:</b> <%= profile.email %></span></li>
+                                        <% } else { %>
+                                            <li><span><i class="fa fa-envelope-o" aria-hidden="true"></i><b>Email:</b> <i class="fa fa-lock" style="color: #999;"></i> Hidden (Private)</span></li>
+                                        <% } %>
+                                    <% } %>
+                                    <li><span><i class="fa fa fa-map-marker" aria-hidden="true"></i><b>Address: </b><%= city %>, <%= state %>, <%= country %></span></li>
+                                </ul>
+                            </div>
+                            <!-- END CONTACT INFO -->
+                            
+                            <!-- PERSONAL INFORMATION -->
+                            <div class="pr-bio-c pr-bio-info">
+                                <h3>Personal information</h3>
+                                <ul>
+                                    <li><b>Name:</b> <%= profile?.full_name || 'N/A' %></li>
+                                    <li><b>Age:</b> <%= age %></li>
+                                    <li><b>Date of birth:</b> <%= profile?.dob ? new Date(profile.dob).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A' %></li>
+                                    <li><b>Gender:</b> <%= profile?.gender || 'N/A' %></li>
+                                    <li><b>Height:</b> <%= height %></li>
+                                    <li><b>Marital Status:</b> <%= profile?.maritalStatus || 'N/A' %></li>
+                                    <li><b>Mother Tongue:</b> <%= profile?.motherTongue || 'N/A' %></li>
+                                    <li><b>Caste:</b> <%= caste %></li>
+                                    <li><b>Gotra:</b> <%= gotra %></li>
+                                    <li><b>Qualification:</b> <%= qualification %></li>
+                                    <li><b>Profession:</b> <%= profession %></li>
+                                    <li><b>Income Range:</b> <%= incomeRange %></li>
+                                    <% if (profile?.diet) { %>
+                                    <li><b>Diet:</b> <%= profile.diet %></li>
+                                    <% } %>
+                                    <% if (profile?.smoke) { %>
+                                    <li><b>Smoking:</b> <%= profile.smoke %></li>
+                                    <% } %>
+                                    <% if (profile?.drink) { %>
+                                    <li><b>Drinking:</b> <%= profile.drink %></li>
+                                    <% } %>
+                                </ul>
+                            </div>
+                            <!-- END PERSONAL INFORMATION -->
+                            
+                            <!-- FAMILY DETAILS -->
+                            <% if (profile?.family) { %>
+                            <div class="pr-bio-c pr-bio-info">
+                                <h3>Family Details</h3>
+                                <ul>
+                                    <% if (profile.family.father?.profession) { %>
+                                    <li><b>Father's Occupation:</b> <%= profile.family.father.profession %></li>
+                                    <% } %>
+                                    <% if (profile.family.mother?.profession) { %>
+                                    <li><b>Mother's Occupation:</b> <%= profile.family.mother.profession %></li>
+                                    <% } %>
+                                    <% if (profile.family.brothers?.total) { %>
+                                    <li><b>Brothers:</b> <%= profile.family.brothers.total %></li>
+                                    <% } %>
+                                    <% if (profile.family.sisters?.total) { %>
+                                    <li><b>Sisters:</b> <%= profile.family.sisters.total %></li>
+                                    <% } %>
+                                    <% if (profile.family.familyType) { %>
+                                    <li><b>Family Type:</b> <%= profile.family.familyType %></li>
+                                    <% } %>
+                                    <% if (profile.family.familyStatus) { %>
+                                    <li><b>Family Status:</b> <%= profile.family.familyStatus %></li>
+                                    <% } %>
+                                    <% if (profile.family.familyValues) { %>
+                                    <li><b>Family Values:</b> <%= profile.family.familyValues %></li>
+                                    <% } %>
+                                </ul>
+                            </div>
+                            <% } %>
+                            <!-- END FAMILY DETAILS -->
+                            
+                            <!-- HOBBIES/INTERESTS -->
+                            <% if (profile?.interests && profile.interests.length > 0) { %>
+                            <div class="pr-bio-c pr-bio-hob">
+                                <h3>Hobbies & Interests</h3>
+                                <ul>
+                                    <% profile.interests.forEach(interest => { %>
+                                    <li><span><%= interest.title || interest.name || interest %></span></li>
+                                    <% }) %>
+                                </ul>
+                            </div>
+                            <% } %>
+                            <!-- END HOBBIES/INTERESTS -->
+                        </div>
+
+                        <!-- PROFILE RHS -->
+                        <div class="rhs">
+                            <!-- HELP BOX -->
+                            <div class="prof-rhs-help">
+                                <div class="inn">
+                                    <h3>Tell us your Needs</h3>
+                                    <p>Tell us what kind of service or experts you are looking.</p>
+                                    <a href="/register">Register for free</a>
+                                </div>
+                            </div>
+                            <!-- END HELP BOX -->
+                            
+                            <!-- RELATED PROFILES -->
+                            <% if (relatedProfiles && relatedProfiles.length > 0) { %>
+                            <div class="slid-inn pr-bio-c wedd-rel-pro">
+                                <h3>Related profiles</h3>
+                                <ul class="slider3">
+                                    <% relatedProfiles.forEach(related => { %>
+                                    <li>
+                                        <div class="wedd-rel-box">
+                                            <div class="wedd-rel-img">
+                                                <%
+                                    const rp = related.profile || related.profilePicture || related.profileImage;
+                                    const rpUrl = rp ? (rp.startsWith('http') ? rp : `https://api.banjaramatch.com/${rp}`) : '/images/default-user.jpg';
+                                %>
+                                <img src="<%= rpUrl %>" alt="<%= related.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                                                <span class="badge badge-success"><%= calculateAge(related.dob) %> Years old</span>
+                                            </div>
+                                            <div class="wedd-rel-con">
+                                                <h5><%= related.full_name || 'User' %><% if (related.is_verified) { %> <svg width="12" height="12" viewBox="0 0 24 24" fill="#2e7d32" title="Verified"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg><% } %></h5>
+                                                <span>City: <b><%= related.location?.city?.name || 'N/A' %></b></span>
+                                            </div>
+                                            <a href="/profile/<%= related._id %>" class="fclick"></a>
+                                        </div>
+                                    </li>
+                                    <% }) %>
+                                </ul>
+                            </div>
+                            <% } %>
+                            <!-- END RELATED PROFILES -->
+                        </div>
+                        <!-- END PROFILE RHS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END PROFILE -->
+
+    <!-- FOOTER -->
+    <%- include('../partials/footer') %>
+
+    <!-- END -->
+
+    <!-- Optional JavaScript -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/slick.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+    
+    <script>
+const API_BASE_URL = 'https://api.banjaramatch.com/api';
+const MY_USER_ID = '<%= user?._id || "" %>';
+const PROFILE_USER_ID = '<%= profile?._id || "" %>';
+const CONNECTION_STATUS = '<%= connectionStatus?.status || "" %>';
+const CONNECTION_TYPE = '<%= connectionStatus?.type || "" %>';
+
+// Helper function to get auth token
+function getAuthToken() {
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+}
+
+// Initialize sliders
+$(document).ready(function() {
+    if ($('.slider3').length) {
+        $('.slider3').slick({
+            infinite: true,
+            slidesToShow: 1,
+            slidesToScroll: 1,
+            autoplay: true,
+            autoplaySpeed: 3000,
+            dots: true,
+            arrows: true
+        });
+    }
+});
+
+// ── Helper: API call wrapper ──────────────────────────────────
+async function callAPI(endpoint, body) {
+    const res = await fetch(`${API_BASE_URL}/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
+        body: JSON.stringify(body)
+    });
+    return res.json();
+}
+function setLoading(btn, loading, restoreHtml) {
+    if (loading) {
+        btn.prop('disabled', true).find('.action-btn-icon').html('<i class="fa fa-spinner fa-spin"></i>');
+    } else {
+        btn.prop('disabled', false).find('.action-btn-icon').html(restoreHtml);
+    }
+}
+
+// ── Send Interest ──────────────────────────────────────────────
+$('#sendInterestBtn').on('click', async function() {
+    if (!MY_USER_ID) { window.location.href = '/login'; return; }
+    const btn = $(this);
+    setLoading(btn, true);
+    try {
+        const data = await callAPI('sendInterestRequest', { my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID });
+        if (data.status) { window.location.reload(); }
+        else { alert(data.message || 'Failed to send interest'); setLoading(btn, false, '<i class="fa fa-heart-o"></i>'); }
+    } catch(e) { alert('An error occurred. Please try again.'); setLoading(btn, false, '<i class="fa fa-heart-o"></i>'); }
+});
+
+// ── Cancel Request ─────────────────────────────────────────────
+$('#cancelInterestBtn').on('click', async function() {
+    if (!confirm('Cancel your interest request?')) return;
+    const btn = $(this);
+    setLoading(btn, true);
+    try {
+        const data = await callAPI('cancelInterestRequest', { my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID });
+        if (data.status) { window.location.reload(); }
+        else { alert(data.message || 'Failed to cancel'); setLoading(btn, false, '<i class="fa fa-paper-plane"></i>'); }
+    } catch(e) { alert('An error occurred. Please try again.'); setLoading(btn, false, '<i class="fa fa-paper-plane"></i>'); }
+});
+
+// ── Accept Request ─────────────────────────────────────────────
+$('#acceptInterestBtn').on('click', async function() {
+    if (!confirm('Accept this interest request?')) return;
+    const btn = $(this);
+    setLoading(btn, true);
+    try {
+        const data = await callAPI('acceptInterestRequest', { my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID });
+        if (data.status) { window.location.reload(); }
+        else { alert(data.message || 'Failed to accept'); setLoading(btn, false, '<i class="fa fa-heart"></i>'); }
+    } catch(e) { alert('An error occurred. Please try again.'); setLoading(btn, false, '<i class="fa fa-heart"></i>'); }
+});
+
+// ── Disconnect (Unfriend) ──────────────────────────────────────
+$('#disconnectBtn').on('click', async function() {
+    if (!confirm('Remove this connection?')) return;
+    const btn = $(this);
+    btn.prop('disabled', true).find('.action-btn-icon i').hide();
+    btn.find('.action-btn-icon').prepend('<i class="fa fa-spinner fa-spin"></i>');
+    try {
+        const data = await callAPI('removeConnection', { my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID });
+        if (data.status) { window.location.reload(); }
+        else { alert(data.message || 'Failed to remove connection'); btn.prop('disabled', false); btn.find('.fa-spinner').remove(); btn.find('.action-btn-icon i').show(); }
+    } catch(e) { alert('An error occurred. Please try again.'); btn.prop('disabled', false); btn.find('.fa-spinner').remove(); btn.find('.action-btn-icon i').show(); }
+});
+
+// Toggle Shortlist
+$('#shortlistBtn').on('click', async function() {
+    if (!MY_USER_ID) {
+        alert('Please login to shortlist profiles');
+        window.location.href = '/login';
+        return;
+    }
+    
+    const btn = $(this);
+    const icon = btn.find('i');
+    const isShortlisted = icon.hasClass('fa-bookmark');
+    
+    // Optimistic toggle
+    if (isShortlisted) {
+        icon.removeClass('fa-bookmark').addClass('fa-bookmark-o');
+        btn.find('.action-btn-label').text('Shortlist');
+        btn.removeClass('shortlisted');
+    } else {
+        icon.removeClass('fa-bookmark-o').addClass('fa-bookmark');
+        btn.find('.action-btn-label').text('Shortlisted');
+        btn.addClass('shortlisted');
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/toggleShortlist`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                my_user_id: MY_USER_ID,
+                user_id: PROFILE_USER_ID
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.status) {
+            // Revert on failure
+            if (isShortlisted) {
+                icon.removeClass('fa-bookmark-o').addClass('fa-bookmark');
+                btn.find('.action-btn-label').text('Shortlisted');
+                btn.addClass('shortlisted');
+            } else {
+                icon.removeClass('fa-bookmark').addClass('fa-bookmark-o');
+                btn.find('.action-btn-label').text('Shortlist');
+                btn.removeClass('shortlisted');
+            }
+            alert(data.message || 'Failed to update shortlist');
+        }
+    } catch (error) {
+        console.error('Error updating shortlist:', error);
+        alert('An error occurred. Please try again.');
+    }
+});
+
+// Profile view is tracked server-side via fetchProfile — no client call needed.
+
+// ── Compatibility: "Why You Match" ────────────────────────────
+async function loadCompatibility() {
+    const section = document.getElementById('compatibilitySection');
+    const content = document.getElementById('compatibilityContent');
+    if (!section || !MY_USER_ID || !PROFILE_USER_ID) return;
+
+    try {
+        let html = '';
+
+        // ── Preference fit ──
+        const data = await callAPI('comparePreferencesFit', { my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID });
+        if (data.status && data.matchList && data.matchList.length > 0) {
+            const { summary, matchList, common } = data;
+            html += `
+                <div class="compat-score" style="display:flex; align-items:center; gap:14px; margin-bottom:16px;">
+                    <div style="font-size:28px; font-weight:700; color:#f6af04;">${summary.matchPercentage}%</div>
+                    <div style="color:#666; font-size:14px;">${summary.matchedPoints} of ${summary.totalPoints} preferences match</div>
+                </div>
+                <ul style="list-style:none; padding:0; margin:0;">
+            `;
+            matchList.forEach(function(m) {
+                const icon = m.isFit
+                    ? '<i class="fa fa-check-circle" style="color:#2e7d32;"></i>'
+                    : '<i class="fa fa-times-circle" style="color:#bbb;"></i>';
+                html += `
+                    <li style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #f0f0f0;">
+                        <span>${icon} ${m.label}</span>
+                        <span style="color:#777; font-size:13px;">${m.viewerValue} <span style="opacity:.6;">(wants ${m.expectedValue})</span></span>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+
+            if (common && common.length > 0) {
+                html += '<div style="margin-top:16px;"><strong>You both have in common:</strong><br>';
+                common.forEach(function(c) {
+                    html += `<span class="badge" style="background:#fff3cd; color:#856404; margin:4px 6px 0 0; display:inline-block; padding:4px 10px; border-radius:12px; font-size:12px;">${c.label}: ${c.value.join(', ')}</span>`;
+                });
+                html += '</div>';
+            }
+        }
+
+        // ── Horoscope (Guna Milan) ──
+        const gunaRes = await fetch(`${API_BASE_URL}/compatibility/guna-milan`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
+            body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID })
+        }).then(r => r.json()).catch(() => null);
+
+        if (gunaRes && gunaRes.status && gunaRes.data && gunaRes.data.available) {
+            const g = gunaRes.data;
+            html += `
+                <div style="margin-top:24px; padding-top:16px; border-top:1px solid #eee;">
+                    <h4 style="margin:0 0 10px;">🪔 Horoscope Match (Guna Milan)</h4>
+                    <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
+                        <div style="font-size:24px; font-weight:700; color:#f6af04;">${g.percentage}%</div>
+                        <div style="color:#666; font-size:13px;">${g.totalPoints} of ${g.maxPoints} points</div>
+                    </div>
+                    <ul style="list-style:none; padding:0; margin:0 0 8px;">
+                        ${g.kootas.map(k => `
+                            <li style="padding:6px 0; border-bottom:1px solid #f0f0f0;">
+                                <strong>${k.name}:</strong> ${k.points}/${k.max} — ${k.label}
+                            </li>
+                        `).join('')}
+                    </ul>
+                    <p style="color:#999; font-size:12px; margin:0;">${g.note}</p>
+                </div>
+            `;
+        }
+
+        if (html) {
+            content.innerHTML = html;
+            section.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('Error loading compatibility:', error);
+    }
+}
+loadCompatibility();
+    </script>
+</body>
+</html>

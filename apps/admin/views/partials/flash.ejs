@@ -1,0 +1,7 @@
+<% if (typeof flash !== 'undefined' && flash && flash.message) {
+     var flashType = ['success', 'error', 'warning', 'info'].includes(flash.type) ? flash.type : 'info'; %>
+<div class="flash flash--<%= flashType %>" role="<%= flashType === 'error' ? 'alert' : 'status' %>"<%= flashType === 'error' ? '' : ' data-autodismiss' %>>
+  <span class="flash__text"><%= flash.message %></span>
+  <button type="button" class="flash__close" data-dismiss aria-label="Dismiss">&times;</button>
+</div>
+<% } %>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<%- include('../partials/head') %>
+</head>
+<body class="auth-page" data-page="<%= activeKey || 'auth' %>" data-api-public-url="<%= apiPublicUrl %>">
+<main id="main" class="auth-shell" tabindex="-1">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <img class="auth-brand__logo" src="/img/logo.svg?v=<%= assetVersion %>" width="44" height="44" alt="">
+      <div>
+        <div class="auth-brand__name">Banjara Match</div>
+        <div class="auth-brand__sub">Admin panel</div>
+      </div>
+    </div>
+    <%- include('../partials/flash') %>
+    <%- body %>
+  </div>
+  <p class="auth-foot">Private administration area. <%= releaseSha ? 'Release ' + releaseSha.slice(0, 7) : 'v' + appVersion %></p>
+</main>
+<div id="modal-root"></div>
+<div id="toast-root" class="toast-root" aria-live="polite"></div>
+<script type="module" src="/js/core/boot.js?v=<%= assetVersion %>"></script>
+</body>
+</html>

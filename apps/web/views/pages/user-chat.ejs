@@ -1,0 +1,1090 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'Chat - Banjara Match' %></title>
+    <!--== META TAGS ==-->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Chat with your connections">
+    <meta name="keyword" content="matrimony, chat, messages">
+    <!--== FAV ICON(BROWSER TAB ICON) ==-->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    <!--== CSS FILES ==-->
+    <link rel="stylesheet" href="/css/bootstrap.css">
+    <link rel="stylesheet" href="/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/css/animate.min.css">
+    <link rel="stylesheet" href="/css/style.min.css">
+    
+    <style>
+        .chat-window {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 10px 10px 0 0;
+            background: #fff;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .chat-window.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 10px 10px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-header h5 {
+            margin: 0;
+            font-size: 16px;
+        }
+        .chat-header .close-chat {
+            cursor: pointer;
+            font-size: 20px;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f5f5f5;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-end;
+        }
+        .message.sent {
+            justify-content: flex-end;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        .message.sent .message-bubble {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.received .message-bubble {
+            background: white;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+        .message-time {
+            font-size: 11px;
+            color: #999;
+            margin: 5px 10px 0;
+        }
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            background: white;
+        }
+        .chat-input-group {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input-group input {
+            flex: 1;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            padding: 10px 15px;
+        }
+        .chat-input-group button {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+        }
+        .online-indicator {
+            width: 10px;
+            height: 10px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 5px;
+        }
+        .typing-indicator {
+            padding: 10px;
+            font-style: italic;
+            color: #999;
+            font-size: 12px;
+        }
+        .db-chat li.unread {
+            background: #f0f7ff;
+        }
+        .db-chat li.active {
+            background: #e3f2fd;
+        }
+        
+        /* Online Users Horizontal Scroll */
+        .online-users-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .online-users-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .online-users-scroll {
+            display: flex;
+            gap: 15px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: #667eea #f0f0f0;
+        }
+        .online-users-scroll::-webkit-scrollbar {
+            height: 6px;
+        }
+        .online-users-scroll::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 3px;
+        }
+        .online-users-scroll::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+        .online-user-item {
+            flex: 0 0 auto;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+            text-decoration: none;
+            color: inherit;
+        }
+        .online-user-item:hover {
+            transform: scale(1.05);
+        }
+        .online-user-avatar {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 8px;
+        }
+        .online-user-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .online-user-avatar .status-dot {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+        .online-user-avatar .status-dot.online {
+            background: #4CAF50;
+        }
+        .online-user-avatar .status-dot.recently-active {
+            background: #FFC107;
+        }
+        .online-user-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .no-online-users {
+            text-align: center;
+            padding: 30px;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <!-- CHAT SECTION -->
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <div class="db-nav">
+                            <div class="db-nav-pro">
+                                <% const userProfileImage = user?.profile ? (user.profile.startsWith('http') ? user.profile : `https://api.banjaramatch.com/${user.profile}`) : '/images/default-user.jpg'; %>
+                                <img src="<%= userProfileImage %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="db-nav-list">
+                                <ul>
+                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                                    <li><a href="/user-chat" class="act"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <!-- Online/Active Users Section -->
+                        <div class="col-md-12 mb-3">
+                            <div class="online-users-section">
+                                <h3 class="online-users-title">
+                                    <i class="fa fa-circle" style="color: #4CAF50; font-size: 10px;"></i> 
+                                    Online & Recently Active
+                                </h3>
+                                <div class="online-users-scroll" id="onlineUsersList">
+                                    <div class="text-center" style="width: 100%; padding: 20px;">
+                                        <i class="fa fa-spinner fa-spin"></i> Loading...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 db-sec-com">
+                                <h2 class="db-tit">Chat list</h2>
+                                <div class="db-pro-stat">
+                                    <div class="db-chat">
+                                        <ul id="chatRoomsList">
+                                            <li class="text-center">
+                                                <p class="text-muted">Loading chats...</p>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END -->
+
+    <!-- Chat Window -->
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div style="display: flex; align-items: center; gap: 10px; cursor: pointer;" onclick="viewChatUserProfile()">
+                <img id="chatUserAvatar" src="/images/default-user.jpg" alt="User" 
+                     style="width: 35px; height: 35px; border-radius: 50%; object-fit: cover;"
+                     onerror="this.src='/images/default-user.jpg'">
+                <div>
+                    <h5 id="chatUserName">Chat</h5>
+                    <small id="chatUserStatus" style="font-size: 11px;"></small>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button onclick="viewChatUserProfile()" 
+                        style="background: transparent; border: none; color: white; cursor: pointer; font-size: 18px;"
+                        title="View Profile">
+                    <i class="fa fa-user"></i>
+                </button>
+                <button onclick="startVoiceCall()" 
+                        style="background: transparent; border: none; color: white; cursor: pointer; font-size: 18px;"
+                        title="Voice Call">
+                    <i class="fa fa-phone"></i>
+                </button>
+                <button onclick="startVideoCall()" 
+                        style="background: transparent; border: none; color: white; cursor: pointer; font-size: 18px;"
+                        title="Video Call">
+                    <i class="fa fa-video-camera"></i>
+                </button>
+                <span class="close-chat" onclick="closeChatWindow()" style="font-size: 24px; cursor: pointer;">×</span>
+            </div>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- Messages will be loaded here -->
+        </div>
+        <div class="typing-indicator" id="typingIndicator" style="display: none;">
+            <span id="typingUserName"></span> is typing...
+        </div>
+        <div class="chat-input-area">
+            <div class="chat-input-group">
+                <button onclick="showEmojiPicker()" 
+                        style="background: transparent; border: none; font-size: 20px; cursor: pointer;"
+                        title="Emojis">
+                    😊
+                </button>
+                <input type="text" id="messageInput" placeholder="Type a message..." onkeypress="handleMessageKeyPress(event)">
+                <button class="btn btn-primary" onclick="sendMessage()"><i class="fa fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incoming Call Modal -->
+    <div id="incomingCallModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:99999; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; padding:30px; text-align:center; max-width:320px; width:90%;">
+            <img id="incomingCallAvatar" src="/images/default-user.jpg" style="width:80px; height:80px; border-radius:50%; object-fit:cover; margin-bottom:15px;">
+            <h4 id="incomingCallName" style="margin:0 0 5px;">Someone</h4>
+            <p id="incomingCallType" style="color:#777; margin:0 0 20px;">Incoming voice call...</p>
+            <div style="display:flex; gap:15px; justify-content:center;">
+                <button onclick="rejectIncomingCall()" style="background:#dc3545; color:#fff; border:none; border-radius:50%; width:55px; height:55px; font-size:20px;"><i class="fa fa-phone" style="transform:rotate(135deg); display:inline-block;"></i></button>
+                <button onclick="acceptIncomingCall()" style="background:#28a745; color:#fff; border:none; border-radius:50%; width:55px; height:55px; font-size:20px;"><i class="fa fa-phone"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- In-Call Screen -->
+    <div id="inCallScreen" style="display:none; position:fixed; inset:0; background:#1a1a2e; z-index:99999; flex-direction:column; align-items:center; justify-content:center; color:#fff;">
+        <img id="inCallAvatar" src="/images/default-user.jpg" style="width:100px; height:100px; border-radius:50%; object-fit:cover; margin-bottom:20px;">
+        <h4 id="inCallName" style="margin:0 0 8px;">Calling...</h4>
+        <p id="inCallStatus" style="color:#aaa; margin:0 0 30px;">Connecting...</p>
+        <div id="localVideoContainer" style="width:280px; height:200px; background:#000; border-radius:8px; margin-bottom:20px; display:none;"></div>
+        <div id="remoteVideoContainer" style="width:280px; height:200px; background:#000; border-radius:8px; margin-bottom:20px; display:none;"></div>
+        <button onclick="endCall()" style="background:#dc3545; color:#fff; border:none; border-radius:50%; width:60px; height:60px; font-size:22px;"><i class="fa fa-phone" style="transform:rotate(135deg); display:inline-block;"></i></button>
+    </div>
+
+    <!-- FOOTER -->
+    <%- include('../partials/footer') %>
+
+    <!-- END -->
+
+    <!-- Optional JavaScript -->
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/popper.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/select-opt.min.js"></script>
+    <script src="/js/custom.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.20.0.js"></script>
+    <script src="/js/esc.js"></script>
+
+    <script>
+const API_BASE_URL = 'https://api.banjaramatch.com/api';
+const SOCKET_URL = 'https://api.banjaramatch.com';
+const MY_USER_ID = '<%= user?._id %>';
+
+let socket = null;
+let currentChatRoom = null;
+let currentChatUser = null;
+let typingTimeout = null;
+
+// Helper function to get auth token
+function getAuthToken() {
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+}
+
+// Format time
+function formatTime(dateString) {
+    const date = new Date(dateString);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+}
+
+// Format date for grouping
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+    } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+}
+
+// Initialize Socket.IO
+function initializeSocket() {
+    socket = io(SOCKET_URL, {
+        auth: { token: getAuthToken() },
+        transports: ['websocket', 'polling']
+    });
+
+    socket.on('connect', () => {
+        console.log('Socket connected:', socket.id);
+        socket.emit('join', MY_USER_ID);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Socket disconnected');
+    });
+
+    // ── Voice/video call signaling ──
+    socket.on('call_incoming', (data) => {
+        handleIncomingCall(data);
+    });
+    socket.on('call_accepted', (data) => {
+        handleCallAccepted(data);
+    });
+    socket.on('call_rejected', () => {
+        resetCallUI();
+        alert('Call was declined.');
+    });
+    socket.on('call_end', () => {
+        endCallCleanup();
+    });
+    socket.on('call_failed', (data) => {
+        resetCallUI();
+        alert(data?.reason || 'Could not start the call.');
+    });
+
+    // Message sent confirmation
+    socket.on('message_sent', (message) => {
+        console.log('Message sent:', message);
+        // Add sent message to UI
+        if (currentChatRoom && message.room === currentChatRoom._id) {
+            appendMessage(message, true);
+            scrollToBottom();
+        }
+    });
+
+    // Receive new message
+    socket.on('receive_message', (message) => {
+        console.log('Received message:', message);
+        
+        // Update chat list with new message
+        updateChatRoomPreview(message);
+        
+        // If chat window is open for this room, append message
+        if (currentChatRoom && message.room === currentChatRoom._id) {
+            appendMessage(message, false);
+            scrollToBottom();
+            
+            // Mark messages as seen
+            socket.emit('mark_seen', { 
+                roomId: message.room, 
+                receiverId: MY_USER_ID 
+            });
+        } else {
+            // Show notification or update unread count
+            playNotificationSound();
+        }
+    });
+
+    // Message delivered status
+    socket.on('message_delivered', ({ messageId }) => {
+        $(`#msg-${messageId}`).find('.msg-status').html('<i class="fa fa-check-double"></i>');
+    });
+
+    // Message seen status
+    socket.on('message_seen', ({ messageId }) => {
+        $(`#msg-${messageId}`).find('.msg-status').html('<i class="fa fa-check-double" style="color: #4CAF50;"></i>');
+    });
+
+    // Typing indicator
+    socket.on('user_typing', ({ userId, userName }) => {
+        if (currentChatUser && userId === currentChatUser._id) {
+            $('#typingUserName').text(userName);
+            $('#typingIndicator').show();
+        }
+    });
+
+    socket.on('user_stop_typing', ({ userId }) => {
+        if (currentChatUser && userId === currentChatUser._id) {
+            $('#typingIndicator').hide();
+        }
+    });
+
+    // Online status
+    socket.on('user_online', ({ userId }) => {
+        $(`.chat-user-${userId}`).find('.online-status').html('<span class="online-indicator"></span>');
+    });
+
+    socket.on('user_offline', ({ userId }) => {
+        $(`.chat-user-${userId}`).find('.online-status').html('');
+    });
+}
+
+// Load chat rooms
+async function loadChatRooms() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchUserRooms`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                my_user_id: MY_USER_ID
+            })
+        });
+
+        const data = await response.json();
+        console.log('Chat rooms data:', data);
+
+        if (data.status && data.data && data.data.length > 0) {
+            renderChatRooms(data.data);
+        } else {
+            $('#chatRoomsList').html('<li class="text-center"><p class="text-muted py-4">No conversations yet. Start chatting with your connections!</p></li>');
+        }
+    } catch (error) {
+        console.error('Error loading chat rooms:', error);
+        $('#chatRoomsList').html('<li class="text-center"><p class="text-danger">Error loading chats</p></li>');
+    }
+}
+
+// Render chat rooms list
+function renderChatRooms(rooms) {
+    console.log('Rendering rooms:', rooms);
+    
+    const html = rooms.map(room => {
+        console.log('Processing room:', room);
+        
+        // The API returns user data in room.user field
+        const otherUser = room.user;
+        
+        if (!otherUser || !otherUser.id) {
+            console.log('No user data in room:', room._id);
+            return '';
+        }
+        
+        console.log('Other user:', otherUser);
+        
+        const lastMessage = room.lastMessage?.content || 'No messages yet';
+        const lastMessageTime = room.lastMessage?.timestamp ? formatTime(room.lastMessage.timestamp) : '';
+        const unreadCount = room.unreadMessagesCount || 0;
+        const isOnline = otherUser.isOnline;
+        const otherUserImage = otherUser.profile ? (otherUser.profile.startsWith('http') ? otherUser.profile : `https://api.banjaramatch.com/${otherUser.profile}`) : '/images/default-user.jpg';
+        
+        return `
+            <li class="db-chat-trig chat-user-${otherUser.id} ${unreadCount > 0 ? 'unread' : ''}" onclick="openChat('${room._id}', '${otherUser.id}')">
+                <div class="db-chat-pro">
+                    <img src="${esc(otherUserImage)}" alt="${esc(otherUser.full_name || 'User')}" onerror="this.src='/images/default-user.jpg'">
+                </div>
+                <div class="db-chat-bio">
+                    <h5>${esc(otherUser.full_name || 'Unknown User')} <span class="online-status">${isOnline ? '<span class="online-indicator"></span>' : ''}</span></h5>
+                    <span>${esc(lastMessage)}</span>
+                </div>
+                <div class="db-chat-info">
+                    <div class="time ${unreadCount > 0 ? 'new' : ''}">
+                        <span class="timer">${lastMessageTime}</span>
+                        ${unreadCount > 0 ? `<span class="cont">${unreadCount}</span>` : ''}
+                    </div>
+                </div>
+            </li>
+        `;
+    }).filter(html => html !== '').join('');
+
+    console.log('Generated HTML:', html);
+
+    if (html) {
+        $('#chatRoomsList').html(html);
+    } else {
+        $('#chatRoomsList').html('<li class="text-center"><p class="text-muted py-4">No conversations yet. Start chatting with your connections!</p></li>');
+    }
+}
+
+// Update chat room preview after new message
+function updateChatRoomPreview(message) {
+    // Extract sender ID - could be string, object with _id, or object with id
+    const senderId = typeof message.sender === 'string' 
+        ? message.sender 
+        : (message.sender?._id || message.sender?.id);
+    
+    const roomItem = $(`.chat-user-${senderId}`);
+    if (roomItem.length) {
+        roomItem.find('.db-chat-bio span').text(message.content);
+        roomItem.find('.timer').text(formatTime(message.createdAt));
+        
+        if (senderId !== MY_USER_ID) {
+            roomItem.addClass('unread');
+            const currentCount = parseInt(roomItem.find('.cont').text()) || 0;
+            roomItem.find('.cont').text(currentCount + 1);
+        }
+        
+        // Move to top
+        roomItem.prependTo('#chatRoomsList');
+    } else {
+        // Reload chat rooms if new conversation
+        loadChatRooms();
+    }
+}
+
+// Open chat window
+async function openChat(roomId, userId) {
+    try {
+        // Highlight active chat
+        $('.db-chat-trig').removeClass('active');
+        $(`.chat-user-${userId}`).addClass('active').removeClass('unread');
+        $(`.chat-user-${userId} .cont`).remove();
+        
+        // Fetch user details
+        const userResponse = await fetch(`${API_BASE_URL}/fetchProfile`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({ user_id: userId })
+        });
+        
+        const userData = await userResponse.json();
+        currentChatUser = userData.data;
+        
+        // Fetch messages
+        const messagesResponse = await fetch(`${API_BASE_URL}/fetchMessages`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                roomId: roomId,
+                page: 1,
+                limit: 50
+            })
+        });
+        
+        const messagesData = await messagesResponse.json();
+        
+        // Set current room
+        currentChatRoom = { _id: roomId, user: currentChatUser };
+        
+        // Update chat header with avatar
+        const userAvatar = currentChatUser.profile 
+            ? (currentChatUser.profile.startsWith('http') ? currentChatUser.profile : `https://api.banjaramatch.com/${currentChatUser.profile}`)
+            : '/images/default-user.jpg';
+        
+        $('#chatUserAvatar').attr('src', userAvatar);
+        $('#chatUserName').html(esc(currentChatUser.full_name) + (currentChatUser.isOnline ? ' <span class="online-indicator"></span>' : ''));
+        $('#chatUserStatus').text(currentChatUser.isOnline ? 'Online' : `Last seen ${formatTime(currentChatUser.lastSeen || new Date())}`);
+        
+        // Render messages
+        renderMessages(messagesData.data?.messages || []);
+        
+        // Show chat window
+        $('#chatWindow').addClass('active');
+        
+        // Mark all messages as seen
+        socket.emit('mark_seen', { 
+            roomId: roomId, 
+            receiverId: MY_USER_ID 
+        });
+        
+    } catch (error) {
+        console.error('Error opening chat:', error);
+        alert('Failed to open chat');
+    }
+}
+
+// Render messages
+function renderMessages(messages) {
+    if (!Array.isArray(messages)) {
+        console.error('Messages is not an array:', messages);
+        $('#chatMessages').html('<div class="text-center text-muted py-4">No messages yet</div>');
+        return;
+    }
+    
+    // Reverse messages to show oldest first (backend sends newest first)
+    const reversedMessages = [...messages].reverse();
+    
+    const html = reversedMessages.map(msg => {
+        const isSent = msg.sender === MY_USER_ID || msg.sender?._id === MY_USER_ID;
+        let statusIcon = '';
+        if (isSent) {
+            if (msg.status === 'seen') {
+                statusIcon = '<span class="msg-status"><i class="fa fa-check-double" style="color: #4CAF50;"></i></span>';
+            } else if (msg.status === 'delivered') {
+                statusIcon = '<span class="msg-status"><i class="fa fa-check-double"></i></span>';
+            } else {
+                statusIcon = '<span class="msg-status"><i class="fa fa-check"></i></span>';
+            }
+        }
+        return `
+            <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${msg._id}">
+                <div class="message-bubble">
+                    ${esc(msg.content)}
+                    <div class="message-time">
+                        ${formatTime(msg.createdAt || msg.timestamp)}
+                        ${statusIcon}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    $('#chatMessages').html(html);
+    scrollToBottom();
+}
+
+// Append single message
+function appendMessage(message, isSent) {
+    let statusIcon = '';
+    if (isSent) {
+        if (message.status === 'seen') {
+            statusIcon = '<span class="msg-status"><i class="fa fa-check-double" style="color: #4CAF50;"></i></span>';
+        } else if (message.status === 'delivered') {
+            statusIcon = '<span class="msg-status"><i class="fa fa-check-double"></i></span>';
+        } else {
+            statusIcon = '<span class="msg-status"><i class="fa fa-check"></i></span>';
+        }
+    }
+    const html = `
+        <div class="message ${isSent ? 'sent' : 'received'}" id="msg-${message._id}">
+            <div class="message-bubble">
+                ${esc(message.content)}
+                <div class="message-time">
+                    ${formatTime(message.createdAt || message.timestamp)}
+                    ${statusIcon}
+                </div>
+            </div>
+        </div>
+    `;
+    $('#chatMessages').append(html);
+    scrollToBottom();
+}
+
+// Send message
+function sendMessage() {
+    const content = $('#messageInput').val().trim();
+    if (!content || !currentChatUser) return;
+    
+    const messageData = {
+        senderId: MY_USER_ID,
+        receiverId: currentChatUser.id || currentChatUser._id,
+        content: content,
+        type: 'text'
+    };
+    
+    // Emit to socket
+    socket.emit('send_message', messageData);
+    
+    // Clear input immediately
+    $('#messageInput').val('');
+    
+    // Stop typing indicator
+    socket.emit('stop_typing', { receiverId: currentChatUser.id || currentChatUser._id });
+}
+
+// Handle message input keypress
+function handleMessageKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    } else {
+        // Emit typing indicator
+        if (currentChatUser) {
+            socket.emit('typing', { receiverId: currentChatUser._id, userName: '<%= user?.full_name %>' });
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                socket.emit('stop_typing', { receiverId: currentChatUser._id });
+            }, 1000);
+        }
+    }
+}
+
+// Close chat window
+function closeChatWindow() {
+    $('#chatWindow').removeClass('active');
+    currentChatRoom = null;
+    currentChatUser = null;
+    $('.db-chat-trig').removeClass('active');
+}
+
+// Scroll to bottom of chat
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+// Play notification sound
+function playNotificationSound() {
+    // You can add audio element for notification
+    console.log('New message notification');
+}
+
+// Initialize on page load
+$(document).ready(function() {
+    initializeSocket();
+    loadOnlineUsers();
+    loadChatRooms();
+    
+    // Refresh online users every 30 seconds
+    setInterval(loadOnlineUsers, 30000);
+    
+    // Logout confirmation
+    $('a[href="/logout"]').on('click', function(e) {
+        if (!confirm('Are you sure you want to log out?')) {
+            e.preventDefault();
+        }
+    });
+});
+
+// Load online and recently active users
+async function loadOnlineUsers() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchUsersList`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                my_user_id: MY_USER_ID,
+                page: 1,
+                limit: 20,
+                isOnline: true  // Fetch online users
+            })
+        });
+
+        const data = await response.json();
+        console.log('Online users data:', data);
+
+        if (data.status && data.data && data.data.length > 0) {
+            renderOnlineUsers(data.data);
+        } else {
+            $('#onlineUsersList').html(`
+                <div class="no-online-users">
+                    <i class="fa fa-users" style="font-size: 40px; color: #ddd; margin-bottom: 10px;"></i>
+                    <p>No users online right now. Check back later!</p>
+                </div>
+            `);
+        }
+    } catch (error) {
+        console.error('Error loading online users:', error);
+        $('#onlineUsersList').html(`
+            <div class="no-online-users">
+                <p class="text-danger">Failed to load online users</p>
+            </div>
+        `);
+    }
+}
+
+// Render online users horizontal scroll
+function renderOnlineUsers(users) {
+    const html = users.map(user => {
+        const userImage = user.profile 
+            ? (user.profile.startsWith('http') ? user.profile : `https://api.banjaramatch.com/${user.profile}`)
+            : '/images/default-user.jpg';
+        
+        const isOnline = user.isOnline === true;
+        
+        // Show green dot for online users, yellow dot for all others (to encourage profile visits)
+        const statusClass = isOnline ? 'online' : 'recently-active';
+        const statusTitle = isOnline ? 'Online now' : 'Recently active';
+        
+        return `
+            <a href="/profile/${user._id}" class="online-user-item" title="${statusTitle}">
+                <div class="online-user-avatar">
+                    <img src="${esc(userImage)}" alt="${esc(user.full_name || 'User')}" onerror="this.src='/images/default-user.jpg'">
+                    <span class="status-dot ${statusClass}"></span>
+                </div>
+                <div class="online-user-name">${esc(user.full_name || 'User')}</div>
+            </a>
+        `;
+    }).join('');
+
+    $('#onlineUsersList').html(html);
+}
+
+// Check if timestamp is within last 24 hours
+function isWithinLast24Hours(timestamp) {
+    if (!timestamp) return false;
+    const now = new Date().getTime();
+    const lastSeen = new Date(timestamp).getTime();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    return (now - lastSeen) < twentyFourHours;
+}
+
+// View current chat user's profile
+function viewChatUserProfile() {
+    if (currentChatUser) {
+        window.open(`/profile/${currentChatUser._id || currentChatUser.id}`, '_blank');
+    }
+}
+
+// ── Voice/video calling (Agora) ─────────────────────────────────
+// Calls are only offered inside an already-open chat, which per
+// fetchUserRooms is always an accepted connection — the server
+// (call_invite handler + /api/calls/token) enforces this gate too,
+// this is just UI convenience, not the security boundary.
+let activeCall = null;
+let agoraClient = null;
+let localAudioTrack = null;
+let localVideoTrack = null;
+
+function avatarUrl(u) {
+    if (!u || !u.profile) return '/images/default-user.jpg';
+    return u.profile.startsWith('http') ? u.profile : `https://api.banjaramatch.com/${u.profile}`;
+}
+
+function startCall(callType) {
+    if (!currentChatRoom || !currentChatUser) {
+        alert('Open a chat to start a call.');
+        return;
+    }
+    activeCall = { callType, otherUser: currentChatUser, isCaller: true, callId: null, channelName: null };
+    $('#inCallAvatar').attr('src', avatarUrl(currentChatUser));
+    $('#inCallName').text(currentChatUser.full_name || 'Calling...');
+    $('#inCallStatus').text(callType === 'video' ? 'Video calling...' : 'Calling...');
+    $('#inCallScreen').css('display', 'flex');
+    socket.emit('call_invite', { toUserId: currentChatUser._id, roomId: currentChatRoom._id, callType });
+}
+
+function startVoiceCall() { startCall('audio'); }
+function startVideoCall() { startCall('video'); }
+
+function handleIncomingCall(data) {
+    // If already on a call, silently ignore (no call-waiting support yet)
+    if (activeCall) return;
+
+    activeCall = {
+        callId: data.callId,
+        roomId: data.roomId,
+        channelName: data.channelName,
+        callType: data.callType,
+        otherUser: { _id: data.fromUserId, full_name: data.fromUserName, profile: data.fromUserProfile },
+        isCaller: false,
+    };
+
+    $('#incomingCallAvatar').attr('src', avatarUrl(activeCall.otherUser));
+    $('#incomingCallName').text(data.fromUserName || 'Someone');
+    $('#incomingCallType').text(data.callType === 'video' ? 'Incoming video call...' : 'Incoming voice call...');
+    $('#incomingCallModal').css('display', 'flex');
+    playNotificationSound();
+}
+
+function acceptIncomingCall() {
+    if (!activeCall) return;
+    $('#incomingCallModal').hide();
+    $('#inCallAvatar').attr('src', avatarUrl(activeCall.otherUser));
+    $('#inCallName').text(activeCall.otherUser.full_name || 'In call');
+    $('#inCallStatus').text('Connecting...');
+    $('#inCallScreen').css('display', 'flex');
+
+    socket.emit('call_accept', { callId: activeCall.callId });
+    joinAgoraChannel();
+}
+
+function rejectIncomingCall() {
+    if (!activeCall) return;
+    socket.emit('call_reject', { callId: activeCall.callId });
+    $('#incomingCallModal').hide();
+    activeCall = null;
+}
+
+function handleCallAccepted(data) {
+    if (!activeCall) return;
+    activeCall.callId = data.callId;
+    activeCall.channelName = data.channelName;
+    $('#inCallStatus').text('Connecting...');
+    joinAgoraChannel();
+}
+
+async function joinAgoraChannel() {
+    if (!activeCall) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/calls/token`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getAuthToken()}` },
+            body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: activeCall.otherUser._id, channelName: activeCall.channelName })
+        });
+        const data = await res.json();
+
+        if (!data.status) {
+            $('#inCallStatus').text(data.message || 'Calling is not available right now.');
+            return;
+        }
+
+        if (typeof AgoraRTC === 'undefined') {
+            $('#inCallStatus').text('Call connected — audio/video SDK failed to load.');
+            return;
+        }
+
+        agoraClient = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+
+        agoraClient.on('user-published', async (user, mediaType) => {
+            await agoraClient.subscribe(user, mediaType);
+            if (mediaType === 'video') {
+                $('#remoteVideoContainer').show();
+                user.videoTrack.play('remoteVideoContainer');
+            }
+            if (mediaType === 'audio') {
+                user.audioTrack.play();
+            }
+        });
+
+        await agoraClient.join(data.data.appId, data.data.channelName, data.data.token, data.data.uid || null);
+
+        localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+        const tracksToPublish = [localAudioTrack];
+
+        if (activeCall.callType === 'video') {
+            localVideoTrack = await AgoraRTC.createCameraVideoTrack();
+            $('#localVideoContainer').show();
+            localVideoTrack.play('localVideoContainer');
+            tracksToPublish.push(localVideoTrack);
+        }
+
+        await agoraClient.publish(tracksToPublish);
+        $('#inCallStatus').text('Connected');
+    } catch (error) {
+        console.error('Error joining Agora channel:', error);
+        $('#inCallStatus').text('Could not connect the call.');
+    }
+}
+
+function endCall() {
+    if (activeCall?.callId) {
+        socket.emit('call_end', { callId: activeCall.callId });
+    }
+    endCallCleanup();
+}
+
+async function endCallCleanup() {
+    try {
+        if (localAudioTrack) { localAudioTrack.close(); localAudioTrack = null; }
+        if (localVideoTrack) { localVideoTrack.close(); localVideoTrack = null; }
+        if (agoraClient) { await agoraClient.leave(); agoraClient = null; }
+    } catch (error) {
+        console.error('Error cleaning up call:', error);
+    }
+    resetCallUI();
+}
+
+function resetCallUI() {
+    $('#incomingCallModal').hide();
+    $('#inCallScreen').hide();
+    $('#localVideoContainer').hide().empty();
+    $('#remoteVideoContainer').hide().empty();
+    activeCall = null;
+}
+
+// Show emoji picker (placeholder for future implementation)
+function showEmojiPicker() {
+    const emojis = ['😊', '😂', '❤️', '😍', '👍', '🙏', '🎉', '😎', '🤗', '💐', '🌹', '💑', '👏', '✨'];
+    const emoji = emojis[Math.floor(Math.random() * emojis.length)];
+    
+    const currentText = $('#messageInput').val();
+    $('#messageInput').val(currentText + emoji);
+    $('#messageInput').focus();
+}
+    </script>
+</body>
+</html>

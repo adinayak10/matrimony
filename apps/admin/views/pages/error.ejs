@@ -1,0 +1,11 @@
+<div class="error-page">
+  <div class="error-page__code"><%= status %></div>
+  <h2 class="error-page__title"><%= title %></h2>
+  <% if (message) { %><p class="error-page__msg"><%= message %></p><% } %>
+  <div class="error-page__actions">
+    <% if (status === 503 || status === 500) { %>
+      <a class="btn btn--primary" href="<%= retryHref %>">Retry</a>
+    <% } %>
+    <a class="btn btn--secondary" href="<%= admin ? '/dashboard' : '/login' %>"><%= admin ? 'Go to dashboard' : 'Go to sign in' %></a>
+  </div>
+</div>

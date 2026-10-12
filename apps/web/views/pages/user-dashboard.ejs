@@ -1,0 +1,1023 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title><%= title || 'Dashboard - Banjara Match' %></title>
+    <!--== META TAGS ==-->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="theme-color" content="#f6af04">
+    <meta name="description" content="Your personal matrimony dashboard">
+    <meta name="keywords" content="matrimony, dashboard, banjara match">
+    <meta name="robots" content="noindex, nofollow">
+    <!--== FAV ICON(BROWSER TAB ICON) ==-->
+    <link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+    
+    <!-- Google Analytics (SEO & Traffic Tracking) -->
+    <%- include('../partials/analytics', { pageCategory: 'dashboard' }) %>
+    
+    <!--== PERFORMANCE: Resource Hints ==-->
+    <link rel="preconnect" href="https://api.banjaramatch.com">
+    <link rel="dns-prefetch" href="https://api.banjaramatch.com">
+    
+    <!--== CSS FILES - Optimized Loading ==-->
+    <link rel="preload" href="/css/style.css" as="style">
+    <link rel="stylesheet" href="/css/bootstrap.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/font-awesome.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="/css/animate.min.css" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick-theme.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <noscript>
+      <link rel="stylesheet" href="/css/bootstrap.css">
+      <link rel="stylesheet" href="/css/font-awesome.min.css">
+      <link rel="stylesheet" href="/css/animate.min.css">
+    </noscript>
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+      <script src="js/respond.min.js"></script>
+      <![endif]-->
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <!-- LOGIN -->
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <div class="db-nav">
+                            <div class="db-nav-pro">
+                                <% const userProfileImage = user?.profile ? (user.profile.startsWith('http') ? user.profile : `https://api.banjaramatch.com/${user.profile}`) : '/images/default-user.jpg'; %>
+                                <img src="<%= userProfileImage %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+                            </div>
+                            <div class="db-nav-list">
+                                <ul>
+                                    <li><a href="/dashboard" class="act"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
+                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
+                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
+                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
+                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
+                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
+                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
+                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
+                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
+                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
+                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <!-- Welcome Notice Banner -->
+                        <div class="col-md-12 mb-4">
+                            <div class="alert alert-info" style="background: linear-gradient(135deg, #f6af04 0%, #ff8c00 100%); border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <h5 style="color: #fff; margin: 0 0 8px 0;"><i class="fa fa-info-circle"></i> Welcome to BanjaraMatch!</h5>
+                                        <p style="color: #fff; margin: 0; font-size: 14px; line-height: 1.6;">
+                                            We're actively working to bring you more quality profiles in the coming days. Stay tuned for exciting updates! 
+                                            <strong>Complete your profile to increase your matches.</strong>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <a href="https://api.banjaramatch.com/api/download-apk" class="btn btn-light btn-sm" style="padding: 8px 20px; border-radius: 6px; font-weight: 600; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">
+                                            <i class="fa fa-android"></i> Download App
+                                        </a>
+                                        <p style="color: #fff; margin: 8px 0 0 0; font-size: 12px;">For the best experience</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12 db-sec-com" id="liveActivitySection" style="display:none;">
+                            <h2 class="db-tit"><i class="fa fa-bolt"></i> Trending Now</h2>
+                            <div id="momentumBadge" style="display:none; background:linear-gradient(135deg,#f6af04,#f9d976); color:#fff; padding:12px 16px; border-radius:8px; margin-bottom:12px; font-weight:600;"></div>
+                            <ul id="liveActivityList" style="list-style:none; padding:0; margin:0;"></ul>
+                        </div>
+
+                        <div class="col-md-12 db-sec-com db-new-pro-main">
+                            <h2 class="db-tit">New Profiles Matches</h2>
+                            <% if (newProfiles && newProfiles.length > 0) { %>
+                         <ul class="slider profile-slider">
+  <% newProfiles.forEach(profile => { 
+    const age = profile.dob ? new Date().getFullYear() - new Date(profile.dob).getFullYear() : 'N/A';
+    const city = profile.location?.city?.name || 'Not specified';
+    const profileImage = profile.profile ? (profile.profile.startsWith('http') ? profile.profile : `https://api.banjaramatch.com/${profile.profile}`) : '/images/default-user.jpg';
+  %>
+    <li>
+      <div class="db-new-pro">
+        <img src="<%= profileImage %>" alt="<%= profile.full_name %>" class="profile" onerror="this.src='/images/default-user.jpg'">
+        <div>
+          <h5><%= profile.full_name %></h5>
+          <span class="city"><%= city %></span>
+          <span class="age"><%= age %> Years old</span>
+        </div>
+        <% if (profile.isOnline) { %>
+          <div class="pro-ave" title="User currently available">
+            <span class="pro-ave-yes"></span>
+          </div>
+        <% } %>
+        <a href="/profile/<%= profile._id %>" class="fclick">&nbsp;</a>
+      </div>
+    </li>
+  <% }) %>
+</ul>
+                            <% } else { %>
+                                <p class="text-center text-muted">No new profiles available at the moment</p>
+                            <% } %>
+                        </div>
+                        <div class="row">
+                            <% 
+                            // Get profile completion data from API
+                            const completionPercent = Math.round(user?.profileCompletion?.percentage || 0);
+                            const topSuggestion = user?.profileCompletion?.suggestion || '';
+
+
+                            %>
+                            
+                            <% if (completionPercent < 100) { %>
+                            <!-- Profile Completion Section (Only show if incomplete) -->
+                            <div class="col-md-12 col-lg-6 col-xl-4 db-sec-com">
+                                <h2 class="db-tit">Profiles status</h2>
+                                <div class="db-pro-stat">
+                                    <h6>Profile completion</h6>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown">
+                                            <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                          <li><a class="dropdown-item" href="/update-profile">Edit profile</a></li>
+                                          <li><a class="dropdown-item" href="/profile/<%= user?._id %>">View profile</a></li>
+                                          <li><a class="dropdown-item" href="/user-setting">Profile visibility settings</a></li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- Modern Profile Completion Card -->
+                                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; padding: 20px; margin: 20px 0; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                            <span style="color: #fff; font-size: 14px; font-weight: 500;">Your Progress</span>
+                                            <span style="color: #fff; font-size: 24px; font-weight: 700;"><%= completionPercent %>%</span>
+                                        </div>
+                                        
+                                        <!-- Animated Progress Bar -->
+                                        <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.2); border-radius: 10px; overflow: hidden;">
+                                            <div style="width: <%= completionPercent %>%; height: 100%; background: #f6af04; border-radius: 10px; transition: width 0.5s ease; box-shadow: 0 2px 8px rgba(246,175,4,0.6);"></div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Suggestion Card -->
+                                    <% if (topSuggestion) { %>
+                                    <div style="background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(255,193,7,0.2);">
+                                        <div style="display: flex; align-items: start; gap: 10px;">
+                                            <i class="fa fa-lightbulb-o" style="color: #ffc107; font-size: 20px; margin-top: 2px;"></i>
+                                            <div style="flex: 1;">
+                                                <h6 style="color: #856404; font-size: 13px; font-weight: 600; margin: 0 0 5px 0;">Quick Win!</h6>
+                                                <p style="color: #856404; font-size: 12px; margin: 0; line-height: 1.5;"><%= topSuggestion %></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                                    
+                                    <!-- Update Profile Button -->
+                                    <a href="/update-profile" class="cta-3" style="display: block; text-align: center; margin-bottom: 20px; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; font-weight: 600; border-radius: 8px; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                        <i class="fa fa-pencil"></i> Update Profile
+                                    </a>
+                                </div>
+                            </div>
+                            <% } else { %>
+                            <!-- Profile Complete - Show Engagement Section -->
+                            <div class="col-md-12 col-lg-6 col-xl-4 db-sec-com">
+                                <h2 class="db-tit">🌟 Your Profile is Shining!</h2>
+                                <div class="db-pro-stat">
+                                    <h6 class="tit-top-curv">Next Steps</h6>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown">
+                                            <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                          <li><a class="dropdown-item" href="/profile/<%= user?._id %>">View My Profile</a></li>
+                                          <li><a class="dropdown-item" href="/all-profiles">Browse Profiles</a></li>
+                                          <li><a class="dropdown-item" href="/user-setting">Settings</a></li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- Success Card -->
+                                    <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 12px; padding: 25px; margin: 20px 0; text-align: center; box-shadow: 0 4px 15px rgba(56,239,125,0.3);">
+                                        <div style="font-size: 48px; margin-bottom: 10px;">🎉</div>
+                                        <h6 style="color: #fff; font-size: 16px; font-weight: 700; margin-bottom: 8px;">Profile Complete!</h6>
+                                        <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 0; line-height: 1.5;">
+                                            Your profile looks amazing! You're now ready to connect with your perfect match.
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Action Cards -->
+                                    <div style="display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px;">
+                                        <a href="/all-profiles" style="text-decoration: none;">
+                                            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 10px; padding: 18px; box-shadow: 0 3px 10px rgba(245,87,108,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div style="background: rgba(255,255,255,0.3); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="fa fa-search" style="color: #fff; font-size: 20px;"></i>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <h6 style="color: #fff; font-size: 14px; font-weight: 600; margin: 0 0 4px 0;">Discover Matches</h6>
+                                                        <p style="color: rgba(255,255,255,0.9); font-size: 11px; margin: 0;">Browse verified profiles</p>
+                                                    </div>
+                                                    <i class="fa fa-arrow-right" style="color: #fff;"></i>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        
+                                        <a href="/user-interests" style="text-decoration: none;">
+                                            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; padding: 18px; box-shadow: 0 3px 10px rgba(118,75,162,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div style="background: rgba(255,255,255,0.3); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="fa fa-heart" style="color: #fff; font-size: 20px;"></i>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <h6 style="color: #fff; font-size: 14px; font-weight: 600; margin: 0 0 4px 0;">Check Interests</h6>
+                                                        <p style="color: rgba(255,255,255,0.9); font-size: 11px; margin: 0;">See who's interested in you</p>
+                                                    </div>
+                                                    <i class="fa fa-arrow-right" style="color: #fff;"></i>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        
+                                        <a href="/user-chat" style="text-decoration: none;">
+                                            <div style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); border-radius: 10px; padding: 18px; box-shadow: 0 3px 10px rgba(254,225,64,0.3); transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'">
+                                                <div style="display: flex; align-items: center; gap: 12px;">
+                                                    <div style="background: rgba(255,255,255,0.3); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                                                        <i class="fa fa-comments" style="color: #fff; font-size: 20px;"></i>
+                                                    </div>
+                                                    <div style="flex: 1;">
+                                                        <h6 style="color: #fff; font-size: 14px; font-weight: 600; margin: 0 0 4px 0;">Start Conversations</h6>
+                                                        <p style="color: rgba(255,255,255,0.9); font-size: 11px; margin: 0;">Chat with your matches</p>
+                                                    </div>
+                                                    <i class="fa fa-arrow-right" style="color: #fff;"></i>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <% } %>
+                            <div class="col-md-12 col-lg-6 col-xl-4 db-sec-com">
+                                <h2 class="db-tit">💖 Who's Interested</h2>
+                                <div class="db-pro-stat">
+                                    <h6 class="tit-top-curv">Recent Activity</h6>
+                                    <div class="dropdown">
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-toggle="dropdown">
+                                            <i class="fa fa-ellipsis-h" aria-hidden="true"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                          <li><a class="dropdown-item" href="/user-interests">View all interests</a></li>
+                                          <li><a class="dropdown-item" href="/all-profiles">Browse profiles</a></li>
+                                        </ul>
+                                    </div>
+                                    
+                                    <!-- Interest Cards -->
+                                    <div style="padding: 15px 0;">
+                                        <% if (interestReceived && interestReceived.length > 0) { %>
+                                            <div style="margin-bottom: 20px;">
+                                                <h6 style="color: #e74c3c; font-size: 14px; font-weight: 600; margin-bottom: 12px;">
+                                                    <i class="fa fa-heart" style="margin-right: 6px;"></i>
+                                                    <%= interestReceived.length %> New Interest<%= interestReceived.length > 1 ? 's' : '' %>
+                                                </h6>
+                                                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); border-radius: 10px; padding: 15px; color: white; box-shadow: 0 3px 10px rgba(245,87,108,0.3);">
+                                                    <p style="margin: 0; font-size: 13px; line-height: 1.6;">
+                                                        <i class="fa fa-star" style="color: #ffd700;"></i>
+                                                        <%= interestReceived.length %> <%= interestReceived.length > 1 ? 'people are' : 'person is' %> interested in your profile! Don't keep them waiting.
+                                                    </p>
+                                                    <a href="/user-interests" style="display: inline-block; margin-top: 10px; background: white; color: #f5576c; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">
+                                                        View Requests →
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                        
+                                        <% if (acceptedRequests && acceptedRequests.length > 0) { %>
+                                            <div style="margin-bottom: 20px;">
+                                                <h6 style="color: #28a745; font-size: 14px; font-weight: 600; margin-bottom: 12px;">
+                                                    <i class="fa fa-check-circle" style="margin-right: 6px;"></i>
+                                                    <%= acceptedRequests.length %> Accepted Match<%= acceptedRequests.length > 1 ? 'es' : '' %>
+                                                </h6>
+                                                <div style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 10px; padding: 15px; color: white; box-shadow: 0 3px 10px rgba(56,239,125,0.3);">
+                                                    <p style="margin: 0; font-size: 13px; line-height: 1.6;">
+                                                        <i class="fa fa-comments" style="color: #fff;"></i>
+                                                        Great news! You have <%= acceptedRequests.length %> mutual connection<%= acceptedRequests.length > 1 ? 's' : '' %>. Start chatting now!
+                                                    </p>
+                                                    <a href="/user-chat" style="display: inline-block; margin-top: 10px; background: white; color: #11998e; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 600;">
+                                                        Start Chat →
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        <% } %>
+                                        
+                                        <% if ((!interestReceived || interestReceived.length === 0) && (!acceptedRequests || acceptedRequests.length === 0)) { %>
+                                            <div style="text-align: center; padding: 30px 15px;">
+                                                <div style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;">💑</div>
+                                                <h6 style="color: #666; font-size: 14px; margin-bottom: 8px;">No new interests yet</h6>
+                                                <p style="color: #999; font-size: 12px; margin-bottom: 15px; line-height: 1.5;">
+                                                    Be proactive! Browse profiles and send interests to find your perfect match.
+                                                </p>
+                                                <a href="/all-profiles" class="cta-3" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">
+                                                    Browse Profiles
+                                                </a>
+                                            </div>
+                                        <% } %>
+                                 
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-12 col-xl-4 db-sec-com">
+                                <h2 class="db-tit">Recent chat list</h2>
+                                    <div class="db-pro-stat">
+                                        <div class="db-inte-prof-list db-inte-prof-chat">
+                                            <ul id="recentChatList">
+                                                <li class="text-center">
+                                                    <p class="text-muted">Loading chats...</p>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="text-center mt-3">
+                                            <a href="/user-chat" class="cta-5">View all chats</a>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                        
+                        <!-- NEW SECTIONS: Profile Engagement & Discovery -->
+                        <div class="row">
+                            <!-- Who Viewed My Profile -->
+                            <div class="col-md-12 db-sec-com">
+                                <h2 class="db-tit"><i class="fa fa-eye"></i> Who Viewed My Profile</h2>
+                                <% if (whoViewedMe && whoViewedMe.length > 0) { %>
+                                    <ul class="slider profile-slider">
+                                        <% whoViewedMe.forEach(visitor => { 
+                                            const age = visitor.dob ? new Date().getFullYear() - new Date(visitor.dob).getFullYear() : 'N/A';
+                                            const city = visitor.location?.city?.name || 'Not specified';
+                                            const visitorImage = visitor.profile ? (visitor.profile.startsWith('http') ? visitor.profile : `https://api.banjaramatch.com/${visitor.profile}`) : '/images/default-user.jpg';
+                                            const visitCount = visitor.visitCount || 1;
+                                        %>
+                                            <li>
+                                                <div class="db-new-pro">
+                                                    <img src="<%= visitorImage %>" alt="<%= visitor.full_name %>" class="profile" onerror="this.src='/images/default-user.jpg'">
+                                                    <div>
+                                                        <h5><%= visitor.full_name %></h5>
+                                                        <span class="city"><%= city %></span>
+                                                        <span class="age"><%= age %> Years old</span>
+                                                        <% if (visitCount > 1) { %>
+                                                            <span style="color: #f6af04; font-size: 11px; display: block;"><i class="fa fa-eye"></i> Visited <%= visitCount %>x</span>
+                                                        <% } %>
+                                                    </div>
+                                                    <a href="/profile/<%= visitor._id %>" class="fclick">&nbsp;</a>
+                                                </div>
+                                            </li>
+                                        <% }) %>
+                                    </ul>
+                                    <% if (whoViewedMe.length > 5) { %>
+                                        <div class="text-center mt-3">
+                                            <a href="/profile-visitors?type=they_viewed_me" class="cta-3">See All (<%= whoViewedMe.length %>)</a>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <div class="text-center py-4">
+                                        <div style="font-size: 48px; opacity: 0.3;">👁️</div>
+                                        <p class="text-muted">No one has viewed your profile yet</p>
+                                        <a href="/all-profiles" class="cta-3">Browse Profiles to Get Noticed</a>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Daily Top Matches -->
+                            <div class="col-md-12 db-sec-com">
+                                <h2 class="db-tit"><i class="fa fa-heart"></i> Today's Top Matches For You</h2>
+                                <% if (dailyMatches && dailyMatches.length > 0) { %>
+                                    <ul class="slider profile-slider">
+                                            <% dailyMatches.slice(0, 5).forEach(match => { 
+                                                const age = match.dob ? new Date().getFullYear() - new Date(match.dob).getFullYear() : 'N/A';
+                                                const city = match.location?.city?.name || 'Not specified';
+                                                const matchImage = match.profile ? (match.profile.startsWith('http') ? match.profile : `https://api.banjaramatch.com/${match.profile}`) : '/images/default-user.jpg';
+                                            %>
+                                                <li>
+                                                    <div class="db-new-pro">
+                                                        <img src="<%= matchImage %>" alt="<%= match.full_name %>" class="profile" onerror="this.src='/images/default-user.jpg'">
+                                                        <div>
+                                                            <h5><%= match.full_name %></h5>
+                                                            <span class="city"><%= city %></span>
+                                                            <span class="age"><%= age %> Years old</span>
+                                                        </div>
+                                                        <% if (match.isOnline) { %>
+                                                            <div class="pro-ave" title="User currently available">
+                                                                <span class="pro-ave-yes"></span>
+                                                            </div>
+                                                        <% } %>
+                                                        <a href="/profile/<%= match._id %>" class="fclick">&nbsp;</a>
+                                                    </div>
+                                                </li>
+                                        <% }) %>
+                                    </ul>
+                                    <% if (dailyMatches.length > 5) { %>
+                                        <div class="text-center mt-3">
+                                            <a href="/all-profiles" class="cta-3">See All (<%= dailyMatches.length %>)</a>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <div class="text-center py-4">
+                                        <div style="font-size: 48px; opacity: 0.3;">💝</div>
+                                        <p class="text-muted">No matches available yet. Complete your profile to get better matches!</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Mutual Interest (Both Viewed Each Other) -->
+                            <div class="col-md-12 db-sec-com">
+                                <h2 class="db-tit"><i class="fa fa-exchange"></i> Mutual Interest</h2>
+                                <% if (mutualViews && mutualViews.length > 0) { %>
+                                    <ul class="slider profile-slider">
+                                            <% mutualViews.slice(0, 5).forEach(mutual => { 
+                                                const age = mutual.dob ? new Date().getFullYear() - new Date(mutual.dob).getFullYear() : 'N/A';
+                                                const city = mutual.location?.city?.name || 'Not specified';
+                                                const mutualImage = mutual.profile ? (mutual.profile.startsWith('http') ? mutual.profile : `https://api.banjaramatch.com/${mutual.profile}`) : '/images/default-user.jpg';
+                                            %>
+                                                <li>
+                                                    <div class="db-new-pro">
+                                                        <img src="<%= mutualImage %>" alt="<%= mutual.full_name %>" class="profile" onerror="this.src='/images/default-user.jpg'">
+                                                        <div>
+                                                            <h5><%= mutual.full_name %></h5>
+                                                            <span class="city"><%= city %></span>
+                                                            <span class="age"><%= age %> Years old</span>
+                                                            <span style="color: #f6af04; font-size: 11px; display: block;"><i class="fa fa-exchange"></i> Both viewed</span>
+                                                        </div>
+                                                        <a href="/profile/<%= mutual._id %>" class="fclick">&nbsp;</a>
+                                                    </div>
+                                                </li>
+                                        <% }) %>
+                                    </ul>
+                                    <% if (mutualViews.length > 5) { %>
+                                        <div class="text-center mt-3">
+                                            <a href="/profile-visitors?type=mutual" class="cta-3">See All (<%= mutualViews.length %>)</a>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <div class="text-center py-4">
+                                        <div style="font-size: 48px; opacity: 0.3;">🔄</div>
+                                        <p class="text-muted">No mutual views yet. Keep exploring profiles!</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Profiles I Viewed -->
+                            <div class="col-md-12 db-sec-com">
+                                <h2 class="db-tit"><i class="fa fa-history"></i> Recently Viewed By Me</h2>
+                                <% if (iViewedProfiles && iViewedProfiles.length > 0) { %>
+                                    <ul class="slider profile-slider">
+                                            <% iViewedProfiles.slice(0, 5).forEach(viewed => { 
+                                                const age = viewed.dob ? new Date().getFullYear() - new Date(viewed.dob).getFullYear() : 'N/A';
+                                                const city = viewed.location?.city?.name || 'Not specified';
+                                                const viewedImage = viewed.profile ? (viewed.profile.startsWith('http') ? viewed.profile : `https://api.banjaramatch.com/${viewed.profile}`) : '/images/default-user.jpg';
+                                            %>
+                                                <li>
+                                                    <div class="db-new-pro">
+                                                        <img src="<%= viewedImage %>" alt="<%= viewed.full_name %>" class="profile" onerror="this.src='/images/default-user.jpg'">
+                                                        <div>
+                                                            <h5><%= viewed.full_name %></h5>
+                                                            <span class="city"><%= city %></span>
+                                                            <span class="age"><%= age %> Years old</span>
+                                                        </div>
+                                                        <a href="/profile/<%= viewed._id %>" class="fclick">&nbsp;</a>
+                                                    </div>
+                                                </li>
+                                        <% }) %>
+                                    </ul>
+                                    <% if (iViewedProfiles.length > 5) { %>
+                                        <div class="text-center mt-3">
+                                            <a href="/profile-visitors?type=i_viewed" class="cta-3">See All (<%= iViewedProfiles.length %>)</a>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <div class="text-center py-4">
+                                        <div style="font-size: 48px; opacity: 0.3;">📋</div>
+                                        <p class="text-muted">You haven't viewed any profiles yet</p>
+                                        <a href="/all-profiles" class="cta-3">Start Exploring</a>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Shortlisted Profiles -->
+                            <div class="col-md-12 db-sec-com">
+                                <h2 class="db-tit"><i class="fa fa-star"></i> My Shortlist</h2>
+                                <% if (shortlistedProfiles && shortlistedProfiles.length > 0) { %>
+                                    <ul class="slider profile-slider">
+                                            <% shortlistedProfiles.slice(0, 5).forEach(shortlist => { 
+                                                const age = shortlist.dob ? new Date().getFullYear() - new Date(shortlist.dob).getFullYear() : 'N/A';
+                                                const city = shortlist.location?.city?.name || 'Not specified';
+                                                const shortlistImage = shortlist.profile ? (shortlist.profile.startsWith('http') ? shortlist.profile : `https://api.banjaramatch.com/${shortlist.profile}`) : '/images/default-user.jpg';
+                                            %>
+                                                <li>
+                                                    <div class="db-new-pro">
+                                                        <img src="<%= shortlistImage %>" alt="<%= shortlist.full_name %>" class="profile" onerror="this.src='/images/default-user.jpg'">
+                                                        <div>
+                                                            <h5><%= shortlist.full_name %></h5>
+                                                            <span class="city"><%= city %></span>
+                                                            <span class="age"><%= age %> Years old</span>
+                                                        </div>
+                                                        <a href="/profile/<%= shortlist._id %>" class="fclick">&nbsp;</a>
+                                                    </div>
+                                                </li>
+                                        <% }) %>
+                                    </ul>
+                                    <% if (shortlistedProfiles.length > 5) { %>
+                                        <div class="text-center mt-3">
+                                            <a href="/shortlisted" class="cta-3">See All (<%= shortlistedProfiles.length %>)</a>
+                                        </div>
+                                    <% } %>
+                                <% } else { %>
+                                    <div class="text-center py-4">
+                                        <div style="font-size: 48px; opacity: 0.3;">⭐</div>
+                                        <p class="text-muted">You haven't shortlisted any profiles yet</p>
+                                        <p style="font-size: 12px; color: #999;">Shortlist profiles to keep track of your favorites</p>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 db-sec-com">
+                                <a href="/user-interests" style="text-decoration: none; display: block;">
+                                    <div style="background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%); border-radius: 14px; padding: 26px 30px; box-shadow: 0 6px 20px rgba(245,87,108,0.3); transition: transform 0.25s, box-shadow 0.25s; display: flex; align-items: center; gap: 20px;" onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 10px 28px rgba(245,87,108,0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(245,87,108,0.3)'">
+                                        <div style="background: rgba(255,255,255,0.25); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                            <i class="fa fa-heart" style="color: #fff; font-size: 26px;"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <% if (newRequests && newRequests.length > 0) { %>
+                                                <h4 style="color: #fff; margin: 0 0 4px 0; font-weight: 700;">💌 You have <%= newRequests.length %> new interest<%= newRequests.length > 1 ? 's' : '' %> waiting!</h4>
+                                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 13px;">Someone's excited to connect with you — don't keep them waiting.</p>
+                                            <% } else { %>
+                                                <h4 style="color: #fff; margin: 0 0 4px 0; font-weight: 700;">💖 Your Interests, All in One Place</h4>
+                                                <p style="color: rgba(255,255,255,0.9); margin: 0; font-size: 13px;">Review requests you've sent and received, and manage your connections.</p>
+                                            <% } %>
+                                        </div>
+                                        <i class="fa fa-arrow-right" style="color: #fff; font-size: 20px;"></i>
+                                    </div>
+                                </a>
+                            </div>
+
+                            <!-- Ice Breaker Game Promotion Banner - Luxury Matrimonial Design -->
+                            <div class="col-md-12" style="margin-top: 30px;">
+                                <a href="/ice-breaker-game" style="text-decoration: none; display: block; cursor: pointer; transition: all 0.4s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 20px 40px rgba(246,175,4,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(246,175,4,0.2)'">
+                                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border: 2px solid #f6af04; border-radius: 16px; box-shadow: 0 8px 25px rgba(246,175,4,0.2); overflow: hidden; position: relative; padding: 0;">
+                                        <!-- Decorative Gold Border Pattern -->
+                                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, transparent, #f6af04, #ffd700, #f6af04, transparent);"></div>
+                                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, transparent, #f6af04, #ffd700, #f6af04, transparent);"></div>
+                                        
+                                        <!-- Elegant Background Pattern -->
+                                        <div style="position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(246,175,4,0.1) 0%, transparent 70%); border-radius: 50%; opacity: 0.6;"></div>
+                                        <div style="position: absolute; bottom: -30px; left: -30px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%); border-radius: 50%;"></div>
+                                        
+                                        <div class="row align-items-center" style="padding: 30px 25px; margin: 0;">
+                                            <div class="col-md-8">
+                                                <div style="display: flex; align-items: center; gap: 20px;">
+                                                    <!-- Elegant Icon Container -->
+                                                    <div style="background: linear-gradient(135deg, #f6af04 0%, #ffd700 100%); border-radius: 50%; width: 75px; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(246,175,4,0.4); border: 3px solid rgba(255,215,0,0.3);">
+                                                        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">💝</span>
+                                                    </div>
+                                                    <div>
+                                                        <h4 style="color: #f6af04; margin: 0 0 8px 0; font-weight: 700; font-size: 22px; font-family: 'Georgia', serif; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                                            <i class="fa fa-heart" style="color: #ffd700;"></i> Ice Breaker Connection Game
+                                                        </h4>
+                                                        <p style="color: #e8e8e8; margin: 0; font-size: 15px; line-height: 1.6;">
+                                                            Break the ice with meaningful conversations. Get matched instantly and discover compatibility through fun questions.
+                                                            <strong style="color: #ffd700; font-family: 'Georgia', serif;">Find your perfect match!</strong>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 text-end">
+                                                <!-- Live Players Counter - Elegant Design -->
+                                                <div style="background: linear-gradient(135deg, rgba(246,175,4,0.15) 0%, rgba(255,215,0,0.1) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(246,175,4,0.3); border-radius: 12px; padding: 15px 20px; display: inline-block; margin-bottom: 12px;">
+                                                    <div style="color: #f6af04; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; font-weight: 600;">✨ Players Online</div>
+                                                    <div style="color: #ffd700; font-size: 28px; font-weight: 700; font-family: 'Georgia', serif; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                                        <i class="fa fa-users" style="font-size: 24px;"></i> <span id="livePlayersCount">...</span>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <span class="btn" style="padding: 12px 30px; border-radius: 25px; font-weight: 700; background: linear-gradient(135deg, #f6af04 0%, #ffd700 100%); color: #1a1a2e; border: none; box-shadow: 0 4px 15px rgba(246,175,4,0.4); font-size: 15px; font-family: 'Georgia', serif; transition: all 0.3s ease;">
+                                                        Play Now <i class="fa fa-arrow-circle-right" style="margin-left: 5px;"></i>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Premium Badge -->
+                                        <div style="position: absolute; top: 20px; right: 20px; background: linear-gradient(135deg, #d4af37 0%, #f6af04 100%); color: #1a1a2e; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; box-shadow: 0 4px 12px rgba(212,175,55,0.4); border: 1px solid rgba(255,215,0,0.5);">
+                                            <i class="fa fa-star" style="color: #1a1a2e; margin-right: 4px;"></i> Featured
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                     
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- END -->
+
+    <!-- FOOTER -->
+      <%- include('../partials/footer') %>
+
+    <!-- END -->
+    <!-- END -->
+    <!-- Optional JavaScript - Optimized Loading -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script defer src="/js/jquery.min.js"></script>
+    <script defer src="/js/popper.min.js"></script>
+    <script defer src="/js/bootstrap.min.js"></script>
+    <script defer src="/js/slick.js"></script>
+    <script defer src="/js/select-opt.js"></script>
+    <script defer src="/js/Chart.js"></script>
+    <script defer src="/js/custom.js"></script>
+    <script src="/js/esc.js"></script>
+    <script defer>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    
+// Wait for jQuery and slick to be loaded
+const initSliders = () => {
+    if (typeof jQuery !== 'undefined' && jQuery.fn.slick) {
+        // COMMON SLIDER - Initialize all sliders
+        $('.slider').each(function() {
+            if (!$(this).hasClass('slick-initialized')) {
+                $(this).slick({
+                    infinite: false,
+                    slidesToShow: 5,
+                    arrows: false,
+                    slidesToScroll: 1,
+                    autoplay: false,
+                    dots: false,
+                    centerMode: false,
+                    variableWidth: false,
+                    swipe: true,
+                    touchMove: true,
+                    touchThreshold: 5,
+                    draggable: true,
+                    responsive: [{
+                        breakpoint: 992,
+                        settings: {
+                            slidesToShow: 3,
+                            slidesToScroll: 1,
+                            centerMode: false,
+                            swipe: true,
+                            touchMove: true,
+                            draggable: true
+                        }
+                    }, {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 2.5,
+                            slidesToScroll: 1,
+                            centerMode: false,
+                            swipe: true,
+                            touchMove: true,
+                            draggable: true,
+                            touchThreshold: 5
+                        }
+                    }, {
+                        breakpoint: 480,
+                        settings: {
+                            slidesToShow: 2.5,
+                            slidesToScroll: 1,
+                            centerMode: false,
+                            swipe: true,
+                            touchMove: true,
+                            draggable: true,
+                            touchThreshold: 5
+                        }
+                    }]
+                });
+            }
+        });
+    } else {
+        setTimeout(initSliders, 100);
+    }
+};
+
+// Initialize sliders
+initSliders();
+
+// Animated counter
+$('.count').each(function () {
+    $(this).prop('Counter',0).animate({
+        Counter: $(this).text()
+    }, {
+        duration: 4000,
+        easing: 'swing',
+        step: function (now) {
+            $(this).text(Math.ceil(now));
+        }
+    });
+});
+
+// API Configuration
+const API_BASE_URL = 'https://api.banjaramatch.com/api';
+const MY_USER_ID = '<%= user?._id %>';
+
+// Log profile completion data
+console.log('Profile Completion Percentage:', <%= Math.round(user?.profileCompletion?.percentage || 0) %>);
+console.log('Profile Completion Data:', {
+    percentage: <%= Math.round(user?.profileCompletion?.percentage || 0) %>,
+    suggestion: '<%= (user?.profileCompletion?.suggestion || '').replace(/'/g, "\\'") %>',
+    missingFields: <%- JSON.stringify(user?.profileCompletion?.missingFields || []) %>
+});
+
+// Helper function to get auth token
+function getAuthToken() {
+    return document.cookie.split('; ')
+        .find(row => row.startsWith('token='))
+        ?.split('=')[1];
+}
+
+// Load Profile Statistics
+async function loadProfileStats() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/getProfileVisitorSummary`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                user_id: MY_USER_ID
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status && data.data) {
+            $('#viewsCount').text(data.data.totalViews || 0);
+            $('#likesCount').text(data.data.totalLikes || 0);
+            $('#clicksCount').text(data.data.totalClicks || 0);
+            // Update the new profile view count in activity section
+            $('#profileViewCount').text(data.data.totalViews || 0);
+        }
+    } catch (error) {
+        console.error('Error loading profile stats:', error);
+        $('#profileViewCount').text('0');
+    }
+}
+
+// Load Live Ice Breaker Players Count
+async function loadLivePlayersCount() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/getIcebreakerStats`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.status) {
+            const activeCount = (data.data?.activeGames || 0) * 2 + (data.data?.queuedPlayers || 0);
+            $('#livePlayersCount').text(activeCount > 0 ? activeCount : 'Join Now');
+        } else {
+            $('#livePlayersCount').text('Join Now');
+        }
+    } catch (error) {
+        console.error('Error loading ice breaker stats:', error);
+        $('#livePlayersCount').text('Join Now');
+    }
+}
+
+// Load Recent Chats
+async function loadRecentChats() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fetchUserRooms`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getAuthToken()}`
+            },
+            body: JSON.stringify({
+                my_user_id: MY_USER_ID,
+                limit: 4
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.status && data.data && data.data.length > 0) {
+            const chatListHtml = data.data.map(chat => {
+                const otherUser = chat.participants.find(p => p._id !== MY_USER_ID) || {};
+                const location = otherUser.location?.city?.name || otherUser.location?.state?.name || 'Location not specified';
+                const chatProfileImage = otherUser.profile ? (otherUser.profile.startsWith('http') ? otherUser.profile : `https://api.banjaramatch.com/${otherUser.profile}`) : '/images/default-user.jpg';
+                
+                return `
+                    <li>
+                        <div class="db-int-pro-1">
+                            <img src="${esc(chatProfileImage)}" alt="${esc(otherUser.full_name)}">
+                        </div>
+                        <div class="db-int-pro-2">
+                            <h5>${esc(otherUser.full_name || 'Unknown')}</h5>
+                            <span>${esc(location)}</span>
+                        </div>
+                        <a href="/user-chat?room=${chat._id}" class="fclick">&nbsp;</a>
+                    </li>
+                `;
+            }).join('');
+            
+            $('#recentChatList').html(chatListHtml);
+        } else {
+            $('#recentChatList').html('<li class="text-center"><p class="text-muted py-3">No recent chats</p></li>');
+        }
+    } catch (error) {
+        console.error('Error loading recent chats:', error);
+        $('#recentChatList').html('<li class="text-center"><p class="text-muted py-3">Failed to load chats</p></li>');
+    }
+}
+
+// Load stats on page load
+// Trending Now widget — fetchLiveActivity/getMatchMomentum already existed
+// server-side but no page ever called them before now.
+async function loadLiveActivity() {
+    const section = document.getElementById('liveActivitySection');
+    const list = document.getElementById('liveActivityList');
+    const momentumEl = document.getElementById('momentumBadge');
+    if (!section || !MY_USER_ID) return;
+
+    try {
+        const [activityRes, momentumRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/fetchLiveActivity`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ my_user_id: MY_USER_ID })
+            }).then(r => r.json()).catch(() => null),
+            fetch(`${API_BASE_URL}/getMatchMomentum`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: MY_USER_ID })
+            }).then(r => r.json()).catch(() => null)
+        ]);
+
+        let hasContent = false;
+
+        if (momentumRes && momentumRes.status && momentumRes.data && momentumRes.data.momentumScore > 0) {
+            momentumEl.textContent = momentumRes.data.label;
+            momentumEl.style.display = 'block';
+            hasContent = true;
+        }
+
+        if (activityRes && activityRes.status && activityRes.data && activityRes.data.length > 0) {
+            list.innerHTML = activityRes.data.slice(0, 6).map(a => `
+                <li style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #f0f0f0;">
+                    <img src="${esc(a.icon)}" style="width:24px; height:24px;" alt="">
+                    <span style="flex:1;">${esc(a.title)}</span>
+                    <span style="color:#999; font-size:12px;">${esc(a.timeAgo)}</span>
+                </li>
+            `).join('');
+            hasContent = true;
+        }
+
+        if (hasContent) section.style.display = 'block';
+    } catch (error) {
+        console.error('Error loading live activity:', error);
+    }
+}
+
+$(document).ready(function() {
+    loadProfileStats();
+    loadRecentChats();
+    loadLivePlayersCount();
+    loadLiveActivity();
+    
+    // Refresh live players count every 10 seconds
+    setInterval(loadLivePlayersCount, 10000);
+    
+    // Logout confirmation
+    $('a[href="/logout"]').on('click', function(e) {
+        if (!confirm('Are you sure you want to log out?')) {
+            e.preventDefault();
+        }
+    });
+});
+
+}); // End DOMContentLoaded
+    </script>
+    
+    <style>
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.05); opacity: 0.9; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    /* Profile Slider Spacing */
+    .profile-slider .slick-slide {
+        margin: 0 10px;
+    }
+    
+    .profile-slider .slick-list {
+        margin: 0 -10px;
+        overflow: hidden;
+    }
+    
+    .profile-slider .slick-track {
+        display: flex !important;
+        align-items: stretch;
+        justify-content: flex-start !important;
+    }
+    
+    /* Force left alignment for all sliders */
+    .slider .slick-track {
+        display: flex !important;
+        justify-content: flex-start !important;
+        margin-left: 0 !important;
+    }
+    
+    .slider .slick-list {
+        overflow: hidden;
+        padding: 0 !important;
+    }
+    
+    /* Hide slider arrows */
+    .profile-slider .slick-prev,
+    .profile-slider .slick-next {
+        display: none !important;
+    }
+    
+    /* Ensure proper profile card display */
+    .profile-slider .db-new-pro {
+        margin: 0 auto;
+    }
+    
+    /* Left align slider content */
+    .db-sec-com .slider {
+        text-align: left;
+    }
+    
+    .slider .slick-slide {
+        float: none !important;
+        display: inline-block !important;
+        vertical-align: top;
+    }
+    
+    /* Remove any centering transforms */
+    .slick-track {
+        margin-left: 0 !important;
+        margin-right: auto !important;
+    }
+    
+    /* Enable touch scrolling */
+    .slick-slider {
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y pinch-zoom;
+    }
+    
+    .slick-list {
+        touch-action: pan-y pinch-zoom;
+    }
+    
+    .slick-track {
+        touch-action: pan-y pinch-zoom;
+    }
+    
+    /* Mobile peek effect - show partial next slide */
+    @media (max-width: 768px) {
+        .slider .slick-list {
+            overflow: hidden;
+        }
+        
+        .slider .slick-slide {
+            opacity: 1 !important;
+        }
+        
+        .db-sec-com {
+            overflow: hidden;
+        }
+        
+        /* Ensure cards are fully touchable */
+        .db-new-pro {
+            pointer-events: auto;
+        }
+    }
+    </style>
+</body>
+
+
+</html>

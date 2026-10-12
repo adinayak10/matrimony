@@ -1,0 +1,93 @@
+# deploy/url-contract.txt — one entry per line: URL [expected-status] ; sitemap URLs are added live by check-urls.sh
+# host redirects
+http://banjaramatch.com/
+http://www.banjaramatch.com/
+https://banjaramatch.com/
+https://www.banjaramatch.com/
+# legacy .html map (app.js htmlRedirectMap) -> 301
+https://www.banjaramatch.com/index.html 301
+https://www.banjaramatch.com/login.html 301
+https://www.banjaramatch.com/sign-up.html 301
+https://www.banjaramatch.com/about.html 301
+https://www.banjaramatch.com/about-us.html 301
+https://www.banjaramatch.com/contact.html 301
+https://www.banjaramatch.com/enquiry.html 301
+https://www.banjaramatch.com/make-reservation.html 301
+https://www.banjaramatch.com/all-profiles.html 301
+https://www.banjaramatch.com/user-profile.html 301
+https://www.banjaramatch.com/user-profile-edit.html 301
+https://www.banjaramatch.com/user-dashboard.html 301
+https://www.banjaramatch.com/user-interests.html 301
+https://www.banjaramatch.com/user-setting.html 301
+https://www.banjaramatch.com/user-my-matches.html 301
+https://www.banjaramatch.com/profile-details.html 301
+https://www.banjaramatch.com/coming-soon.html 301
+https://www.banjaramatch.com/photo-gallery-1.html 301
+https://www.banjaramatch.com/photo-gallery.html 301
+https://www.banjaramatch.com/blog-detail.html 301
+https://www.banjaramatch.com/faq.html 301
+https://www.banjaramatch.com/plans.html 301
+https://www.banjaramatch.com/services.html 301
+https://www.banjaramatch.com/user-plan.html 301
+https://www.banjaramatch.com/wedding.html 301
+https://www.banjaramatch.com/wedding-video.html 301
+https://www.banjaramatch.com/404.html 301
+https://www.banjaramatch.com/biodata-builder-v2.html 301
+https://www.banjaramatch.com/biodata-builder-old-24templates.html 301
+https://www.banjaramatch.com/biodata-builder-backup.html 301
+https://www.banjaramatch.com/biodata-builder.html 301
+https://www.banjaramatch.com/blog.html 301
+https://www.banjaramatch.com/user-chat.html 301
+https://www.banjaramatch.com/about-us.html 301
+https://www.banjaramatch.com/anything-else.html 301
+# router 301s
+https://www.banjaramatch.com/terms-condition 301
+https://www.banjaramatch.com/plans 301
+https://www.banjaramatch.com/banjara-matrimony-bangalore 301
+https://www.banjaramatch.com/banjara-matrimony-pune 301
+https://www.banjaramatch.com/blogs/Wedding 301
+# variants / misc
+https://www.banjaramatch.com/signup 200
+https://www.banjaramatch.com/About 200
+https://www.banjaramatch.com/about/ 200
+https://www.banjaramatch.com/blogs/ 200
+https://www.banjaramatch.com/forgot-password 200
+https://www.banjaramatch.com/reset-password 200
+https://www.banjaramatch.com/admin-email-register 200
+https://www.banjaramatch.com/login 200
+https://www.banjaramatch.com/dashboard 302
+https://www.banjaramatch.com/all-profiles 302
+https://www.banjaramatch.com/profile/000000000000000000000000 302
+https://www.banjaramatch.com/doesnotexist-xyz 404
+https://www.banjaramatch.com/robots.txt 200
+https://www.banjaramatch.com/ads.txt 200
+https://www.banjaramatch.com/sitemap.xml 200
+https://www.banjaramatch.com/sitemap-main.xml 200
+https://www.banjaramatch.com/sitemap-blogs.xml 200
+https://www.banjaramatch.com/sitemap-regional.xml 200
+https://www.banjaramatch.com/css/style.min.css 200
+https://www.banjaramatch.com/css/bootstrap.css 200
+https://www.banjaramatch.com/js/custom.min.js 200
+https://www.banjaramatch.com/images/fav.ico 200
+https://www.banjaramatch.com/images/banjara-matrimony-cover.jpg 200
+https://www.banjaramatch.com/downloads/banjaramatch.apk 200
+https://www.banjaramatch.com/health 404
+https://www.banjaramatch.com/favicon.ico 404
+https://www.banjaramatch.com/.well-known/assetlinks.json 404
+# api host
+https://api.banjaramatch.com/health 404
+https://api.banjaramatch.com/ 404
+https://api.banjaramatch.com/api/blogs/all-published 200
+https://api.banjaramatch.com/api/state-pages 200
+https://api.banjaramatch.com/api/city-pages 200
+https://api.banjaramatch.com/api/blogs/featured?limit=3 200
+https://api.banjaramatch.com/socket.io/?EIO=4&transport=polling 200
+https://api.banjaramatch.com/webhook 410
+# admin host
+https://admin.banjaramatch.com/ 200
+https://admin.banjaramatch.com/health 404
+https://admin.banjaramatch.com/css/style.css 200
+https://admin.banjaramatch.com/js/api.js 200
+https://admin.banjaramatch.com/debug.html 404
+https://admin.banjaramatch.com/users.html 200
+https://admin.banjaramatch.com/dashboard 200

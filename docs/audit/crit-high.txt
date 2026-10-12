@@ -1,0 +1,150 @@
+[C] (web-routes-seo) JWT secret is the public default 'your_jwt_secret', so anyone can forge user or admin tokens — api.banjaramatch.com/.env:2
+[H] (web-routes-seo) Regional pages and blog posts return 404 when the API is down or slow, which can get them de-indexed — banjaramatch.com/routes/index.js:1165
+[H] (web-routes-seo) Unpublished (draft) regional pages are publicly served and indexable — api.banjaramatch.com/controllers/cityRegionalPageController.js:426
+[H] (web-routes-seo) State pages never link to their city pages, and city pages never link back to their state — banjaramatch.com/views/pages/regional-page-state.ejs:968
+[H] (web-routes-seo) Fabricated aggregateRating (4.8 from 2847 ratings) in app-page schema — banjaramatch.com/views/pages/ai-matrimony-app.ejs:83
+[H] (web-routes-seo) Blog category listings link to posts through a 301 and show broken images — banjaramatch.com/views/pages/blog.ejs:158
+[H] (web-routes-seo) Placeholder phone number +91-9876-543-210 in Organization/LocalBusiness schema and visible pages — banjaramatch.com/views/pages/index.ejs:93
+[H] (web-perf-ui) Homepage and /blogs load multi-MB unresized blog PNG/JPG uploads — banjaramatch.com/views/pages/index.ejs:2256
+[H] (web-perf-ui) Decorative leaf PNGs (~756KB) downloaded on every page via header pseudo-elements — banjaramatch.com/public/css/style.min.css:1
+[H] (web-perf-ui) Google Fonts loaded via 5 serial @imports with broken '&amp;' so font-display:swap is never applied — banjaramatch.com/public/css/style.min.css:1
+[H] (web-perf-ui) Full-screen white preloader blocks content until deferred jQuery runs — banjaramatch.com/views/partials/header.ejs:2
+[H] (web-perf-ui) Fabricated phone number shown visibly and in structured data — banjaramatch.com/views/pages/index.ejs:1262
+[H] (web-perf-ui) Self-serving fabricated AggregateRating and contradictory stats across pages — banjaramatch.com/views/pages/ai-matrimony-app.ejs:83
+[H] (web-perf-ui) Header avatar always broken for logged-in users (wrong field name + missing default image) — banjaramatch.com/views/partials/header.ejs:162
+[H] (web-perf-ui) Blog category pages show broken images (relative src) — banjaramatch.com/views/pages/blog.ejs:129
+[H] (web-perf-ui) Ice-breaker game and app landing page reference non-existent JS files — banjaramatch.com/views/pages/ice-breaker-game.ejs:279
+[H] (web-perf-ui) Homepage hero search and 'Browse Profiles' nav go to auth-only, robots-disallowed /all-profiles and lose filters — banjaramatch.com/views/pages/index.ejs:435
+[H] (web-perf-ui) Auth JWT set by client JS (not HttpOnly) and logged in plaintext — banjaramatch.com/views/pages/register.ejs:308
+[H] (web-perf-ui) Registration can orphan a Firebase account, leaving the user unable to retry — banjaramatch.com/views/pages/register.ejs:274
+[C] (api-auth-security) OTP verification commented out: POST /api/auth/verify-otp logs in (or creates) any phone number with no OTP — api.banjaramatch.com/controllers/AuthController.js:750
+[C] (api-auth-security) Firebase login endpoints trust a client-supplied firebaseUid; token verification is optional — api.banjaramatch.com/controllers/AuthController.js:68
+[C] (api-auth-security) Unauthenticated settings mass-assignment plus APK download gives arbitrary file read (.env and JWT secret) — api.banjaramatch.com/routes/settingsRoute.js:13
+[C] (api-auth-security) Unauthenticated, unsigned POST /webhook runs git reset --hard on production — api.banjaramatch.com/index.js:106
+[C] (api-auth-security) App ports 4000/4001/4002 bound to 0.0.0.0 with firewall inactive, reachable directly from the internet — api.banjaramatch.com/index.js:121
+[C] (api-auth-security) Nearly all user endpoints lack auth and trust user_id from the body (IDOR): delete any account, edit any profile, grant verification and premium — api.banjaramatch.com/routes/userRoutes.js:13
+[C] (api-auth-security) Private chat messages readable by anyone with a roomId; chat rooms deletable by anyone — api.banjaramatch.com/controllers/UserController.js:3285
+[C] (api-auth-security) Socket.io has no authentication: a client can join as any userId and send messages as anyone — api.banjaramatch.com/socket.js:46
+[H] (api-auth-security) Password hashes and private contact fields returned in API responses — api.banjaramatch.com/models/User.js:77
+[H] (api-auth-security) NoSQL operator injection in login lookups (no sanitizeFilter) — api.banjaramatch.com/controllers/AuthController.js:81
+[H] (api-auth-security) Image upload trusts client MIME type and keeps the original extension; stored XSS on api domain can steal the JS-readable session cookie — api.banjaramatch.com/middleware/upload.js:24
+[H] (api-auth-security) Unprotected 'admin' endpoints in user router: banner creation, fake-user batch, mark top/highlighted — api.banjaramatch.com/routes/userRoutes.js:88
+[H] (api-auth-security) Community feedback admin endpoints unauthenticated, leaking submitter PII (confirmed live) — api.banjaramatch.com/routes/authRoute.js:44
+[H] (api-auth-security) JWT secret has a hardcoded fallback, is short, logout does not invalidate, and the token cookie is JS-readable — api.banjaramatch.com/middleware/adminAuth.js:4
+[H] (api-auth-security) Firebase service-account key, APNs .p8 key and config tracked in git; .env not ignored — api.banjaramatch.com/.gitignore:1
+[H] (api-auth-security) Blocked users (is_block=1) can still log in; adminAuth also ignores is_block — api.banjaramatch.com/controllers/AuthController.js:838
+[H] (api-auth-security) Photo upload/delete for arbitrary users — api.banjaramatch.com/controllers/UserController.js:4489
+[C] (api-business-logic-matching) OTP verification disabled: anyone can log in as any phone number — api.banjaramatch.com/controllers/AuthController.js:750
+[C] (api-business-logic-matching) firebase-login, firebase-register and complete-profile issue JWTs without verifying a Firebase token — api.banjaramatch.com/controllers/AuthController.js:441
+[C] (api-business-logic-matching) Identity taken from request body on nearly all user routes (IDOR) — api.banjaramatch.com/routes/userRoutes.js:13
+[C] (api-business-logic-matching) editProfile lets anyone grant premium, verification, or change phone/email/gender on any account — api.banjaramatch.com/controllers/UserController.js:276
+[C] (api-business-logic-matching) Any chat readable by roomId; socket identity is spoofable — api.banjaramatch.com/controllers/UserController.js:3295
+[C] (api-business-logic-matching) Matching endpoints return full user documents: password hash, device tokens, coordinates, phone/email — api.banjaramatch.com/controllers/UserController.js:3972
+[C] (api-business-logic-matching) Unauthenticated hard delete of any user — api.banjaramatch.com/controllers/UserController.js:1750
+[C] (api-business-logic-matching) Unauthenticated deploy webhook runs git reset --hard and restarts the wrong pm2 name — api.banjaramatch.com/index.js:109
+[C] (api-business-logic-matching) Admin-only actions exposed on the public user router — api.banjaramatch.com/routes/userRoutes.js:88
+[H] (api-business-logic-matching) Blocks are ignored in the main list, daily matches, nearby and trending (wrong block store) — api.banjaramatch.com/controllers/UserController.js:1891
+[H] (api-business-logic-matching) The blocked user can lift a block placed on them — api.banjaramatch.com/controllers/UserController.js:1640
+[H] (api-business-logic-matching) Opposite-gender rule fails for 'Not specified' users and is missing in nearby matches — api.banjaramatch.com/controllers/UserController.js:1897
+[H] (api-business-logic-matching) 'Match my preference' returns zero results whenever caste/gotra/qualification/profession prefs are set — api.banjaramatch.com/controllers/UserController.js:1991
+[H] (api-business-logic-matching) 'Match their preference' is a no-op because preferences are excluded from the query — api.banjaramatch.com/controllers/UserController.js:1940
+[H] (api-business-logic-matching) Income filters compare a field that does not exist — api.banjaramatch.com/controllers/UserController.js:1975
+[H] (api-business-logic-matching) No same-gotra exclusion (gotra exogamy) anywhere server-side — api.banjaramatch.com/controllers/UserController.js:4004
+[H] (api-business-logic-matching) Membership gating and expiry are not implemented — api.banjaramatch.com/controllers/UserController.js:3006
+[H] (api-business-logic-matching) Photo-view counters and privacy settings are never enforced — api.banjaramatch.com/controllers/UserController.js:1207
+[H] (api-business-logic-matching) sendInterestRequest: no self, block, banned-target or rate checks — api.banjaramatch.com/controllers/UserController.js:2411
+[H] (api-business-logic-matching) Admin-banned users (is_block=1) keep full access — api.banjaramatch.com/controllers/UserController.js:982
+[C] (api-chat-social-notify) Unauthenticated GitHub webhook runs `git reset --hard` on prod and would roll back 20 uncommitted security fixes — api.banjaramatch.com/index.js:106
+[C] (api-chat-social-notify) Socket identity is self-declared: any client can impersonate any user (send as them, read their notification counts, get their undelivered messages) — api.banjaramatch.com/socket.js:46
+[C] (api-chat-social-notify) Chat history of any two users is readable and deletable without auth (IDOR chain) — api.banjaramatch.com/controllers/UserController.js:3285
+[C] (api-chat-social-notify) Stored XSS: chat message content and names are rendered as raw HTML in the web chat — banjaramatch.com/views/pages/user-chat.ejs:721
+[C] (api-chat-social-notify) Async socket handlers without try/catch: a malformed ObjectId can cause an unhandled rejection and crash the API on Node 18 (not tested on prod) — api.banjaramatch.com/socket.js:146
+[C] (api-chat-social-notify) Community feedback submissions (name, email, phone, child-safety reports) are publicly listable and editable — api.banjaramatch.com/routes/authRoute.js:44
+[H] (api-chat-social-notify) Chat gating is bypassable: anyone can message anyone (pending room auto-created), and any socket can accept any room, which then unlocks calls — api.banjaramatch.com/socket.js:164
+[H] (api-chat-social-notify) Call token endpoint and call-control events trust client IDs; tokens are not bound to the CallLog channel — api.banjaramatch.com/controllers/CallController.js:22
+[H] (api-chat-social-notify) Contact-info filter silently drops ordinary messages (substring matches on 'wa', 'ig', 'fb') — api.banjaramatch.com/socket.js:591
+[H] (api-chat-social-notify) Presence and profile data broadcast to every connected socket, including blocked users — api.banjaramatch.com/socket.js:75
+[H] (api-chat-social-notify) Socket 'join' runs O(N) DB queries with three populates per online user on every connect — api.banjaramatch.com/socket.js:101
+[H] (api-chat-social-notify) Email templates inject user-controlled names as raw HTML; shortlist toggle allows unlimited emails — api.banjaramatch.com/services/emailService.js:103
+[H] (api-chat-social-notify) Editing a blog regenerates its slug from the title, which changes live URLs (404s, lost rankings) — api.banjaramatch.com/controllers/admin/blogController.js:273
+[H] (api-chat-social-notify) Unpublished (draft) regional pages are served publicly by slug — api.banjaramatch.com/controllers/cityRegionalPageController.js:426
+[H] (api-chat-social-notify) Regional page stats are always 0: query uses User fields that don't exist (isActive, isVerified) — api.banjaramatch.com/controllers/cityRegionalPageController.js:519
+[H] (api-chat-social-notify) Fabricated claims on state pages (verification with Aadhaar, success counts, member counts) — api.banjaramatch.com/controllers/stateRegionalPageController.js:505
+[H] (api-chat-social-notify) Unauthenticated admin-style user routes: add banners, create fake users, mark users as top — api.banjaramatch.com/routes/userRoutes.js:88
+[H] (api-chat-social-notify) Icebreaker game: spoofable userId, identity leaked before reveal, no block/gender filtering — api.banjaramatch.com/gamesocket.js:475
+[C] (admin-panel) Admin credentials hardcoded in publicly served test/debug pages — admin.banjaramatch.com/public/debug.html:48
+[C] (admin-panel) Stored XSS from public contact / feedback / beta-tester forms leads to admin JWT theft — admin.banjaramatch.com/public/contact-enquiries.html:381
+[C] (admin-panel) User-controlled profile fields rendered unescaped in admin (users, dashboard, user-detail, reports, photos) — admin.banjaramatch.com/public/users.html:479
+[C] (admin-panel) Community feedback list/update endpoints are unauthenticated (PII exposed) — api.banjaramatch.com/routes/authRoute.js:44
+[C] (admin-panel) Unauthenticated settings mass-assignment combined with public download-apk allows arbitrary file read and APK hijack — api.banjaramatch.com/routes/settingsRoute.js:13
+[C] (admin-panel) "Admin APIs" in userRoutes have no auth (banner add, fake user batch, mark-top) — api.banjaramatch.com/routes/userRoutes.js:87
+[H] (admin-panel) Admin user-detail API returns password hash and users.html displays it — admin.banjaramatch.com/public/users.html:614
+[H] (admin-panel) Users page verification/status filters are silently ignored (param name mismatch) — admin.banjaramatch.com/public/users.html:415
+[H] (admin-panel) Admin 'Block' does not stop the user: no is_block check at login or in auth middleware — api.banjaramatch.com/middleware/authMiddleware.js:13
+[H] (admin-panel) Admin user detail/activity/delete query wrong schema fields — api.banjaramatch.com/controllers/admin/userController.js:100
+[H] (admin-panel) Settings page is mostly fake: no-op save, fake password change, bulk ops hit non-existent endpoints — admin.banjaramatch.com/public/settings.html:190
+[H] (admin-panel) Logout broken on several pages (wrong localStorage key, 404 redirect, cookie not cleared) — admin.banjaramatch.com/public/city-pages.html:900
+[H] (admin-panel) No rate limit on admin login; role is checked before the password (admin enumeration) — api.banjaramatch.com/controllers/admin/authController.js:35
+[C] (flutter-app) App sends user_id + is_verified to unauthenticated /api/editProfile, so anyone can edit any profile and self-verify or upgrade membership — api.banjaramatch.com/routes/userRoutes.js:13
+[C] (flutter-app) Release keystore, key.properties and a vendor PKCS12 keystore ('orange') sit in the app tree, and 'orange' is not gitignored — banjaramatch.com/banjaramatch_app/orange:1
+[H] (flutter-app) Firestore rules in the tree allow anyone to read and write, and the app still writes block state to Firestore — banjaramatch.com/banjaramatch_app/android/firestore.rules:4
+[H] (flutter-app) iOS and Android point at different Firebase projects — banjaramatch.com/banjaramatch_app/ios/Runner/GoogleService-Info.plist:1
+[H] (flutter-app) 59 endpoint constants call routes the API does not serve (template leftovers) — banjaramatch.com/banjaramatch_app/lib/utilities/web_service.dart:22
+[H] (flutter-app) API host hardcoded in three places; moving it breaks every installed app — banjaramatch.com/banjaramatch_app/lib/utilities/const.dart:5
+[H] (flutter-app) Android App Links autoVerify targets banjaramatch.com but assetlinks.json returns 404; Branch keys are placeholders — banjaramatch.com/banjaramatch_app/android/app/src/main/AndroidManifest.xml:45
+[C] (infra-deploy) Unauthenticated POST /webhook on public API runs git reset --hard + git pull — api.banjaramatch.com/index.js:106
+[C] (infra-deploy) Secrets committed to git (DB config, Firebase service account, APNs key) — api.banjaramatch.com/config.json:1
+[C] (infra-deploy) Production API runs uncommitted code; any git reset --hard or fresh clone loses it — api.banjaramatch.com/index.js:91
+[C] (infra-deploy) No backups of Mongo 'aasd' or uploads — /etc/cron.d/certbot:1
+[H] (infra-deploy) Firewall inactive; app ports 4000/4001/4002 bound to all interfaces — banjaramatch.com/app.js:187
+[H] (infra-deploy) User profile photos and APK committed to git — api.banjaramatch.com/uploads/apk/BanjaraMatch_vapp_1768409111561.apk:1
+[H] (infra-deploy) Android release keystore and passwords in an untracked plain copy; .gitignore does not exclude them — banjaramatch.com/banjaramatch_app/android/key.properties:1
+[H] (infra-deploy) No pm2 log rotation; logs grow unbounded — /root/.pm2/logs/banjaramatch-web-out.log:1
+[H] (infra-deploy) API mutates a hard-coded user's gender on every boot — api.banjaramatch.com/index.js:102
+[C] (live-crawl-audit) Reflected XSS via /blogs/:category breaking out of JSON-LD script (no CSP on www) — banjaramatch.com/views/pages/blog.ejs:47
+[C] (live-crawl-audit) Public admin debug/test pages contain hardcoded admin credentials — admin.banjaramatch.com/public/debug.html:49
+[C] (live-crawl-audit) Unauthenticated API routes: updateSettings mass-assignment and deleteUser of any user_id — api.banjaramatch.com/routes/settingsRoute.js:13
+[H] (live-crawl-audit) Soft 404: any /blogs/<anything> returns 200 with self-canonical — banjaramatch.com/routes/index.js:566
+[H] (live-crawl-audit) Blog dateModified and regional sitemap lastmod change on every page view — banjaramatch.com/views/pages/blog-detail.ejs:38
+[H] (live-crawl-audit) Broken internal links (404) from home, about, contact, child-safety pages — banjaramatch.com/views/pages/index.ejs:2542
+[C] (web-user-area) JWT signing secret is the public default 'your_jwt_secret' on both web and API, so anyone can forge user or admin tokens — banjaramatch.com/routes/index.js:7
+[C] (web-user-area) Firebase login and register endpoints only verify the Firebase ID token if one is sent, so leaving it out allows takeover of any account — api.banjaramatch.com/controllers/AuthController.js:67
+[C] (web-user-area) Nearly all user endpoints have no auth and trust my_user_id/user_id from the request body; the web relies on this (the dashboard server sends no token) — api.banjaramatch.com/routes/userRoutes.js:13
+[C] (web-user-area) Stored XSS: chat messages, names and notification text go into innerHTML with no escaping, while the auth cookie is readable by JS, there is no CSP, and the cookie is shared with the admin subdomain — banjaramatch.com/views/pages/user-chat.ejs:721
+[C] (web-user-area) Socket.IO server is unauthenticated: a client can join as any userId and send messages as anyone — api.banjaramatch.com/socket.js:46
+[H] (web-user-area) Live JWTs and user PII are written to pm2 logs (thousands of tokens on disk) — banjaramatch.com/routes/index.js:151
+[H] (web-user-area) Privacy settings are saved but never enforced; profile pages always show photos, income and location — banjaramatch.com/views/pages/user-setting.ejs:168
+[H] (web-user-area) fetchProfile ignores block lists, notifies the blocker of the blocked user's visit, and returns secret fields — api.banjaramatch.com/controllers/UserController.js:981
+[H] (web-user-area) Client-only rules: gender lock and 18+ DOB are enforced only in HTML; the API accepts any gender and DOB — banjaramatch.com/views/pages/onboarding.ejs:529
+[H] (web-user-area) Registration dead end: the Firebase account is created before the backend call, so a duplicate phone leaves the user stuck — banjaramatch.com/views/pages/register.ejs:274
+[H] (web-user-area) /thank-you fires Google Ads conversions on every visit (no session middleware) and the register flow double-counts — banjaramatch.com/routes/index.js:497
+[H] (web-user-area) Every page blocks on API calls with no timeout; any API slowness hangs the whole site or logs users out — banjaramatch.com/routes/index.js:22
+[C] (gap:api-uncovered-controllers-scripts) Unauthenticated arbitrary file read via /api/updateSettings + /api/download-apk — api.banjaramatch.com/routes/settingsRoute.js:37
+[C] (gap:api-uncovered-controllers-scripts) Attacker-set apk.filePath gets unlinked when an admin uploads or deletes the APK (arbitrary file delete) — api.banjaramatch.com/routes/adminRoutes.js:81
+[C] (gap:api-uncovered-controllers-scripts) Public, unsigned /webhook runs git reset --hard and would undo the security fixes on disk — api.banjaramatch.com/index.js:109
+[C] (gap:api-uncovered-controllers-scripts) seed.js wipes Caste/Gotra (orphaning every user's gotra) and resets all chat rooms to pending — api.banjaramatch.com/seed.js:457
+[H] (gap:api-uncovered-controllers-scripts) scripts/seedClans.js drops all clans and unsets clan on every gotra, and re-creates Banoth/Turi — api.banjaramatch.com/scripts/seedClans.js:503
+[H] (gap:api-uncovered-controllers-scripts) Community feedback list and update endpoints have no auth (marked 'Admin only') — api.banjaramatch.com/routes/authRoute.js:44
+[H] (gap:api-uncovered-controllers-scripts) AI bio generation lets anyone overwrite any user's bio (IDOR, no auth) — api.banjaramatch.com/controllers/AboutController.js:62
+[H] (gap:api-uncovered-controllers-scripts) User reports can be spoofed and flooded, and app 'reportStatus' reports never reach the admin queue — api.banjaramatch.com/controllers/UserController.js:5218
+[C] (gap:regional-and-blog-verification) Reflected XSS: blog category URL value breaks out of the JSON-LD <script> block — banjaramatch.com/views/pages/blog.ejs:47
+[H] (gap:regional-and-blog-verification) State pages have no crawlable links to their city pages; cities exist only as <option> values — banjaramatch.com/views/pages/regional-page-state.ejs:968
+[H] (gap:regional-and-blog-verification) City pages have no breadcrumb or link back to their state page, and sibling cities are not rendered — banjaramatch.com/views/pages/regional-page-city.ejs:153
+[H] (gap:regional-and-blog-verification) Regional stats are always 0 (User has no isActive) and every page shows the same hardcoded fallback numbers — api.banjaramatch.com/controllers/cityRegionalPageController.js:519
+[C] (gap:web-unread-pages-and-assets) API uses the public default JWT secret 'your_jwt_secret'; web also falls back to it — banjaramatch.com/routes/index.js:7
+[C] (gap:web-unread-pages-and-assets) Community feedback API has no auth on GET/PUT (marked 'Admin only') and leaks PII; public page renders names unescaped (stored XSS) — banjaramatch.com/views/pages/community-feedback.ejs:589
+[C] (gap:web-unread-pages-and-assets) Child Safety (CSAE) report form posts to an API route that does not exist — banjaramatch.com/views/pages/child-safety-policy.ejs:512
+[H] (gap:web-unread-pages-and-assets) Any non-whitelisted Origin header causes HTTP 500 on every route (no error handler) — banjaramatch.com/app.js:49
+[H] (gap:web-unread-pages-and-assets) Legal pages show placeholder phone numbers, no named Grievance Officer, and five different contact emails — banjaramatch.com/views/pages/privacy-policy.ejs:340
+[H] (gap:web-unread-pages-and-assets) Legal text contradicts the 'free' product and the deletion process — banjaramatch.com/views/pages/terms-conditions.ejs:327
+[H] (gap:web-unread-pages-and-assets) Privacy policy omits precise GPS location and Google Ads tracking; no cookie consent — banjaramatch.com/views/pages/privacy-policy.ejs:88
+[H] (gap:web-unread-pages-and-assets) Registration conversions fire 2-3 times (inflates Google Ads and GA4, distorts bidding spend) — banjaramatch.com/views/pages/thank-you.ejs:41
+[H] (gap:web-unread-pages-and-assets) ensureAuth writes full JWTs and user profile responses to pm2 logs — banjaramatch.com/routes/index.js:151
+[H] (gap:flutter-api-contract) Logout keeps the JWT and user record, and the next launch reconnects the socket as the logged-out user — banjaramatch.com/banjaramatch_app/lib/screens/setting_screen/setting_controller.dart:93
+[H] (gap:flutter-api-contract) The update prompt never appears for users whose fetchProfile call fails, so a forced update cannot reach them — banjaramatch.com/banjaramatch_app/lib/screens/splash_screen/splash_controller.dart:46
+[H] (gap:flutter-api-contract) The app can send is_verified 0 or 3 to editProfile, and the API writes it to the user record — banjaramatch.com/banjaramatch_app/lib/common/managers/subscription_manager.dart:60
+[C] (gap:infra-runtime-evidence) No backups of Mongo 'aasd' or the uploads directory — /etc/cron.d/:0
+[H] (gap:infra-runtime-evidence) ChatRoom unique index never built, so there is no protection against duplicate 1:1 rooms — api.banjaramatch.com/models/ChatRoom.js:18
+[H] (gap:infra-runtime-evidence) Socket handlers have no try/catch and there is no unhandledRejection handler (latent crash risk) — api.banjaramatch.com/socket.js:146
+[H] (gap:infra-runtime-evidence) Plaintext admin password stored in ADMIN_CREDENTIALS.md — admin.banjaramatch.com/ADMIN_CREDENTIALS.md:10
+[H] (gap:infra-runtime-evidence) API .env is untracked and not ignored; APNs .p8 key is committed to git — api.banjaramatch.com/.gitignore:2

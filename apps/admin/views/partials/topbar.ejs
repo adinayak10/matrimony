@@ -1,0 +1,22 @@
+<header class="topbar">
+  <div class="topbar__left">
+    <button type="button" class="btn btn--icon btn--ghost topbar__menu" data-sidebar-toggle aria-controls="sidebar" aria-expanded="false" aria-label="Open menu">
+      <%- icon('menu', { size: 22 }) %>
+    </button>
+    <h1 class="topbar__title"><%= title %></h1>
+  </div>
+  <div class="topbar__right">
+    <% if (admin) { %>
+      <div class="topbar__user" title="<%= admin.email %>">
+        <span class="avatar avatar--sm" aria-hidden="true"><%= (admin.full_name || admin.email || '?').trim().charAt(0).toUpperCase() %></span>
+        <span class="topbar__name"><%= admin.full_name || admin.email %></span>
+      </div>
+      <form method="post" action="/auth/logout" class="topbar__logout" data-logout>
+        <button type="submit" class="btn btn--secondary btn--sm">
+          <%- icon('log-out', { size: 16 }) %>
+          <span>Log out</span>
+        </button>
+      </form>
+    <% } %>
+  </div>
+</header>

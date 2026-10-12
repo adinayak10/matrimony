@@ -1,0 +1,4 @@
+# /etc/cron.d/banjaramatch-backup - nightly local backup (21:00 UTC = 02:30 IST)
+SHELL=/bin/bash
+PATH=/root/.nvm/versions/node/v22.23.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 21 * * * root bash /var/www/banjaramatch/deploy/backup.sh >> /var/www/banjaramatch-shared/logs/backup.log 2>&1

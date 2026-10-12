@@ -1,0 +1,111 @@
+<%#
+  <head> contents for every page (D3.24 meta contract).
+
+  A route renders with  meta: { title, description, canonical?, robots?,
+  ogType?, ogImage?, keywords?, jsonLd?: object[], prev?, next?, pageCategory?,
+  noAnalytics?, noOrganization?, styles?: string[], scripts?: string[] }
+  and this partial merges it over res.locals.metaDefaults (middleware/seoDefaults.js).
+  Legacy pages that still pass only `title` keep working.
+
+  Usage, from a page:
+    <!doctype html>
+    <html lang="en-IN">   (site.lang)
+    <head> include('../partials/head') via an unescaped EJS tag, then page-specific <style> </head>
+
+  Requires app.locals: site, jsonLd, asset (utils/assets.js).
+%>
+<%
+  const _d = (typeof metaDefaults !== 'undefined' && metaDefaults) || {};
+  const _m = Object.assign({ jsonLd: [] }, _d, (typeof meta !== 'undefined' && meta) || {});
+  const _site = (typeof site !== 'undefined' && site) || { name: 'BanjaraMatch', url: 'https://www.banjaramatch.com', defaultImage: '/images/banjara-matrimony-cover.jpg', themeColor: '#f6af04' };
+  const _abs = (p) => (!p ? '' : /^https?:\/\//i.test(p) ? p : _site.url + (p.startsWith('/') ? p : '/' + p));
+  let _title = String(_m.title || (typeof title !== 'undefined' && title) || _site.name).trim();
+  if (!/banjaramatch/i.test(_title)) _title += ' | BanjaraMatch';
+  if (process.env.NODE_ENV !== 'production' && _title.length > 60) console.warn('[head] title > 60 chars:', _title);
+  const _desc = String(_m.description || '').trim();
+  const _canonical = _m.canonical ? _abs(_m.canonical) : '';
+  const _ogImage = _abs(_m.ogImage || _site.defaultImage);
+  const _keywords = Array.isArray(_m.keywords) ? _m.keywords.join(', ') : (_m.keywords || '');
+  const _assets = (typeof asset === 'function') ? asset : (p) => '/' + String(p).replace(/^\/+/, '');
+  const _built = typeof assetsBuilt === 'boolean' ? assetsBuilt : !/^\/css\//.test(_assets('css/site.css'));
+  const _requireConsent = /^(1|true|yes)$/i.test(process.env.REQUIRE_COOKIE_CONSENT || '');
+  const _blocks = [];
+  if (!_m.noOrganization && _site.organizationJsonLd) _blocks.push(_site.organizationJsonLd);
+  for (const b of (Array.isArray(_m.jsonLd) ? _m.jsonLd : [_m.jsonLd])) if (b) _blocks.push(b);
+%>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title><%= _title %></title>
+<% if (_desc) { %><meta name="description" content="<%= _desc %>"><% } %>
+<meta name="robots" content="<%= _m.robots || 'index, follow, max-image-preview:large' %>">
+<% if (_keywords) { %><meta name="keywords" content="<%= _keywords %>"><% } %>
+<% if (_canonical) { %><link rel="canonical" href="<%= _canonical %>"><% } %>
+<% if (_m.prev) { %><link rel="prev" href="<%= _abs(_m.prev) %>"><% } %>
+<% if (_m.next) { %><link rel="next" href="<%= _abs(_m.next) %>"><% } %>
+<meta name="theme-color" content="<%= _site.themeColor || '#f6af04' %>">
+<% if (process.env.GOOGLE_SITE_VERIFICATION) { %><meta name="google-site-verification" content="<%= process.env.GOOGLE_SITE_VERIFICATION %>"><% } %>
+
+<meta property="og:site_name" content="<%= _site.name %>">
+<meta property="og:type" content="<%= _m.ogType || 'website' %>">
+<meta property="og:locale" content="<%= _site.locale || 'en_IN' %>">
+<meta property="og:title" content="<%= _title %>">
+<% if (_desc) { %><meta property="og:description" content="<%= _desc %>"><% } %>
+<% if (_canonical) { %><meta property="og:url" content="<%= _canonical %>"><% } %>
+<meta property="og:image" content="<%= _ogImage %>">
+<meta property="og:image:alt" content="<%= _m.ogImageAlt || _title %>">
+<meta name="twitter:card" content="summary_large_image">
+<% if (_site.twitter) { %><meta name="twitter:site" content="<%= _site.twitter %>"><% } %>
+<meta name="twitter:title" content="<%= _title %>">
+<% if (_desc) { %><meta name="twitter:description" content="<%= _desc %>"><% } %>
+<meta name="twitter:image" content="<%= _ogImage %>">
+
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="shortcut icon" href="/images/fav.ico" type="image/x-icon">
+<% if (typeof assetFileExists === 'function' && assetFileExists('apple-touch-icon.png')) { %><link rel="apple-touch-icon" href="/apple-touch-icon.png"><% } %>
+<link rel="manifest" href="/site.webmanifest">
+
+<%# Resource hints: only hosts the first paint needs. %>
+<link rel="dns-prefetch" href="https://www.googletagmanager.com">
+<% if (!_built) { %>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<% } %>
+<% for (const h of (_m.hints || [])) { %><%- include('./_hint', { h }) %><% } %>
+
+<%# Fonts and the single built stylesheet (build/build.js); legacy files until the build has run. %>
+<% if (_built) { %>
+<%   for (const w of ['400', '600']) { const f = 'fonts/poppins-latin-' + w + '-normal.woff2'; if (typeof assetHas === 'function' ? assetHas(f) : false) { %>
+<link rel="preload" as="font" type="font/woff2" href="<%= _assets(f) %>" crossorigin>
+<%   } } %>
+<link rel="stylesheet" href="<%= _assets('css/site.css') %>">
+<% } else { %>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="/css/bootstrap.css">
+<link rel="stylesheet" href="/css/font-awesome.min.css">
+<link rel="stylesheet" href="/css/animate.min.css">
+<link rel="stylesheet" href="/css/style.min.css">
+<% } %>
+<% for (const href of (_m.styles || [])) { %><link rel="stylesheet" href="<%= href %>"><% } %>
+
+<%# Structured data: the Organization once, then the page's own blocks. jsonLd() escapes (utils/jsonLd.js). %>
+<% for (const block of _blocks) { %>
+<%- jsonLd(block) %>
+<% } %>
+
+<%#
+  Consent Mode before any tag (partials/consent-banner.ejs stores the answer in
+  the bm_consent cookie). With REQUIRE_COOKIE_CONSENT unset, consent is granted
+  by default and no banner is shown; set it to 1 to default to denied.
+%>
+<% if (!_m.noAnalytics) { %>
+<script>
+window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
+window.bmConsentRequired=<%- safeJson(_requireConsent) %>;
+(function(){var m=/(?:^|;\s*)bm_consent=(granted|denied)/.test(document.cookie)?RegExp.$1:null;
+var def=window.bmConsentRequired?'denied':'granted';
+gtag('consent','default',{analytics_storage:def,ad_storage:def,ad_user_data:def,ad_personalization:def,wait_for_update:500});
+window.bmConsent=m||(window.bmConsentRequired?null:'granted');
+if(m&&m!==def)gtag('consent','update',{analytics_storage:m,ad_storage:m,ad_user_data:m,ad_personalization:m});})();
+</script>
+<%- include('./analytics', { pageCategory: _m.pageCategory }) %>
+<% } %>

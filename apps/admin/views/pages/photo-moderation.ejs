@@ -1,0 +1,18 @@
+<section class="card">
+  <div class="card__header card__header--stack">
+    <%- include('../partials/table-toolbar', {
+      id: 'photo-filters',
+      search: false,
+      filters: [
+        { name: 'status', label: 'Status', value: 'pending', options: [
+          { value: 'pending', label: 'Pending' }, { value: 'all', label: 'All' }, { value: 'approved', label: 'Approved' }, { value: 'rejected', label: 'Rejected' }
+        ] }
+      ]
+    }) %>
+    <p class="form-help" data-photo-summary></p>
+  </div>
+  <div class="card__body">
+    <div class="photo-grid" id="photo-grid" aria-live="polite" aria-busy="true"></div>
+    <div id="photo-pagination" class="pagination-mount"></div>
+  </div>
+</section>

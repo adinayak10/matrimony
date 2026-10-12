@@ -1,0 +1,55 @@
+<section class="stats-grid" aria-label="Key numbers">
+  <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('users') %></div><div><div class="stat__value" data-stat="totalUsers">&ndash;</div><div class="stat__label">Total users</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('activity') %></div><div><div class="stat__value" data-stat="activeUsers">&ndash;</div><div class="stat__label" data-stat-label="activeUsers">Not blocked</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--info"><%- icon('check-circle') %></div><div><div class="stat__value" data-stat="verifiedUsers">&ndash;</div><div class="stat__label">Verified</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--danger"><%- icon('slash') %></div><div><div class="stat__value" data-stat="blockedUsers">&ndash;</div><div class="stat__label">Blocked</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('user-plus') %></div><div><div class="stat__value" data-stat="recentUsers">&ndash;</div><div class="stat__label">New in last 7 days</div></div></div>
+</section>
+
+<div class="grid grid--2-1">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">New signups, last 30 days</h2></div>
+    <div class="card__body">
+      <figure class="chart" id="chart-growth" data-chart="growth" aria-label="New signups per day, last 30 days">
+        <div class="chart__plot" data-chart-plot></div>
+        <figcaption class="chart__caption sr-only" data-chart-caption></figcaption>
+        <p class="empty empty--inline" data-chart-empty hidden>Not enough signup data yet.</p>
+      </figure>
+      <details class="chart__table">
+        <summary>Show as table</summary>
+        <div class="table-wrap"><table class="table table--compact" data-chart-table><caption class="sr-only">Signups per day</caption><thead><tr><th scope="col">Day</th><th scope="col" class="num">Signups</th></tr></thead><tbody></tbody></table></div>
+      </details>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">Engagement, last 7 days</h2></div>
+    <div class="card__body">
+      <figure class="chart" id="chart-engagement" data-chart="engagement" aria-label="Engagement in the last 7 days">
+        <div class="chart__plot" data-chart-plot></div>
+        <p class="empty empty--inline" data-chart-empty hidden>Not enough activity data yet.</p>
+      </figure>
+    </div>
+  </section>
+</div>
+
+<div class="grid grid--2">
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">Members by gender</h2></div>
+    <div class="card__body"><div class="bars" data-bars="gender"></div></div>
+  </section>
+  <section class="card">
+    <div class="card__header"><h2 class="card__title">Activity totals</h2></div>
+    <div class="card__body"><div class="bars" data-bars="activity"></div></div>
+  </section>
+</div>
+
+<section class="card">
+  <div class="card__header">
+    <h2 class="card__title">Recent signups</h2>
+    <a class="btn btn--secondary btn--sm" href="/users">All users</a>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="recent-users" data-table-mount></div>
+  </div>
+</section>

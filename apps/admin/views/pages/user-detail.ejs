@@ -1,0 +1,47 @@
+<div class="page-user" data-user-id="<%= userId %>">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/users">Users</a><span aria-hidden="true">/</span><span data-user-crumb>User</span>
+  </nav>
+
+  <section class="card user-head" id="user-head">
+    <div class="user-head__main" data-user-head>
+      <div class="skeleton skeleton--avatar"></div>
+      <div class="user-head__text"><div class="skeleton skeleton--text" style="width:40%"></div><div class="skeleton skeleton--text" style="width:60%"></div></div>
+    </div>
+    <div class="user-head__actions" data-user-actions hidden>
+      <button type="button" class="btn btn--secondary btn--sm" data-action="edit"><%- icon('edit', { size: 16 }) %><span>Edit</span></button>
+      <button type="button" class="btn btn--secondary btn--sm" data-action="verify" data-verify-btn>Verify</button>
+      <button type="button" class="btn btn--secondary btn--sm" data-action="block" data-block-btn>Block</button>
+      <button type="button" class="btn btn--secondary btn--sm" data-action="reset-password">Reset password</button>
+      <button type="button" class="btn btn--danger btn--sm" data-action="delete"><%- icon('trash', { size: 16 }) %><span>Delete</span></button>
+    </div>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="User sections" data-tabs>
+    <button class="tab is-active" role="tab" type="button" id="tab-profile" aria-selected="true" aria-controls="panel-profile" data-tab="profile">Profile</button>
+    <button class="tab" role="tab" type="button" id="tab-photos" aria-selected="false" aria-controls="panel-photos" data-tab="photos" tabindex="-1">Photos <span class="tab__count" data-count="photos"></span></button>
+    <button class="tab" role="tab" type="button" id="tab-activity" aria-selected="false" aria-controls="panel-activity" data-tab="activity" tabindex="-1">Activity</button>
+    <button class="tab" role="tab" type="button" id="tab-blocks" aria-selected="false" aria-controls="panel-blocks" data-tab="blocks" tabindex="-1">Blocks</button>
+    <button class="tab" role="tab" type="button" id="tab-reports" aria-selected="false" aria-controls="panel-reports" data-tab="reports" tabindex="-1">Reports</button>
+    <button class="tab" role="tab" type="button" id="tab-membership" aria-selected="false" aria-controls="panel-membership" data-tab="membership" tabindex="-1">Membership</button>
+  </div>
+
+  <section class="card tab-panel" id="panel-profile" role="tabpanel" aria-labelledby="tab-profile" data-panel="profile">
+    <div class="card__body" data-panel-body><div class="skeleton skeleton--row"></div><div class="skeleton skeleton--row"></div><div class="skeleton skeleton--row"></div></div>
+  </section>
+  <section class="card tab-panel" id="panel-photos" role="tabpanel" aria-labelledby="tab-photos" data-panel="photos" hidden>
+    <div class="card__body" data-panel-body></div>
+  </section>
+  <section class="card tab-panel" id="panel-activity" role="tabpanel" aria-labelledby="tab-activity" data-panel="activity" hidden>
+    <div class="card__body card__body--flush" data-panel-body></div>
+  </section>
+  <section class="card tab-panel" id="panel-blocks" role="tabpanel" aria-labelledby="tab-blocks" data-panel="blocks" hidden>
+    <div class="card__body card__body--flush" data-panel-body></div>
+  </section>
+  <section class="card tab-panel" id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" data-panel="reports" hidden>
+    <div class="card__body card__body--flush" data-panel-body></div>
+  </section>
+  <section class="card tab-panel" id="panel-membership" role="tabpanel" aria-labelledby="tab-membership" data-panel="membership" hidden>
+    <div class="card__body" data-panel-body></div>
+  </section>
+</div>

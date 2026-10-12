@@ -1,0 +1,78 @@
+# Gates that run on every pull request and on manual dispatch.
+#
+# Production is NOT deployed from here: a push to `main` deploys the server by
+# itself (GitHub push webhook -> deploy/webhook-listener.js -> deploy/deploy.sh,
+# with health check and rollback). The Flutter app is built on the laptop
+# (apps/mobile/README.md), never here.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A newer push to the same ref supersedes the run in flight.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node:
+    name: Node (lint, env examples, tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      # Every key the code reads must be documented in apps/*/.env.example
+      # and deploy/.env.example (deploy/check-env.js --examples).
+      - run: npm run check:env -- --examples
+
+      # node:test boot tests in apps/*/test/ (every module loads without Mongo).
+      - run: npm test --workspaces --if-present
+
+  secrets:
+    name: Secrets (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # gitleaks scans the pushed commit range, so it needs the history.
+          fetch-depth: 0
+
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: ${{ github.workspace }}/.gitleaks.toml
+          # Only needed if the repository ever moves under a GitHub organization.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+  # Advisory until analysis_options.yaml is cleaned up (Track D); a red
+  # analyze never blocks a merge or a deploy.
+  flutter:
+    name: Flutter (analyze)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter analyze
