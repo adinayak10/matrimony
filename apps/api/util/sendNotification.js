@@ -15,6 +15,8 @@ async function sendPushNotification(token, title, body, data = {}) {
     android: {
       priority: 'high',
       notification: {
+        title: String(title || ''), // without a title Android may show a blank entry
+        body: String(body || ''),
         sound: 'default',
         channelId: 'chatter', // should match the one used in the app
         clickAction: 'FLUTTER_NOTIFICATION_CLICK',

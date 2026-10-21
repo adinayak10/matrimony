@@ -5,9 +5,9 @@
 //   sendToTopic(topic, title, body, data)    FCM topic the app subscribes to at startup
 //   broadcast({ title, body, data, platform }) 'all' | 'android' | 'ios' -> [{ topic, messageId|error }]
 //
-// Payload rules mirror util/sendNotification.js and the app's own topic format
-// (apps/mobile/lib/common/api_service/notification_service.dart): Android gets a
-// data message (the app renders it), iOS also gets a `notification` block.
+// Payload: data (all strings) + android.notification with title/body (the system
+// shows it in the background; the app skips its own copy) + an APNs alert.
+// `type: 'call'` is data-only on Android so the app can show a full-screen call UI.
 // Every data value is stringified (FCM rejects non-string data values).
 // Nothing here throws: callers get { ok, error } and carry on. Under NODE_ENV=test
 // ../firebase.js is a stub whose messaging().send() throws, so results are ok:false.
@@ -29,18 +29,23 @@ function stringData(data = {}, title, body) {
 }
 
 function baseMessage(title, body, data, { withNotification = true } = {}) {
+  const t = String(title || '');
+  const b = String(body || '');
   const msg = {
     data: stringData(data, title, body),
     android: {
       priority: 'high',
-      notification: { sound: 'default', channelId: 'chatter', clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
+      // With a title the system shows it while the app is in the background and the
+      // app (>= 1.1.0) skips its own copy; without one Android may show a blank entry.
+      notification: { title: t, body: b, sound: 'default', channelId: 'chatter', clickAction: 'FLUTTER_NOTIFICATION_CLICK' },
     },
     apns: {
       headers: { 'apns-priority': '10' },
       payload: { aps: { alert: { title: String(title || ''), body: String(body || '') }, sound: 'default' } },
     },
   };
-  if (!withNotification) delete msg.android.notification;
+  // Calls are data-only on Android: the app builds its own full-screen call notification.
+  if (!withNotification || (data && data.type === 'call')) delete msg.android.notification;
   return msg;
 }
 
@@ -78,8 +83,7 @@ async function sendToUser(userOrId, title, body, data = {}) {
 
 async function sendToTopic(topic, title, body, data = {}) {
   const isIos = topic === TOPIC_IOS;
-  // Android topic: data-only so the app shows it through its own channel.
-  return send({ topic, ...baseMessage(title, body, data, { withNotification: isIos }), ...(isIos ? { notification: { title: String(title || ''), body: String(body || '') } } : {}) });
+  return send({ topic, ...baseMessage(title, body, data), ...(isIos ? { notification: { title: String(title || ''), body: String(body || '') } } : {}) });
 }
 
 function topicsFor(platform) {
