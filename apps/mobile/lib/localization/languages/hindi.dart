@@ -1,6 +1,9 @@
+import 'package:banjaramatch/localization/features/app_strings.dart';
+import 'package:banjaramatch/localization/features/call_strings.dart';
+import 'package:banjaramatch/localization/features/match_strings.dart';
 import 'package:banjaramatch/localization/languages.dart';
 
-const hindiStrings = {
+final Map<String, String> hindiStrings = {
   LKeys.textChatDedicated: 'टेक्स्ट चैट समर्पित',
   LKeys.socialMedia: 'सामाजिक मीडिया',
   LKeys.chatRoom: 'चैट रूम',
@@ -255,4 +258,12 @@ const hindiStrings = {
   LKeys.method2: '',
   LKeys.method1: '',
   LKeys.pleaseConfigureSubscription: '',
+  // 1.1.0 feature strings: English first, Hindi overrides (map is `final`, not
+  // `const`, because the En/Hi spreads share keys)
+  ...appStringsEn,
+  ...appStringsHi,
+  ...matchStringsEn,
+  ...matchStringsHi,
+  ...callStringsEn,
+  ...callStringsHi,
 };

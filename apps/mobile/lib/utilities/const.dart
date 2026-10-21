@@ -12,18 +12,13 @@ const String privacyURL = "${baseURL}privacyPolicy";
 const String helpURL = "https://www.banjaramatch.com/contact";
 const String notificationTopic = "banjaramatch";
 
-const String revenuecatAppleApiKey = 'your_ios_revenuecat_api_key';
-const String revenuecatAndroidApiKey = '';
-
 const String contactEmail = 'yourContactMail';
 
 class Limits {
   static int username = 20;
-  static int roomDescCount = 120;
   static int bioCount = 120;
   static int interestCount = 5;
   static int pagination = 10;
-  static int storyDuration = 3;
 
   static double imageSize = 720;
   static int quality = 100;

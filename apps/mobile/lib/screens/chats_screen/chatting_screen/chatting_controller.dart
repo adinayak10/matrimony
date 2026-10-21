@@ -4,22 +4,17 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:banjaramatch/common/api_service/room_service.dart';
 import 'package:banjaramatch/common/api_service/user_service.dart';
 import 'package:banjaramatch/common/managers/session_manager.dart';
 import 'package:banjaramatch/models/chat.dart';
-import 'package:banjaramatch/models/invitations_model.dart';
 import 'package:banjaramatch/models/model_chat_messages.dart';
 import 'package:banjaramatch/models/model_chat_room_list.dart';
 import 'package:banjaramatch/models/registration.dart';
-import 'package:banjaramatch/models/room_model.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/block_user_controller.dart';
 import 'package:banjaramatch/screens/chats_screen/socketservice.dart';
 import 'package:banjaramatch/utilities/web_service.dart';
 
 import '../../../common/api_service/api_service.dart';
-import '../../../utilities/firebase_const.dart';
 
 class ChattingController extends BlockUserController {
   ScrollController scrollController = ScrollController();
@@ -27,7 +22,6 @@ class ChattingController extends BlockUserController {
   List<ChatMessage> messages = [];
   ChatUserRoom? chatUserRoom;
   ChatUserRoom? myChatRoom;
-  Room? room;
   User? user;
   bool isTyping = false;
   User? myUser = SessionManager.shared.getUser();
@@ -38,17 +32,9 @@ class ChattingController extends BlockUserController {
   bool hasMore = true;
   ChatRoom? chatRoom;
 
-  ChattingController({this.room, this.user, ChatUserRoom? chatUserRoom, this.chatRoom}) {
+  ChattingController({this.user, ChatUserRoom? chatUserRoom, this.chatRoom}) {
     if (chatUserRoom != null) {
       this.chatUserRoom = chatUserRoom;
-    } else if (room != null) {
-      this.chatUserRoom = ChatUserRoom(
-        conversationId: room?.id,
-        title: room?.title ?? '',
-        profileImage: room?.photo ?? '',
-        userIdOrRoomId: room?.id,
-        type: 2,
-      );
     } else if (user != null) {
       this.chatUserRoom = ChatUserRoom(
         conversationId: user?.id,
@@ -239,6 +225,21 @@ class ChattingController extends BlockUserController {
     messageTextController.clear();
   }
 
+  /// Sends an uploaded chat image (URL from `UserService.uploadFile`), then the
+  /// caption typed in the picker sheet (if any) as a normal text message.
+  void sendImage(String url) {
+    if (url.isEmpty || user == null || myUser == null) return;
+    SocketService.shared.sendMessage(
+      senderId: myUser!.id!,
+      receiverId: user!.id!,
+      content: url,
+      type: MessageType.image.value,
+    );
+    if (messageTextController.text.trim().isNotEmpty) {
+      sendMsg();
+    }
+  }
+
   void fetchMessages() async {
     isLoading.value = true;
     update();
@@ -305,52 +306,6 @@ class ChattingController extends BlockUserController {
     chatRoom?.status = "accepted";
 
     update();
-  }
-
-  void leaveRoom() {
-    RoomService.shared.leaveThisRoom(room?.id ?? "", () {
-      room?.userRoomStatus = GroupUserAccessType.none.value;
-      Get.back(result: room);
-      update();
-    });
-  }
-
-  List<Invitation> joinRequests = [];
-
-  void fetchRequests() {
-    RoomService.shared.fetchRoomRequestList(room?.id ?? "0", (invitations) {
-      joinRequests = invitations;
-      update();
-    });
-  }
-
-  void acceptRequest(Invitation invitation) {
-    RoomService.shared.acceptRoomRequest(invitation.userId ?? "0", invitation.roomId ?? "0", () {
-      room?.totalMember = (room?.totalMember ?? 0) + 1;
-      joinRequests.removeWhere((element) => element.id == invitation.id);
-      update();
-    });
-  }
-
-  void muteUnMuteNotification() {
-    var type = (room?.isMute ?? 0) == 0 ? 1 : 0;
-    RoomService.shared.muteUnmuteNotification(type, room?.id ?? "0", () {
-      room?.isMute = type;
-      update();
-    });
-  }
-
-  void rejectRequest(Invitation invitation) {
-    RoomService.shared.rejectRoomRequest(invitation.userId ?? "0", invitation.roomId ?? "0", () {
-      joinRequests.removeWhere((element) => element.id == invitation.id);
-      update();
-    });
-  }
-
-  void deleteRoom() {
-    RoomService.shared.deleteRoom(room?.id ?? "0", () {
-      Get.back();
-    });
   }
 
   void stopNotification() {

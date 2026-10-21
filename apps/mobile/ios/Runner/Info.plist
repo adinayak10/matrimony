@@ -43,8 +43,6 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-3940256099942544~1458002511</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -57,19 +55,20 @@
 		<string>_dartobservatory._tcp</string>
 	</array>
 	<key>NSCameraUsageDescription</key>
-	<string>App using camera to click photos and share</string>
+	<string>BanjaraMatch uses the camera for video calls with your connections, profile and verification photos, and photos you share in chat.</string>
 	<key>NSLocalNetworkUsageDescription</key>
 	<string>Need for running app</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>BanjaraMatch uses your location only while the app is open to show matches near you. You can hide your location in Privacy settings.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>App using mic to record video and share video</string>
+	<string>BanjaraMatch uses the microphone for voice and video calls with your connections.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>We are using your photos to make your profile great.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>This identifier will be used to deliver personalized ads to you.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
+		<string>audio</string>
 		<string>fetch</string>
 		<string>remote-notification</string>
 	</array>

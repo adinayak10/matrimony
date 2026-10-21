@@ -2,13 +2,10 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
-import 'package:banjaramatch/common/extensions/int_extension.dart';
 import 'package:banjaramatch/common/extensions/string_extension.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
 import 'package:banjaramatch/localization/languages.dart';
-import 'package:banjaramatch/models/feeds_model.dart';
 import 'package:banjaramatch/models/registration.dart';
-import 'package:banjaramatch/models/room_model.dart';
 import 'package:banjaramatch/models/setting_model.dart';
 import 'package:banjaramatch/screens/extra_views/back_button.dart';
 import 'package:banjaramatch/screens/extra_views/buttons.dart';
@@ -19,10 +16,8 @@ import '../common_widget.dart';
 
 class ReportSheet extends StatelessWidget {
   final User? user;
-  final Room? room;
-  final Feed? post;
 
-  const ReportSheet({Key? key, this.user, this.room, this.post}) : super(key: key);
+  const ReportSheet({Key? key, this.user}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +48,7 @@ class ReportSheet extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 10),
-                  if (room != null || user != null)
+                  if (user != null)
                     Row(
                       children: [
                         ClipOval(
@@ -76,7 +71,6 @@ class ReportSheet extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              subTitle()
                             ],
                           ),
                         ),
@@ -101,7 +95,7 @@ class ReportSheet extends StatelessWidget {
               CommonSheetButton(
                 title: LKeys.submitReport,
                 onTap: () {
-                  controller.submitReport(room, post, user);
+                  controller.submitReport(user);
                 },
               )
             ],
@@ -112,63 +106,15 @@ class ReportSheet extends StatelessWidget {
   }
 
   String sheetHeading() {
-    if (room != null) {
-      return LKeys.reportRoom;
-    } else if (post != null) {
-      return LKeys.reportPost;
-    } else if (user != null) {
-      return LKeys.reportUser;
-    }
-    return "No";
+    return LKeys.reportUser;
   }
 
   String? image() {
-    if (room != null) {
-      return room?.photo;
-    } else if (post != null) {
-      return post?.content.first.thumbnail ?? post?.content.first.content;
-    } else if (user != null) {
-      return user?.profile;
-    }
-    return "No";
+    return user?.profile;
   }
 
   String title() {
-    if (room != null) {
-      return room?.title ?? '';
-    } else if (post != null) {
-      return post?.desc ?? '';
-    } else if (user != null) {
-      return user?.fullName ?? '';
-    }
-    return "No";
-  }
-
-  Widget subTitle() {
-    var count = 0;
-    var title = "";
-    if (room != null) {
-      count = room?.totalMember?.toInt() ?? 0;
-      title = LKeys.members;
-    } else if (post != null) {
-      count = post?.likesCount.toInt() ?? 0;
-      title = LKeys.likes;
-    } else if (user != null) {
-      count = (user?.followers ?? 0).toInt();
-      title = LKeys.followers;
-    }
-    return Row(
-      children: [
-        Text(
-          count.makeToString(),
-          style: MyTextStyle.gilroyBold(size: 14, color: cLightText),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(width: 5),
-        title.toTextTR(MyTextStyle.gilroyLight(size: 14, color: cLightText))
-      ],
-    );
+    return user?.fullName ?? '';
   }
 
   Widget dropDown(ReportController controller) {

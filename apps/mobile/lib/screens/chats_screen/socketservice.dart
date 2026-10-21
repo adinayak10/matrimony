@@ -202,4 +202,86 @@ class SocketService {
     socket.disconnect();
     print("🔌 Socket manually disconnected");
   }
+
+  // ─── Calls (Agora signalling; server: socket.js call_* handlers) ──────────
+
+  /// Socket events the call screens listen to (per call).
+  static const List<String> callEvents = [
+    'call_ringing',
+    'call_accepted',
+    'call_rejected',
+    'call_end',
+    'call_timeout',
+    'call_failed',
+  ];
+
+  /// Event for an incoming call; bound app-wide (CallManager.bindIncoming).
+  static const String callIncomingEvent = 'call_incoming';
+
+  /// True once [connectSocket] has created a socket (emits are dropped before that).
+  bool get hasSocket => _hasSocket;
+
+  bool get isConnected => _hasSocket && socket.connected;
+
+  /// Starts a call: `call_invite {toUserId, roomId, callType}` (callType audio|video).
+  /// The server answers the caller with `call_ringing` or `call_failed`.
+  void emitCallInvite({required String toUserId, required String roomId, required String callType}) {
+    if (!_hasSocket) return;
+    socket.emit('call_invite', {'toUserId': toUserId, 'roomId': roomId, 'callType': callType});
+  }
+
+  void emitCallAccept(String callId) {
+    if (!_hasSocket) return;
+    socket.emit('call_accept', {'callId': callId});
+  }
+
+  void emitCallReject(String callId) {
+    if (!_hasSocket) return;
+    socket.emit('call_reject', {'callId': callId});
+  }
+
+  void emitCallEnd(String callId) {
+    if (!_hasSocket) return;
+    socket.emit('call_end', {'callId': callId});
+  }
+
+  /// Each `onCall*` helper REPLACES any previous handler for that event, so
+  /// screens can re-register safely without stacking duplicate callbacks.
+  void _onCall(String event, Function(dynamic) callback) {
+    if (!_hasSocket) return;
+    socket.off(event);
+    socket.on(event, callback);
+  }
+
+  /// `{callId, roomId, channelName, callType}` — sent to the caller once the invite is accepted by the server.
+  void onCallRinging(Function(dynamic) callback) => _onCall('call_ringing', callback);
+
+  /// `{callId, roomId, channelName, callType, fromUserId, fromUserName, fromUserProfile}`.
+  void onCallIncoming(Function(dynamic) callback) => _onCall(callIncomingEvent, callback);
+
+  /// `{callId, channelName}` — to the caller when the callee accepts.
+  void onCallAccepted(Function(dynamic) callback) => _onCall('call_accepted', callback);
+
+  /// `{callId}`
+  void onCallRejected(Function(dynamic) callback) => _onCall('call_rejected', callback);
+
+  /// `{callId}` — the other side hung up.
+  void onCallEnd(Function(dynamic) callback) => _onCall('call_end', callback);
+
+  /// `{callId}` — nobody answered within 45 s (sent to both sides).
+  void onCallTimeout(Function(dynamic) callback) => _onCall('call_timeout', callback);
+
+  /// `{reason}` — busy | offline | not_connected (older servers send a sentence).
+  void onCallFailed(Function(dynamic) callback) => _onCall('call_failed', callback);
+
+  /// Removes the per-call listeners ([callEvents]). The app-wide
+  /// `call_incoming` listener is kept unless [includeIncoming] is true.
+  /// Never touches `receive_message` or any chat listener.
+  void offCallEvents({bool includeIncoming = false}) {
+    if (!_hasSocket) return;
+    for (final event in callEvents) {
+      socket.off(event);
+    }
+    if (includeIncoming) socket.off(callIncomingEvent);
+  }
 }

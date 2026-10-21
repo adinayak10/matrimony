@@ -4,7 +4,8 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:banjaramatch/common/api_service/post_service.dart';
+import 'package:banjaramatch/common/api_service/user_service.dart';
+import 'package:banjaramatch/common/controller/base_controller.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
 import 'package:banjaramatch/localization/languages.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/chatting_controller.dart';
@@ -12,7 +13,7 @@ import 'package:banjaramatch/screens/extra_views/back_button.dart';
 import 'package:banjaramatch/screens/extra_views/buttons.dart';
 import 'package:banjaramatch/screens/extra_views/top_bar.dart';
 import 'package:banjaramatch/utilities/const.dart';
-import 'package:banjaramatch/utilities/firebase_const.dart';
+import 'package:banjaramatch/models/chat.dart';
 
 class ImageVideoChatPicker extends StatelessWidget {
   final ChattingController controller;
@@ -70,27 +71,6 @@ class ImageVideoChatPicker extends StatelessWidget {
                                 ignoreSafeArea: false);
                           }
                         }),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    btn(
-                      title: LKeys.video,
-                      onTap: () async {
-                        XFile? file = await imagePicker.pickVideo(source: imageSource);
-                        print(file?.path);
-                        if (file != null) {
-                          Get.back();
-                          Get.bottomSheet(
-                              WriteDescriptionSheet(
-                                file: file,
-                                controller: controller,
-                                type: MessageType.video,
-                              ),
-                              isScrollControlled: true,
-                              ignoreSafeArea: false);
-                        }
-                      },
-                    ),
                   ],
                 ),
               ],
@@ -158,29 +138,21 @@ class _WriteDescriptionSheetState extends State<WriteDescriptionSheet> {
             backIcon: Icons.close_rounded,
             child: GestureDetector(
               onTap: () {
-                if (widget.type == MessageType.image) {
-                  widget.controller.startLoading();
-                  PostService.shared.uploadFile(widget.file, (url) {
+                // Images only: POST /api/uploadFile rejects other files (video is hidden).
+                if (widget.type != MessageType.image) return;
+                widget.controller.startLoading();
+                UserService.shared.uploadFile(
+                  widget.file,
+                  completion: (url) {
                     widget.controller.stopLoading();
-                    // Get.back();
-                    // widget.controller
-                    //     .commonSend(type: MessageType.image, content: url);
-                  });
-                } else {
-                  widget.controller.startLoading();
-                  PostService.shared.uploadFile(widget.file, (videoURL) {
-                    if (thumbnail != null) {
-                      PostService.shared.uploadFile(thumbnail!, (thumbnail) {
-                        widget.controller.stopLoading();
-                        Get.back();
-                        // widget.controller.commonSend(
-                        //     type: MessageType.video,
-                        //     content: videoURL,
-                        //     thumbnail: thumbnail);
-                      });
-                    }
-                  });
-                }
+                    Get.back();
+                    widget.controller.sendImage(url);
+                  },
+                  onError: (message) {
+                    widget.controller.stopLoading();
+                    widget.controller.showSnackBar(message, type: SnackBarType.error);
+                  },
+                );
               },
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 10),

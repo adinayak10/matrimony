@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -14,7 +13,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:banjaramatch/common/managers/firebase_notification_manager.dart';
 import 'package:banjaramatch/common/managers/session_manager.dart';
-import 'package:banjaramatch/common/managers/subscription_manager.dart';
 import 'package:banjaramatch/common/managers/cache_manager.dart';
 import 'package:banjaramatch/common/widgets/functions.dart';
 import 'package:banjaramatch/localization/allLanguages.dart';
@@ -22,7 +20,6 @@ import 'package:banjaramatch/screens/OnboardingWrapperScreen.dart';
 import 'package:banjaramatch/screens/chats_screen/socketservice.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_controller.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
-import 'package:banjaramatch/screens/rooms_screen/single_room/single_room_screen.dart';
 import 'package:banjaramatch/screens/splash_screen/splash_screen_view.dart';
 import 'package:banjaramatch/screens/tabbar/tabbar_controller.dart';
 import 'package:banjaramatch/screens/tabbar/tabbar_screen.dart';
@@ -48,12 +45,8 @@ void main() async {
   await CacheManager.shared.init();
   
   SessionManager.shared;
-  //InterstitialManager.shared;
-  await AppTrackingTransparency.requestTrackingAuthorization();
   FirebaseNotificationManager.shared;
   PackageInfo.fromPlatform();
-  SubscriptionManager.shared.initPlatformState();
-  // MobileAds.instance.initialize();
   print(";lkjsfdlksajf;kljsadfsadf");
 
   runApp(const MyApp());
@@ -208,15 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
       FlutterBranchSdk.listSession().listen(
         (data) {
           if (data.containsKey("+clicked_branch_link") && data["+clicked_branch_link"] == true) {
-            if (data.containsKey(Param.postId)) {
-              var postId = data[Param.postId];
-              if (postId is String) {
-                //  Get.to(() => SinglePostScreen(postId: postId));
-              }
-              // else if (postId is double) {
-              //   Get.to(() => SinglePostScreen(postId: postId.toInt()));
-              // }
-            } else if (data.containsKey(Param.userId)) {
+            if (data.containsKey(Param.userId)) {
               var userId = data[Param.userId];
               if (userId is String) {
                 Get.to(() => ProfileScreen(userId: userId));
@@ -224,15 +209,6 @@ class _MyHomePageState extends State<MyHomePage> {
 
               // else if (userId is double) {
               //   Get.to(() => ProfileScreen(userId: userId));
-              // }
-            } else if (data.containsKey(Param.roomId)) {
-              var roomId = data[Param.roomId];
-              if (roomId is String) {
-                Get.to(() => SingleRoomScreen(roomId: roomId));
-              }
-
-              // else if (roomId is double) {
-              //   Get.to(() => SingleRoomScreen(roomId: roomId));
               // }
             }
           }

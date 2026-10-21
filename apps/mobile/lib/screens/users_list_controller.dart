@@ -227,12 +227,6 @@ class UsersListController extends BaseController {
     // 📩 placeholder for messaging feature
   }
 
-  void superInterest(User profile) {
-    UserService.shared.superInterest(profile.id!, () {
-      // Optionally show snackbar
-    });
-  }
-
   /// 🔌 Socket Listeners
   void _bindSocketListeners() {
     SocketService.shared.onUserOnline((data) {

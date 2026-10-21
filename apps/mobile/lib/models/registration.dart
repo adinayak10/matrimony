@@ -3,7 +3,6 @@ import 'package:banjaramatch/models/ModelCommonEducationQualificationListRespons
 import 'package:banjaramatch/models/model_cast_gotra_list.dart';
 import 'package:banjaramatch/models/model_chat_room_list.dart';
 import 'package:banjaramatch/models/setting_model.dart';
-import 'package:banjaramatch/models/story.dart';
 
 class Registration {
   Registration({
@@ -85,7 +84,6 @@ class User {
       this.createdAt,
       this.updatedAt,
       this.followingStatus,
-      this.story,
       this.interest,
       this.name,
       this.dob,
@@ -137,7 +135,17 @@ class User {
       this.smoke,
       this.drink,
       this.settings,
-      this.membershipPlan});
+      this.membershipPlan,
+      this.bloodGroup,
+      this.motherTongue,
+      this.knownLanguages,
+      this.profileCreatedBy,
+      this.manglikStatus,
+      this.horoscopeRequired,
+      this.horoscope,
+      this.matchPercent,
+      this.matchScore,
+      this.matchedOn});
 
   User.fromJson(dynamic json) {
     id = json['_id'];
@@ -248,6 +256,18 @@ class User {
     settings = json['settings'] != null ? UserSettings.fromJson(json['settings']) : null;
 
     membershipPlan = json['membershipPlan'] != null ? new MembershipPlan.fromJson(json['membershipPlan']) : null;
+
+    // Feature expansion 1.1.0 (all optional; older API builds simply omit them)
+    bloodGroup = _asString(json['bloodGroup']);
+    motherTongue = _asString(json['motherTongue']);
+    knownLanguages = _asStringList(json['knownLanguages']);
+    profileCreatedBy = _asString(json['profileCreatedBy']);
+    manglikStatus = _asString(json['manglikStatus']);
+    horoscopeRequired = _asBool(json['horoscopeRequired']);
+    horoscope = json['horoscope'] is Map ? Horoscope.fromJson(json['horoscope']) : null;
+    matchPercent = _asInt(json['matchPercent']);
+    matchScore = _asInt(json['matchScore']);
+    matchedOn = _asStringList(json['matchedOn']);
   }
 
   String? id;
@@ -281,7 +301,6 @@ class User {
   CasteGotra? caste;
   PersonalityMap? personalityMap;
   CasteGotra? gotra;
-  List<Story>? story;
   List<Interest>? interest;
   String? name;
   String? diet;
@@ -328,6 +347,27 @@ class User {
   String? maritalStatus;
   UserSettings? settings;
   MembershipPlan? membershipPlan;
+
+  String? bloodGroup;
+  String? motherTongue;
+  List<String>? knownLanguages;
+
+  /// self | parent | sibling | relative | friend (lowercase, as the API stores it)
+  String? profileCreatedBy;
+
+  /// Yes | No | Partial | Not specified
+  String? manglikStatus;
+  bool? horoscopeRequired;
+  Horoscope? horoscope;
+
+  /// 0-100 preference match computed by the API for cards; null when unknown.
+  int? matchPercent;
+
+  /// Daily-match score (getTopDailyMatches only).
+  int? matchScore;
+
+  /// Daily-match reasons (getTopDailyMatches only).
+  List<String>? matchedOn;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -407,9 +447,6 @@ class User {
     map['followingStatus'] = followingStatus;
     map['isOnline'] = isOnline;
     map['lastSeen'] = lastSeen;
-    if (story != null) {
-      map['story'] = story?.map((v) => v.toJson()).toList();
-    }
     if (interest != null) {
       map['interests'] = interest?.map((v) => v.toJson()).toList();
     }
@@ -452,6 +489,18 @@ class User {
     if (this.membershipPlan != null) {
       map['membershipPlan'] = this.membershipPlan!.toJson();
     }
+    map['bloodGroup'] = bloodGroup;
+    map['motherTongue'] = motherTongue;
+    map['knownLanguages'] = knownLanguages;
+    map['profileCreatedBy'] = profileCreatedBy;
+    map['manglikStatus'] = manglikStatus;
+    map['horoscopeRequired'] = horoscopeRequired;
+    if (horoscope != null) {
+      map['horoscope'] = horoscope!.toJson();
+    }
+    map['matchPercent'] = matchPercent;
+    map['matchScore'] = matchScore;
+    map['matchedOn'] = matchedOn;
 
     return map;
   }
@@ -460,20 +509,74 @@ class User {
     return "${id ?? 0}";
   }
 
-  bool isAllStoryShown() {
-    var isWatched = true;
-    for (var element in (story ?? [])) {
-      if (!element.isWatchedByMe()) {
-        isWatched = false;
-        break;
-      }
-    }
-    return isWatched;
-  }
-
   bool isBlockedByMe() {
     return SessionManager.shared.getUser()?.blocked?.contains(id) ?? false;
   }
+}
+
+/// Birth details used for Guna Milan. Values for rashi / nakshatra equal the
+/// API's RASHIS / NAKSHATRA_LIST strings; empty string means not set.
+class Horoscope {
+  Horoscope({this.birthTime, this.birthPlace, this.rashi, this.nakshatra});
+
+  Horoscope.fromJson(dynamic json) {
+    if (json is! Map) return;
+    birthTime = _asString(json['birthTime']);
+    birthPlace = _asString(json['birthPlace']);
+    rashi = _asString(json['rashi']);
+    nakshatra = _asString(json['nakshatra']);
+  }
+
+  String? birthTime;
+  String? birthPlace;
+  String? rashi;
+  String? nakshatra;
+
+  /// True when neither rashi nor nakshatra is set (Guna Milan unavailable).
+  bool get isEmpty => (rashi ?? '').isEmpty && (nakshatra ?? '').isEmpty;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'birthTime': birthTime ?? '',
+      'birthPlace': birthPlace ?? '',
+      'rashi': rashi ?? '',
+      'nakshatra': nakshatra ?? '',
+    };
+  }
+}
+
+String? _asString(dynamic v) {
+  if (v == null) return null;
+  if (v is String) return v;
+  return v.toString();
+}
+
+int? _asInt(dynamic v) {
+  if (v == null) return null;
+  if (v is int) return v;
+  if (v is num) return v.round();
+  if (v is String) return num.tryParse(v)?.round();
+  return null;
+}
+
+bool? _asBool(dynamic v) {
+  if (v == null) return null;
+  if (v is bool) return v;
+  if (v is num) return v != 0;
+  if (v is String) return v == 'true' || v == '1';
+  return null;
+}
+
+List<String>? _asStringList(dynamic v) {
+  if (v == null) return null;
+  if (v is List) {
+    return v
+        .where((e) => e != null)
+        .map((e) => e is Map ? (e['label'] ?? e['name'] ?? e['title'] ?? e.toString()).toString() : e.toString())
+        .toList();
+  }
+  if (v is String) return v.isEmpty ? <String>[] : [v];
+  return null;
 }
 
 extension O on User {

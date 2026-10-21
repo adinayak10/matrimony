@@ -3,34 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
+import 'package:banjaramatch/common/extensions/image_extension.dart';
 import 'package:banjaramatch/common/widgets/functions.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
 import 'package:banjaramatch/localization/languages.dart';
 import 'package:banjaramatch/models/chat.dart';
 import 'package:banjaramatch/models/model_chat_room_list.dart';
 import 'package:banjaramatch/models/registration.dart';
-import 'package:banjaramatch/models/room_model.dart';
 import 'package:banjaramatch/screens/chats_screen/chat_view/chat_tag.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/chatting_controller.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/image_video_chat_picker.dart';
 import 'package:banjaramatch/screens/extra_views/back_button.dart';
-import 'package:banjaramatch/screens/post/comment/comment_screen.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
 import 'package:banjaramatch/utilities/const.dart';
 
 class ChattingView extends StatelessWidget {
-  final Room? room;
   final User? user;
   final ChatUserRoom? chatUserRoom;
   final ChatRoom? chatRoom;
 
-  const ChattingView({Key? key, this.room, this.user, this.chatUserRoom, this.chatRoom}) : super(key: key);
+  const ChattingView({Key? key, this.user, this.chatUserRoom, this.chatRoom}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     Functions.changStatusBar(StatusBarStyle.white);
     ChattingController controller =
-        ChattingController(room: room, user: user, chatUserRoom: chatUserRoom, chatRoom: chatRoom);
+        ChattingController(user: user, chatUserRoom: chatUserRoom, chatRoom: chatRoom);
     return Scaffold(
       backgroundColor: cWhite,
       body: PopScope(
@@ -235,7 +233,7 @@ class ChattingView extends StatelessWidget {
                 size: 35,
               ),
               onTap: () {
-                Get.back(result: controller.room);
+                Get.back();
               },
             ),
             const SizedBox(width: 10),
@@ -323,6 +321,27 @@ class ChattingView extends StatelessWidget {
             //         color: cPrimary,
             //       )
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class SendBtn extends StatelessWidget {
+  const SendBtn({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      backgroundColor: cPrimary,
+      foregroundColor: cBlack,
+      radius: 16,
+      child: Container(
+        padding: const EdgeInsets.only(left: 2),
+        child: Image.asset(
+          MyImages.send,
+          height: 20,
+          width: 20,
         ),
       ),
     );

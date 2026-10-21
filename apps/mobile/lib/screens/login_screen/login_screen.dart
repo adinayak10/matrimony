@@ -55,21 +55,6 @@ class LoginScreen extends StatelessWidget {
                     controller.emailLogin();
                   },
                 ),
-                // LoginButton(
-                //   text: "Sign in with Mobile",
-                //   assetName: MyImages.email, // ⚠️ Make sure you have an appropriate icon
-                //   onTap: () {
-                //     controller.mobileLogin(); // ✅ You need to define this method in LoginController
-                //   },
-                // ),
-                if (GetPlatform.isIOS)
-                  LoginButton(
-                    text: LKeys.signInWithApple,
-                    assetName: MyImages.apple,
-                    onTap: () {
-                      //  controller.appleLogin();
-                    },
-                  ),
               ],
             ),
             const Spacer(),

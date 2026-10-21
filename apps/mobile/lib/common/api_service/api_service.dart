@@ -103,6 +103,67 @@ class ApiService {
     }
   }
 
+  /// GET request with optional query parameters (used by the public
+  /// `success-stories` list and `calls/history`). Same contract as [call]:
+  /// [completion] receives the decoded JSON body (also for 4xx/5xx bodies);
+  /// network/timeout/format failures go to [onError] when given, otherwise
+  /// [completion] receives `{status: false, message}`.
+  void callGet({
+    required String url,
+    Map<String, dynamic>? query,
+    required Function(Object response) completion,
+    Function(String error)? onError,
+  }) async {
+    String? errorMsg;
+    Object? decoded;
+    try {
+      await loadToken();
+      var uri = Uri.parse(url);
+      if (query != null && query.isNotEmpty) {
+        final params = <String, String>{...uri.queryParameters};
+        query.forEach((key, value) {
+          if (value != null) params[key] = '$value';
+        });
+        uri = uri.replace(queryParameters: params);
+      }
+      final headers = Map<String, String>.from(header)..remove('Content-Type');
+      final response = await http.get(uri, headers: headers).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          throw TimeoutException('Connection timeout. Please check your internet connection.');
+        },
+      );
+
+      if (kDebugMode) {
+        print("GET URL: $uri");
+        debugPrint("🔍 Full API Response:\n${response.body}");
+      }
+
+      decoded = json.decode(response.body) as Object?;
+    } on SocketException {
+      errorMsg = 'No internet connection. Please check your network.';
+    } on TimeoutException {
+      errorMsg = 'Connection timeout. Please try again.';
+    } on FormatException catch (e) {
+      print('❌ Format Error: $e');
+      errorMsg = 'Invalid response from server.';
+    } catch (e) {
+      print('❌ Unexpected Error: $e');
+      errorMsg = 'Something went wrong. Please try again.';
+    }
+    if (errorMsg == null && decoded != null) {
+      completion(decoded);
+      return;
+    }
+    final message = errorMsg ?? 'Invalid response from server.';
+    print('❌ GET $url failed: $message');
+    if (onError != null) {
+      onError(message);
+    } else {
+      completion({'status': false, 'message': message});
+    }
+  }
+
   /// Asynchronous API call using Future for better error handling and await usage.
   Future<Map<String, dynamic>> callAsync({
     required String url,
@@ -151,7 +212,8 @@ class ApiService {
       Map<String, dynamic>? param,
       required Map<String, List<XFile?>> filesMap,
       required Function(Object response) completion,
-      Function(double percentage)? onProgress}) async {
+      Function(double percentage)? onProgress,
+      Function(String error)? onError}) async {
     await loadToken();
     var request = MultipartRequest(
       'POST',
@@ -197,18 +259,29 @@ class ApiService {
     });
 
     print(param);
-    request.send().then((value) {
+    Object? decoded;
+    try {
+      final value = await request.send();
       print('${value.statusCode}');
-      value.stream.bytesToString().then((respStr) {
+      final respStr = await value.stream.bytesToString();
+      if (kDebugMode) {
         print(respStr);
-        var response = jsonDecode(respStr);
-        if (kDebugMode) {
-          print(respStr);
-        }
-
-        completion(response);
-      });
-    });
+      }
+      decoded = jsonDecode(respStr) as Object?;
+    } catch (e) {
+      // Network failure or a non-JSON body (e.g. proxy 413): never leave the caller hanging.
+      print('❌ Multipart error for $url: $e');
+    }
+    if (decoded != null) {
+      completion(decoded);
+      return;
+    }
+    const errorMsg = 'Upload failed. Please try again.';
+    if (onError != null) {
+      onError(errorMsg);
+    } else {
+      completion({'status': false, 'message': errorMsg});
+    }
   }
 }
 

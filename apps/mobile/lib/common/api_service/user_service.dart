@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:banjaramatch/common/api_service/api_service.dart';
 import 'package:banjaramatch/common/controller/base_controller.dart';
 import 'package:banjaramatch/common/managers/session_manager.dart';
+import 'package:banjaramatch/localization/features/app_strings.dart';
 import 'package:banjaramatch/localization/languages.dart';
 import 'package:banjaramatch/models/ModelCommonEducationQualificationListResponse.dart';
 import 'package:banjaramatch/models/common_response.dart';
@@ -103,34 +104,6 @@ class UserService {
         var users = UsersModel.fromJson(response).data;
         if (users != null) {
           completion(users);
-        }
-      },
-    );
-  }
-
-  void profileVerification(String fullName, String documentType, XFile? document, XFile? selfie) {
-    var param = {
-      Param.userId: SessionManager.shared.getUserID(),
-      Param.fullName: fullName,
-      Param.documentType: documentType,
-    };
-
-    ApiService.shared.multiPartCallApi(
-      url: WebService.profileVerification,
-      param: param,
-      filesMap: {
-        Param.document: [document],
-        Param.selfie: [selfie]
-      },
-      completion: (response) {
-        var obj = CommonResponse.fromJson(response);
-        if (obj.status == true) {
-          var user = SessionManager.shared.getUser();
-          user?.isVerified = 1;
-          SessionManager.shared.setUser(user);
-          Get.back();
-          Get.back();
-          BaseController.share.showSnackBar(LKeys.profileVerificationRequestSent.tr, type: SnackBarType.success);
         }
       },
     );
@@ -655,59 +628,6 @@ class UserService {
     );
   }
 
-  void requestOtp({
-    required String phone,
-    required Function(CommonResponse) completion,
-  }) {
-    Map<String, String> map = {
-      'phone': phone,
-    };
-
-    ApiService.shared.call(
-      url: WebService.requestOtp,
-      param: map,
-      completion: (p0) {
-        var response = CommonResponse.fromJson(p0);
-        completion(response);
-      },
-    );
-  }
-
-  void verifyOtp({
-    required String phone,
-    required String otp,
-    String? fullName,
-    required String deviceToken,
-    required int deviceType,
-    required Function(Registration) completion,
-  }) {
-    Map<String, String> map = {
-      'phone': phone,
-      'otp': otp,
-      'device_token': deviceToken,
-      'device_type': deviceType.toString(),
-    };
-
-    if (fullName != null) {
-      map['full_name'] = fullName;
-    }
-
-    ApiService.shared.call(
-      url: WebService.verifyOtp,
-      param: map,
-      completion: (p0) {
-        var registration = Registration.fromJson(p0);
-        var user = registration.data;
-        if (user != null) {
-          SessionManager.shared.setUser(user);
-          completion(registration);
-        } else {
-          completion(registration);
-        }
-      },
-    );
-  }
-
   void loginWithEmail({
     required String email,
     required String password,
@@ -1044,50 +964,55 @@ class UserService {
     );
   }
 
+  /// `fetchNearbyMatches`: needs coordinates on the profile (see [updateCoordinates]).
+  /// Always calls [completion] (empty list on failure, incl. 400 "no coordinates").
   void fetchNearbyProfiles({
     required int page,
+    int? radiusKm,
+    int? limit,
     required Function(List<User>) completion,
   }) {
-    // Start building parameters
     var param = <String, dynamic>{
       Param.myUserId: SessionManager.shared.getUserID(),
+      'page': page,
       Param.start: page,
-      Param.limit: Limits.pagination,
+      Param.limit: limit ?? Limits.pagination,
     };
+    if (radiusKm != null) {
+      param['radiusKm'] = radiusKm;
+    }
 
-    //API call
     ApiService.shared.call(
       url: WebService.fetchNearbyMatches,
       param: param,
       completion: (response) {
-        var users = UsersModel.fromJson(response).data;
-        if (users != null) {
-          completion(users);
-        }
+        completion(UsersModel.fromJson(response).data ?? []);
       },
     );
   }
 
+  /// `getTopDailyMatches` returns one ranked list (no paging): page > 1 yields
+  /// an empty list so paged screens stop. Rows carry `matchScore`, `matchedOn`,
+  /// `matchPercent`. Always calls [completion].
   void getTopDailyMatches({
     required int page,
+    int? limit,
     required Function(List<User>) completion,
   }) {
-    // Start building parameters
+    if (page > 1) {
+      completion([]);
+      return;
+    }
     var param = <String, dynamic>{
       Param.myUserId: SessionManager.shared.getUserID(),
-      Param.start: page,
-      Param.limit: Limits.pagination,
+      Param.limit: limit ?? 20,
     };
 
-    // API call
     ApiService.shared.call(
-      url: WebService.fetchUsersList,
+      url: WebService.getTopDailyMatches,
       param: param,
       completion: (response) {
-        var users = UsersModel.fromJson(response).data;
-        if (users != null) {
-          completion(users);
-        }
+        completion(UsersModel.fromJson(response).data ?? []);
       },
     );
   }
@@ -1395,7 +1320,178 @@ class UserService {
     );
   }
 
-  void superInterest(String profileId, Function completion) {
-    Future.delayed(Duration(seconds: 1), completion());
+  // ─── Feature expansion 1.1.0 ───────────────────────────────────────────
+
+  /// Profiles I shortlisted (`getShortListedUsers`, not paged): page > 1 yields
+  /// an empty list. "Shortlisted me" is `fetchProfiles(isShortListedByThey: true)`.
+  /// Always calls [completion].
+  void fetchShortlistedUsers({int page = 1, required Function(List<User>) completion}) {
+    if (page > 1) {
+      completion([]);
+      return;
+    }
+    ApiService.shared.call(
+      url: WebService.getShortListedUsers,
+      param: {Param.myUserId: SessionManager.shared.getUserID()},
+      completion: (response) {
+        completion(UsersModel.fromJson(response).data ?? []);
+      },
+    );
+  }
+
+  /// Accepted connections in both directions (`getInterestList {status:'accepted'}`,
+  /// no `type`); each row's `user` is the other person. Always calls [completion].
+  void fetchConnections({
+    required int page,
+    int limit = 10,
+    required Function(List<UserInterest>) completion,
+  }) {
+    ApiService.shared.call(
+      url: WebService.getInterestList,
+      param: {
+        Param.myUserId: SessionManager.shared.getUserID(),
+        'status': 'accepted',
+        Param.start: page,
+        Param.limit: limit,
+      },
+      completion: (response) {
+        completion(ModelInterestedUserList.fromJson(response).data ?? []);
+      },
+    );
+  }
+
+  /// Saves the FCM token on the profile (call on login and on token refresh).
+  void updateDeviceToken(String token, {Function()? completion}) {
+    if (token.isEmpty || !SessionManager.shared.isLogin()) return;
+    ApiService.shared.call(
+      url: WebService.editProfile,
+      param: {
+        Param.userId: SessionManager.shared.getUserID(),
+        Param.deviceToken: token,
+        Param.deviceType: GetPlatform.isIOS ? 1 : 0,
+      },
+      completion: (response) {
+        if (CommonResponse.fromJson(response).status == true) {
+          completion?.call();
+        }
+      },
+    );
+  }
+
+  /// Merges privacy / notification settings (only the given keys change on the
+  /// server). Keys: showLocation, showIncome, profilePicVisibility,
+  /// allowConnections, allowMessages, emailVisibility, mobileVisibility,
+  /// allowNotifications, notifyOnProfileVisit, notifyOnInterest, notifyOnMessage …
+  void updateSettings(
+    Map<String, Object> settings, {
+    required Function(User user) completion,
+    Function(String message)? onError,
+  }) {
+    _editProfileJson({'settings': settings}, completion: completion, onError: onError);
+  }
+
+  /// Horoscope + manglik + horoscopeRequired (JSON editProfile; nested object
+  /// never goes through the multipart variant). Pass only what changed.
+  void updateHoroscope({
+    Horoscope? horoscope,
+    String? manglikStatus,
+    bool? horoscopeRequired,
+    required Function(User user) completion,
+    Function(String message)? onError,
+  }) {
+    final param = <String, Object>{};
+    if (horoscope != null) param['horoscope'] = horoscope.toJson();
+    if (manglikStatus != null) param['manglikStatus'] = manglikStatus;
+    if (horoscopeRequired != null) param['horoscopeRequired'] = horoscopeRequired;
+    _editProfileJson(param, completion: completion, onError: onError);
+  }
+
+  /// Stores the device location for "Nearby" (`coordinates: {lat, lng}`).
+  void updateCoordinates({
+    required double lat,
+    required double lng,
+    required Function(User user) completion,
+    Function(String message)? onError,
+  }) {
+    _editProfileJson({
+      'coordinates': {'lat': lat, 'lng': lng}
+    }, completion: completion, onError: onError);
+  }
+
+  /// `POST /api/uploadFile` (multipart field `uploadFile`, images only) → URL in `data`.
+  void uploadFile(XFile file, {required Function(String url) completion, Function(String message)? onError}) {
+    ApiService.shared.multiPartCallApi(
+      url: WebService.uploadFile,
+      param: {},
+      filesMap: {
+        'uploadFile': [file]
+      },
+      completion: (response) {
+        final data = response is Map ? response['data'] : null;
+        if (CommonResponse.fromJson(response).status == true && data is String && data.isNotEmpty) {
+          completion(data);
+        } else {
+          onError?.call(CommonResponse.fromJson(response).message ?? AppKeys.somethingWentWrong.tr);
+        }
+      },
+      onError: (message) => onError?.call(message),
+    );
+  }
+
+  /// `POST /api/profileVerification` (multipart: full_name, document_type,
+  /// document ×1-2, selfie). Does NOT mark the local user verified: the badge
+  /// only appears after an admin approves (re-fetch the profile / status).
+  /// Errors: 409 PENDING_EXISTS, 400 ALREADY_VERIFIED → [onError] with the server message.
+  void submitVerification({
+    required String fullName,
+    required String documentType,
+    required List<XFile> documents,
+    required XFile selfie,
+    required Function() completion,
+    Function(String message)? onError,
+  }) {
+    ApiService.shared.multiPartCallApi(
+      url: WebService.profileVerification,
+      param: {
+        Param.fullName: fullName,
+        Param.documentType: documentType,
+      },
+      filesMap: {
+        Param.document: documents.take(2).toList(),
+        Param.selfie: [selfie],
+      },
+      completion: (response) {
+        final obj = CommonResponse.fromJson(response);
+        if (obj.status == true) {
+          completion();
+        } else {
+          onError?.call(obj.message ?? AppKeys.somethingWentWrong.tr);
+        }
+      },
+      onError: (message) => onError?.call(message),
+    );
+  }
+
+  /// JSON `editProfile` (nested objects allowed); stores the returned user.
+  void _editProfileJson(
+    Map<String, Object> param, {
+    required Function(User user) completion,
+    Function(String message)? onError,
+  }) {
+    final body = <String, Object>{Param.userId: SessionManager.shared.getUserID(), ...param};
+    ApiService.shared.call(
+      url: WebService.editProfile,
+      param: body,
+      completion: (data) {
+        final registration = Registration.fromJson(data);
+        final user = registration.data;
+        if (registration.status == true && user != null) {
+          SessionManager.shared.setUser(user);
+          completion(user);
+        } else {
+          onError?.call(registration.message ?? AppKeys.somethingWentWrong.tr);
+        }
+      },
+    );
   }
 }

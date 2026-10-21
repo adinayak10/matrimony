@@ -6,7 +6,7 @@ server that is reachable from the internet. Build, sign and publish from a
 laptop.
 
 - Package: `com.banjaramatch` (`android/app/build.gradle`), `pubspec.yaml` name `banjaramatch`.
-- Version: `version: 1.0.0+N` in `pubspec.yaml`. `N` is the Android
+- Version: `version: 1.1.0+N` in `pubspec.yaml` (1.1.0+5 is the feature-expansion release). `N` is the Android
   `versionCode` and is what the forced-update check compares (see below).
 - API host: `https://api.banjaramatch.com/` (`lib/utilities/const.dart`).
   The host and the `/socket.io` path must not change; every installed app has them baked in.
@@ -50,6 +50,29 @@ flutter build appbundle --release
 `android/app/build.gradle` signs the release build with
 `signingConfigs.release` read from `key.properties`; if the file is missing
 the build fails at the signing step, which is the intended guard.
+
+## 1.1.0 laptop build checklist
+
+1.1.0 (feature expansion, `docs/plans/01-feature-expansion.md` Track M) was
+written on the server without a Flutter toolchain, so the first laptop build
+is also its first compile:
+
+1. `git pull`, then `cd apps/mobile`.
+2. `flutter clean && flutter pub get` — the dependency list changed
+   (removed: cloud_firestore, purchases_flutter, camera, the old social-feed
+   widgets, app_tracking_transparency, sign_in_with_apple …; added:
+   agora_rtc_engine, permission_handler, geolocator, http_parser, mime), so
+   `pubspec.lock` is regenerated here. Commit the new `pubspec.lock`.
+3. `flutter analyze` — must report no errors. Fix anything it finds before building.
+4. iOS only: `cd ios && pod install --repo-update && cd ..` (the Podfile now
+   sets the permission_handler macros for camera, microphone, location
+   when-in-use and notifications).
+5. `flutter build apk --release` (admin APK manager) and/or
+   `flutter build appbundle --release` (Play). Version is `1.1.0+5`.
+6. Smoke test on a phone: login, Explore, Matches, Interests, chat (text and
+   an image), notification permission prompt, then the 1.1.0 features as they land.
+7. Calls need real `AGORA_APP_ID` / `AGORA_APP_CERTIFICATE` in the API env;
+   without them `/api/calls/token` answers 503 and the call screens show the error.
 
 ## Publish
 

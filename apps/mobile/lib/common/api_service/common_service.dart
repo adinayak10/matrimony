@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:banjaramatch/common/api_service/api_service.dart';
 import 'package:banjaramatch/common/managers/session_manager.dart';
 import 'package:banjaramatch/models/faq_categories_model.dart';
-import 'package:banjaramatch/models/notification_model.dart';
+import 'package:banjaramatch/models/announcement_model.dart';
 import 'package:banjaramatch/models/setting_model.dart';
 import 'package:banjaramatch/models/user_notification_model.dart';
 import 'package:banjaramatch/utilities/const.dart';
@@ -28,16 +28,17 @@ class CommonService {
     );
   }
 
-  void fetchPlatformNotification(int start, Function(List<PlatformNotification> notifications) completion) {
-    var param = {Param.start: start, Param.limit: Limits.pagination};
+  /// Platform announcements, newest first. [start] is a 0-based offset
+  /// (pass the number already loaded). Always calls [completion] (empty list
+  /// on failure or on API builds without announcements).
+  void fetchPlatformNotification(int start, Function(List<Announcement> announcements) completion,
+      {int limit = 10}) {
+    var param = {Param.start: start, Param.limit: limit};
     ApiService.shared.call(
       url: WebService.fetchPlatformNotification,
       param: param,
       completion: (response) {
-        var notifications = NotificationModel.fromJson(response).data;
-        if (notifications != null) {
-          completion(notifications);
-        }
+        completion(response is Map && response['status'] == true ? Announcement.listFrom(response['data']) : []);
       },
     );
   }

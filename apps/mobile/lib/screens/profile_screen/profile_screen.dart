@@ -18,9 +18,8 @@ import 'package:banjaramatch/screens/personal_info_controller.dart';
 import 'package:banjaramatch/screens/personal_info_screen.dart';
 import 'package:banjaramatch/screens/preference_fit_model.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_controller.dart';
-import 'package:banjaramatch/screens/profile_screen/profile_screen_old.dart';
+import 'package:banjaramatch/screens/profile_screen/preference_fit_widget.dart';
 import 'package:banjaramatch/screens/report_screen/report_sheet.dart';
-import 'package:banjaramatch/screens/story_screen/story_screen.dart';
 import 'package:banjaramatch/utilities/const.dart';
 
 import '../eduction_profession_screen.dart';
@@ -1375,16 +1374,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  void _handleStoryTap(ProfileController controller) {
-    if ((controller.user?.story ?? []).isNotEmpty) {
-      Get.bottomSheet(
-        StoryScreen(users: [controller.user ?? User()], index: 0),
-        isScrollControlled: true,
-        ignoreSafeArea: false,
-      );
-    }
-  }
-
   void _handleInterestAction(User profile, ProfileController controller) {
     if (profile.isFriend == true) {
       controller.unFriendUser(profile);
@@ -1505,7 +1494,6 @@ class ProfileScreen extends StatelessWidget {
             onTap: () {
               if (controller.user?.isBlockedByMe() ?? false) {
                 controller.unblockUser(controller.user, () {
-                  controller.fetchUserPosts(controller.user?.id ?? "0");
                   controller.updateEverything();
                 });
               } else {
@@ -1513,7 +1501,6 @@ class ProfileScreen extends StatelessWidget {
                   controller.isFollowLoading = false;
                   controller.user?.followingStatus = 0;
                   controller.user?.followers = (controller.user?.followers ?? 0) - 1;
-                  controller.posts.clear();
                   controller.updateEverything();
                 });
               }

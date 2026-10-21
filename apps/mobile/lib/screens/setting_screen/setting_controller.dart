@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:banjaramatch/common/api_service/notification_service.dart';
 import 'package:banjaramatch/common/api_service/user_service.dart';
 import 'package:banjaramatch/common/controller/base_controller.dart';
 import 'package:banjaramatch/common/managers/firebase_notification_manager.dart';
@@ -39,10 +38,8 @@ class SettingController extends BaseController {
       completion: (p0) {},
     );
     if (value) {
-      NotificationService.shared.subscribeToAllMyRoom();
       FirebaseNotificationManager.shared.subscribeToTopic(notificationTopic);
     } else {
-      NotificationService.shared.unsubscribeToAllMyRoom();
       FirebaseNotificationManager.shared.unsubscribeToTopic(notificationTopic);
     }
   }
@@ -114,9 +111,7 @@ class SettingController extends BaseController {
 
     // final GoogleSignIn googleSignIn = GoogleSignIn();
     // FirebaseNotificationManager.shared.subscribeToTopic(notificationTopic);
-    // NotificationService.shared.unsubscribeToAllMyRoom();
     // SessionManager.shared.setUser(null);
-    // Purchases.logOut();
     // googleSignIn.signOut();
     // stopLoading();
   }

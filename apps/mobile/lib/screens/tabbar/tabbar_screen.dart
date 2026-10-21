@@ -59,14 +59,6 @@ class TabBarScreen extends StatelessWidget {
                             profileController.user?.profile ?? SessionManager.shared.getUser()?.profile ?? '',
                         fullName:
                             profileController.user?.fullName ?? SessionManager.shared.getUser()?.fullName ?? 'Guest',
-                        membershipPlan: profileController.user?.membershipPlan?.name ??
-                            SessionManager.shared.getUser()?.membershipPlan?.name ??
-                            'Free',
-                        isFreeUser: (profileController.user?.membershipPlan?.name ??
-                                    SessionManager.shared.getUser()?.membershipPlan?.name ??
-                                    'free')
-                                .toLowerCase() ==
-                            'free',
                         onProfileTap: () => {
                           // Navigate.to(ProfileScreen(
                           //   isFromTabBar: true,
@@ -80,7 +72,6 @@ class TabBarScreen extends StatelessWidget {
                         },
                         onNotificationTap: () => Navigate.to(NotificationScreen()),
                         onSearchTap: () => Navigate.to(SearchUserScreen()),
-                        onUpgradeTap: () => Navigator.pushNamed(context, '/membership'),
                         title: controller.currentTabTitle,
                         onTapOnEditPreference: () {
                           Navigate.to(PartnerPreferenceViewScreen());
@@ -89,7 +80,6 @@ class TabBarScreen extends StatelessWidget {
                     },
                   ),
                 Expanded(child: screen()),
-                //  BannerAdView(),
                 Container(
                   color: cWhite,
                   padding: const EdgeInsets.symmetric(vertical: 10),
@@ -217,26 +207,20 @@ class DashboardTopHeader extends StatelessWidget {
 
   final String profileImageUrl;
   final String fullName;
-  final String membershipPlan;
-  final bool isFreeUser;
   final VoidCallback onProfileTap;
   final VoidCallback onEditTap;
   final VoidCallback onNotificationTap;
   final VoidCallback onSearchTap;
-  final VoidCallback onUpgradeTap;
   final VoidCallback onTapOnEditPreference;
 
   DashboardTopHeader({
     super.key,
     required this.profileImageUrl,
     required this.fullName,
-    required this.membershipPlan,
-    required this.isFreeUser,
     required this.onProfileTap,
     required this.onEditTap,
     required this.onNotificationTap,
     required this.onSearchTap,
-    required this.onUpgradeTap,
     required this.title,
     this.subTitle,
     required this.onTapOnEditPreference,

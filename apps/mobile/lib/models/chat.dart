@@ -1,9 +1,31 @@
 // ignore_for_file: unnecessary_getters_setters
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:banjaramatch/models/registration.dart';
 
 import 'model_chat_messages.dart';
+
+enum MessageType {
+  text('TEXT'),
+  image('IMAGE'),
+  video('VIDEO');
+
+  const MessageType(this.value);
+
+  final String value;
+
+  /// Server rows may carry 'TEXT'/'IMAGE'/'VIDEO' or the lowercase names the
+  /// app emits ('text'/'image'); anything unknown is treated as text.
+  static MessageType parse(String? raw) {
+    switch ((raw ?? '').toUpperCase()) {
+      case 'IMAGE':
+        return MessageType.image;
+      case 'VIDEO':
+        return MessageType.video;
+      default:
+        return MessageType.text;
+    }
+  }
+}
 
 class ChatUserRoom {
   bool? _iBlocked;
@@ -58,30 +80,6 @@ class ChatUserRoom {
     _unreadCounts = unreadCounts;
   }
 
-  factory ChatUserRoom.fromFireStore(
-    DocumentSnapshot<Map<String, dynamic>> snapshot,
-    SnapshotOptions? options,
-  ) {
-    final data = snapshot.data();
-    return ChatUserRoom(
-        conversationId: data?['conversationId'],
-        iAmBlocked: data?['iAmBlocked'],
-        iBlocked: data?['iBlocked'],
-        deletedId: data?['deletedId'],
-        isDeleted: data?['isDeleted'],
-        isMute: data?['isMute'],
-        lastMsg: data?['lastMsg'],
-        newMsgCount: data?['newMsgCount'],
-        time: (data?['time'] as Timestamp?)?.toDate(),
-        type: data?['type'],
-        title: data?['title'],
-        profileImage: data?['profileImage'],
-        userIdOrRoomId: data?['userIdOrRoomId'],
-        usersIds: data?['usersIds'].cast<num>(),
-        deleteChatIds: data?['deleteChatIds'],
-        unreadCounts: data?['unreadCounts']);
-  }
-
   String? get conversationId => _conversationId;
 
   List<String>? get usersIds => _usersIds;
@@ -92,27 +90,6 @@ class ChatUserRoom {
 
   bool? get iAmBlocked => _iAmBlocked;
 
-  Map<String, dynamic> toFireStore() {
-    return {
-      if (conversationId != null) "conversationId": _conversationId,
-      if (iAmBlocked != null) "iAmBlocked": _iAmBlocked,
-      if (iBlocked != null) "iBlocked": _iBlocked,
-      if (deletedId != null) "deletedId": _deletedId,
-      if (isDeleted != null) "isDeleted": _isDeleted,
-      if (isMute != null) "isMute": _isMute,
-      if (lastMsg != null) "lastMsg": _lastMsg,
-      if (newMsgCount != null) "newMsgCount": _newMsgCount,
-      if (time != null) "time": _time,
-      if (type != null) "type": _type,
-      if (title != null) "title": _title,
-      if (profileImage != null) "profileImage": _profileImage,
-      if (userIdOrRoomId != null) "userIdOrRoomId": _userIdOrRoomId,
-      if (usersIds != null) "usersIds": _usersIds,
-      if (deleteChatIds != null) "deleteChatIds": _deleteChatIds,
-      if (unreadCounts != null) "unreadCounts": _unreadCounts
-    };
-  }
-
   ChatUserRoom.fromJson(Map<String, dynamic> json) {
     _conversationId = json["conversationId"];
     _iAmBlocked = json["iAmBlocked"];
@@ -122,7 +99,7 @@ class ChatUserRoom {
     _isMute = json["isMute"];
     _lastMsg = json["lastMsg"];
     _newMsgCount = json["newMsgCount"];
-    _time = (json['time'] as Timestamp?)?.toDate();
+    _time = _parseTime(json['time']);
     _type = json["type"];
     _title = json["title"];
     _profileImage = json["profileImage"];
@@ -146,7 +123,7 @@ class ChatUserRoom {
       "isMute": _isMute,
       "lastMsg": _lastMsg,
       "newMsgCount": _newMsgCount,
-      "time": _time,
+      "time": _time?.toIso8601String(),
       "title": _title,
       "profileImage": _profileImage,
       "type": _type,
@@ -155,6 +132,15 @@ class ChatUserRoom {
       'deleteChatIds': deleteChatIds,
       'unreadCounts': unreadCounts,
     };
+  }
+
+  /// Accepts an ISO-8601 string, epoch milliseconds or a DateTime.
+  static DateTime? _parseTime(dynamic value) {
+    if (value == null) return null;
+    if (value is DateTime) return value;
+    if (value is int) return DateTime.fromMillisecondsSinceEpoch(value);
+    if (value is String) return DateTime.tryParse(value);
+    return null;
   }
 
   void setConversationId(String? con) {

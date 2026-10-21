@@ -3,7 +3,6 @@
 // import 'package:flutter/material.dart';
 // import 'package:get/get.dart';
 // import 'package:banjaramatch/common/extensions/font_extension.dart';
-// import 'package:banjaramatch/common/managers/ads/banner_ad.dart';
 // import 'package:banjaramatch/common/widgets/my_cached_image.dart';
 // import 'package:banjaramatch/common/widgets/no_data_found.dart';
 // import 'package:banjaramatch/localization/languages.dart';
@@ -293,7 +292,6 @@ class NotificationScreen extends StatelessWidget {
               },
             ),
 
-            //BannerAdView(bottom: true),
           ],
         ),
       ),

@@ -5,18 +5,6 @@ class WebService {
   static const String fetchPlatformNotification = "${apiURL}fetchPlatformNotification";
   static const String fetchUserNotification = "${apiURL}fetchUserNotification";
   static const String fetchFAQs = "${apiURL}fetchFAQs";
-  static const String fetchPosts = "${apiURL}fetchPosts";
-  static const String likePost = "${apiURL}likePost";
-  static const String dislikePost = "${apiURL}dislikePost";
-  static const String deleteMyPost = "${apiURL}deleteMyPost";
-  static const String addPost = "${apiURL}addPost";
-  static const String fetchPostByUser = "${apiURL}fetchPostByUser";
-  static const String reportPost = "${apiURL}reportPost";
-  static const String addComment = "${apiURL}addComment";
-  static const String deleteComment = "${apiURL}deleteComment";
-  static const String fetchComments = "${apiURL}fetchComments";
-  static const String fetchPostsByHashtag = "${apiURL}fetchPostsByHashtag";
-  static const String fetchPostByPostId = "${apiURL}fetchPostByPostId";
   static const String uploadFile = "${apiURL}uploadFile";
 
   static const String logOut = "${apiURL}auth/logout";
@@ -37,50 +25,11 @@ class WebService {
   static const String userUnBlockedByUser = "${apiURL}UserUnblockedByUser";
   static const String fetchBlockedUserList = "${apiURL}fetchBlockedUserList";
 
-  static const String createRoom = "${apiURL}createRoom";
-  static const String editRoom = "${apiURL}editRoom";
-  static const String fetchMyOwnRooms = "${apiURL}fetchMyOwnRooms";
-  static const String fetchRoomsByInterest = "${apiURL}fetchRoomsByInterest";
-  static const String fetchRandomRooms = "${apiURL}fetchRandomRooms";
-  static const String fetchRoomDetail = "${apiURL}fetchRoomDetail";
-  static const String reportRoom = "${apiURL}reportRoom";
-  static const String joinOrRequestRoom = "${apiURL}joinOrRequestRoom";
-  static const String acceptInvitation = "${apiURL}acceptInvitation";
-  static const String rejectInvitation = "${apiURL}rejectInvitation";
-  static const String getInvitationList = "${apiURL}getInvitationList";
-  static const String inviteUserToRoom = "${apiURL}inviteUserToRoom";
-  static const String leaveThisRoom = "${apiURL}leaveThisRoom";
-  static const String fetchRoomRequestList = "${apiURL}fetchRoomRequestList";
-  static const String acceptRoomRequest = "${apiURL}acceptRoomRequest";
-  static const String rejectRoomRequest = "${apiURL}rejectRoomRequest";
+  /// Deletes (hides) a 1:1 chat room — not the removed social "rooms" feature.
   static const String deleteRoom = "${apiURL}deleteRoom";
-  static const String fetchRoomUsersList = "${apiURL}fetchRoomUsersList";
-  static const String fetchRoomAdmins = "${apiURL}fetchRoomAdmins";
-  static const String removeUserFromRoom = "${apiURL}removeUserFromRoom";
-  static const String makeRoomAdmin = "${apiURL}makeRoomAdmin";
-  static const String removeAdminFromRoom = "${apiURL}removeAdminFromRoom";
-  static const String searchUserForInvitation = "${apiURL}searchUserForInvitation";
-  static const String muteUnmuteRoomNotification = "${apiURL}muteUnmuteRoomNotification";
-  static const String fetchRoomsIAmIn = "${apiURL}fetchRoomsIAmIn";
 
-  static const String fetchStories = "${apiURL}fetchStory";
-  static const String viewStory = "${apiURL}viewStory";
-  static const String createStory = "${apiURL}createStory";
-  static const String deleteStory = "${apiURL}deleteStory";
-
-  ///////////////////
-  static const String banners = "${apiURL}fetchBanners";
-  static const String premiumUsers = "${apiURL}fetchPremiumUsers";
-  static const String trustedUsers = "${apiURL}fetchtrustedUsers";
-  static const String packages = "${apiURL}fetchPackages";
-  static const String happyStories = "${apiURL}fetchHappyStories";
-  static const String stories = "${apiURL}fetchStories";
-  static const String reviews = "${apiURL}fetchReviews";
-  static const String blogs = "${apiURL}fetchBlogs";
   static const String fetchUsersList = "${apiURL}fetchUsersList";
   static const String searchProfiles = "${apiURL}searchProfiles";
-
-  static const String pushNotificationToSingleUser = "${apiURL}pushNotificationToSingleUser";
 
   static const String sendInterestRequest = "${apiURL}sendInterestRequest";
   static const String cancelInterestRequest = "${apiURL}cancelInterestRequest";
@@ -122,8 +71,6 @@ class WebService {
   static const String fetchQualificationList = "${apiURL}fetchQualificationList";
 
   static const fetchIncomeRange = '${apiURL}fetchIncomeRange';
-  static const requestOtp = '${apiURL}auth/request-otp';
-  static const verifyOtp = '${apiURL}auth/verify-otp';
   static const loginWithEmail = '${apiURL}auth/loginWithEmail';
   static const registerWithEmail = '${apiURL}auth/registerWithEmail';
   static const firebaseEmailLogin = '${apiURL}auth/firebase-email-login';
@@ -135,4 +82,39 @@ class WebService {
   static const comparePreferencesFit = '${apiURL}comparePreferencesFit';
 
   static const String fetchLiveActivity = "${apiURL}fetchLiveActivity";
+
+  // ─── Feature expansion 1.1.0 (see docs/plans/01-feature-expansion.md contracts) ───
+  static const String getShortListedUsers = "${apiURL}getShortListedUsers";
+  static const String fetchRecommendations = "${apiURL}fetchRecommendations";
+
+  // Verification
+  static const String fetchVerificationStatus = "${apiURL}fetchVerificationStatus";
+
+  // Guna Milan (POST, authenticated)
+  static const String gunaMilan = "${apiURL}compatibility/guna-milan";
+
+  // Saved searches
+  static const String fetchSavedSearches = "${apiURL}fetchSavedSearches";
+  static const String createSavedSearch = "${apiURL}createSavedSearch";
+  static const String updateSavedSearch = "${apiURL}updateSavedSearch";
+  static const String deleteSavedSearch = "${apiURL}deleteSavedSearch";
+  static const String runSavedSearch = "${apiURL}runSavedSearch";
+
+  // Success stories
+  /// Public list: GET ?page&limit(&featured=1)
+  static const String successStories = "${apiURL}success-stories";
+  static const String fetchMySuccessStories = "${apiURL}fetchMySuccessStories";
+  static const String submitSuccessStory = "${apiURL}submitSuccessStory";
+
+  // FAQ (public GET mirror of fetchFAQs)
+  static const String faqs = "${apiURL}faqs";
+
+  // Calls (Agora)
+  static const String callToken = "${apiURL}calls/token";
+
+  /// GET ?page&limit
+  static const String callHistory = "${apiURL}calls/history";
+
+  // Contact / help form
+  static const String contactSubmit = "${apiURL}contact/submit";
 }

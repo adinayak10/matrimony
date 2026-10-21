@@ -4,12 +4,9 @@ import 'package:get/get.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
 import 'package:banjaramatch/common/managers/session_manager.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
-import 'package:banjaramatch/models/registration.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/chatting_controller.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/content_full_screen.dart';
-import 'package:banjaramatch/screens/extra_views/back_button.dart';
 import 'package:banjaramatch/utilities/const.dart';
-import 'package:banjaramatch/utilities/firebase_const.dart';
 
 import '../../../models/chat.dart';
 
@@ -26,9 +23,7 @@ class ChatTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var isMyMsg = message.sender?.sId.toString() == SessionManager.shared.getUserID();
-    var msgType = message.msgType == 'TEXT'
-        ? MessageType.text
-        : (message.msgType == 'IMAGE' ? MessageType.image : MessageType.video);
+    var msgType = MessageType.parse(message.msgType);
     return Row(
       mainAxisAlignment: isMyMsg ? MainAxisAlignment.end : MainAxisAlignment.start,
       children: [
@@ -39,8 +34,8 @@ class ChatTag extends StatelessWidget {
             Container(
               constraints: BoxConstraints(maxWidth: Get.width * 0.6),
               padding: EdgeInsets.only(
-                  top: message.msgType == "TEXT" ? 10 : 5,
-                  bottom: message.msgType == "TEXT"
+                  top: msgType == MessageType.text ? 10 : 5,
+                  bottom: msgType == MessageType.text
                       ? message.content == ""
                           ? 5
                           : 10
@@ -57,31 +52,6 @@ class ChatTag extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  !isMyMsg && isFromRoom
-                      ? Column(
-                          children: [
-                            FittedBox(
-                              child: Row(
-                                children: [
-                                  Text(
-                                    controller.room?.roomUsers
-                                            ?.firstWhere(
-                                              (element) => element.id == message.sender!.sId!,
-                                              orElse: () => User(fullName: 'Unknown'),
-                                            )
-                                            .fullName ??
-                                        '',
-                                    style: MyTextStyle.gilroyBold(color: cBlack),
-                                  ),
-                                  const SizedBox(width: 5),
-                                  const VerifyIcon()
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                          ],
-                        )
-                      : const Column(),
                   msgType == MessageType.text
                       ? Text(
                           message.content ?? '',
@@ -119,13 +89,8 @@ class ChatTag extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            const SizedBox(height: 6),
-                            (message.content ?? '') != ''
-                                ? Text(
-                                    message.content ?? '',
-                                    style: MyTextStyle.gilroyRegular(color: isMyMsg ? cWhite : cBlack, size: 16),
-                                  )
-                                : Container(width: 0),
+                            // media messages carry the file URL in `content`; the caption is sent as a separate text message
+                            const SizedBox(height: 2),
                           ],
                         ),
                 ],

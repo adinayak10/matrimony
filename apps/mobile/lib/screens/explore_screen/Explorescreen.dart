@@ -19,7 +19,6 @@ import 'package:banjaramatch/utilities/const.dart';
 
 import '../../common/managers/navigation.dart';
 import '../../common/widgets/my_cached_image.dart';
-import '../member_card.dart';
 import '../profile_screen/profile_controller.dart';
 import '../tabbar/tabbar_controller.dart';
 import 'ExplorerController.dart';
@@ -55,19 +54,10 @@ class ExplorePage extends StatelessWidget {
                           profileController.user?.profile ?? SessionManager.shared.getUser()?.profile ?? '',
                       fullName:
                           profileController.user?.fullName ?? SessionManager.shared.getUser()?.fullName ?? 'Guest',
-                      membershipPlan: profileController.user?.membershipPlan?.name ??
-                          SessionManager.shared.getUser()?.membershipPlan?.name ??
-                          'Free',
-                      isFreeUser: (profileController.user?.membershipPlan?.name ??
-                                  SessionManager.shared.getUser()?.membershipPlan?.name ??
-                                  'free')
-                              .toLowerCase() ==
-                          'free',
                       onProfileTap: () => scaffoldKey.currentState?.openDrawer(),
                       onEditTap: () => scaffoldKey.currentState?.openDrawer(),
                       onNotificationTap: () => Navigate.to(NotificationScreen()),
                       onSearchTap: () => Navigate.to(SearchUserScreen()),
-                      onUpgradeTap: () => Navigator.pushNamed(context, '/membership'),
                     );
                   },
                 ),
@@ -82,11 +72,6 @@ class ExplorePage extends StatelessWidget {
                             SliverToBoxAdapter(
                               child: buildEnhancedBannerSection(controller),
                             ),
-
-                            // // Premium Members Spotlight
-                            // SliverToBoxAdapter(
-                            //   child: buildEnhancedPremiumSection(controller),
-                            // ),
 
                             // Live Activity Feed
                             SliverToBoxAdapter(
@@ -188,11 +173,6 @@ class ExplorePage extends StatelessWidget {
                                 showRevisitCTA: true,
                               ),
                             ),
-
-                            // // Premium Recommendations
-                            // SliverToBoxAdapter(
-                            //   child: _buildPremiumRecommendations(controller),
-                            // ),
 
                             // Footer with Tips
                             SliverToBoxAdapter(
@@ -697,62 +677,6 @@ class ExplorePage extends StatelessWidget {
                 ),
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildEnhancedPremiumSection(ExploreController controller) {
-    if (controller.premiumMembers.isEmpty) return SizedBox.shrink();
-
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFFFFE0B2), Color(0xFFFF9800)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withOpacity(0.3),
-            blurRadius: 15,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.diamond, color: Colors.white, size: 28),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Premium Members",
-                      style: MyTextStyle.gilroyBold(color: Colors.white, size: 20),
-                    ),
-                    Text(
-                      "Verified profiles with enhanced features",
-                      style: MyTextStyle.gilroyRegular(color: Colors.white.withOpacity(0.9), size: 14),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
-          MemberCard(
-            isFetching: controller.isLoading.value,
-            memberList: controller.premiumMembers,
-            controller: controller.bannerController,
           ),
         ],
       ),
@@ -1739,105 +1663,6 @@ class ExplorePage extends StatelessWidget {
     }
   }
 
-  Widget _buildPremiumRecommendations(ExploreController controller) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF1A237E), Color(0xFF3F51B5)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
-            blurRadius: 15,
-            offset: Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.star, color: Colors.amber, size: 28),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Premium Recommendations",
-                      style: MyTextStyle.gilroyBold(color: Colors.white, size: 18),
-                    ),
-                    Text(
-                      "Unlock exclusive matches with premium membership",
-                      style: MyTextStyle.gilroyRegular(color: Colors.white.withOpacity(0.8), size: 14),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildPremiumFeature("Priority Matches", Icons.flash_on),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: _buildPremiumFeature("Advanced Filters", Icons.tune),
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                child: _buildPremiumFeature("Unlimited Likes", Icons.favorite),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.amber,
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Text(
-              "Upgrade to Premium",
-              style: MyTextStyle.gilroyBold(color: Colors.white, size: 16),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPremiumFeature(String title, IconData icon) {
-    return Column(
-      children: [
-        Container(
-          padding: EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: Colors.white, size: 24),
-        ),
-        SizedBox(height: 8),
-        Text(
-          title,
-          style: MyTextStyle.gilroyMedium(color: Colors.white, size: 12),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-
   Widget _buildFooterTipsSection() {
     return Container(
       margin: EdgeInsets.all(16),
@@ -2215,25 +2040,19 @@ class MapPatternPainter extends CustomPainter {
 class MatrimonyTopHeader extends StatelessWidget {
   final String profileImageUrl;
   final String fullName;
-  final String membershipPlan;
-  final bool isFreeUser;
   final VoidCallback onProfileTap;
   final VoidCallback onEditTap;
   final VoidCallback onNotificationTap;
   final VoidCallback onSearchTap;
-  final VoidCallback onUpgradeTap;
 
   MatrimonyTopHeader({
     super.key,
     required this.profileImageUrl,
     required this.fullName,
-    required this.membershipPlan,
-    required this.isFreeUser,
     required this.onProfileTap,
     required this.onEditTap,
     required this.onNotificationTap,
     required this.onSearchTap,
-    required this.onUpgradeTap,
   });
 
   @override
@@ -2290,33 +2109,6 @@ class MatrimonyTopHeader extends StatelessWidget {
                         fullName,
                         style: MyTextStyle.gilroyBold(size: 16, color: cDarkText),
                         overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            membershipPlan + " Member",
-                            style: MyTextStyle.gilroyRegular(
-                              size: 13,
-                              color: membershipPlan.toLowerCase() == 'free' ? cDarkText : cPrimary,
-                            ),
-                          ),
-                          // SizedBox(
-                          //   width: 10,
-                          // ),
-                          // Container(
-                          //   decoration: BoxDecoration(
-                          //       border: Border.all(color: cRed, width: 1),
-                          //       borderRadius: BorderRadius.all(Radius.circular(16))),
-                          //   alignment: Alignment.center,
-                          //   padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                          //   child: Text(
-                          //     "Upgrade",
-                          //     style: MyTextStyle.gilroyRegular(size: 11, color: cRed),
-                          //   ),
-                          // ),
-                        ],
                       ),
                     ],
                   ),

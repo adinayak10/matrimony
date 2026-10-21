@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
 import 'package:get/get_utils/src/platform/platform.dart';
@@ -14,13 +15,14 @@ import 'package:banjaramatch/models/model_chat_room_list.dart';
 import 'package:banjaramatch/models/model_match_momemtum.dart';
 import 'package:banjaramatch/models/model_user_online_pattern.dart';
 import 'package:banjaramatch/models/registration.dart';
-import 'package:banjaramatch/screens/feed_screen/feed_screen_controller.dart';
+import 'package:banjaramatch/screens/chats_screen/chatting_screen/block_user_controller.dart';
 import 'package:banjaramatch/screens/model_gallery_photo.dart';
 import 'package:banjaramatch/screens/preference_fit_model.dart';
 import 'package:banjaramatch/utilities/const.dart';
 import 'package:banjaramatch/utilities/params.dart';
 
-class ProfileController extends FeedScreenController {
+class ProfileController extends BlockUserController {
+  ScrollController scrollController = ScrollController();
   User? user;
   final String userID;
   Color? profileColor;

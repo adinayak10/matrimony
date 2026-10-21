@@ -1,3 +1,6 @@
+import 'package:banjaramatch/localization/features/app_strings.dart';
+import 'package:banjaramatch/localization/features/call_strings.dart';
+import 'package:banjaramatch/localization/features/match_strings.dart';
 import 'package:banjaramatch/localization/languages.dart';
 
 const englishStrings = {
@@ -257,4 +260,8 @@ const englishStrings = {
   LKeys.method1: 'Method 1',
   LKeys.pleaseConfigureSubscription:
       'Make sure you configure Purchases before trying to get the default instance. More info here',
+  // 1.1.0 feature strings (English until translated)
+  ...appStringsEn,
+  ...matchStringsEn,
+  ...callStringsEn,
 };

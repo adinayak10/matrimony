@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:get_storage/get_storage.dart';
 import 'package:banjaramatch/localization/allLanguages.dart';
@@ -72,18 +71,6 @@ class SessionManager {
       return data;
     }
     return null;
-  }
-
-  String getBannerAdId() {
-    return (Platform.isAndroid ? (getSettings()?.adBannerAndroid) : (getSettings()?.adBannerIOS)) ?? '';
-  }
-
-  String getInterstitialAdId() {
-    return (Platform.isAndroid ? (getSettings()?.adInterstitialAndroid) : (getSettings()?.adInterstitialIOS)) ?? '';
-  }
-
-  bool isAdMobOn() {
-    return getSettings()?.isAdmobOn == 1 ? true : false;
   }
 
   void clear() {

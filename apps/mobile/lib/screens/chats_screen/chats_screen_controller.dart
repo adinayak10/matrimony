@@ -126,25 +126,6 @@ class ChatsScreensController extends CupertinoController {
     fetchChats();
   }
 
-  void clearChat(ChatUserRoom chatUserRoom) {
-    Get.bottomSheet(
-      ConfirmationSheet(
-        desc: LKeys.chatRoomDesc,
-        buttonTitle: LKeys.clearChat,
-        onTap: () async {
-          ApiService.shared.call(
-            url: "WebService",
-            param: {
-              'room_id': chatUserRoom.conversationId,
-              'user_id': myUser!.id,
-            },
-            completion: (_) => fetchChats(),
-          );
-        },
-      ),
-    );
-  }
-
   void deleteChat(ChatRoom chatUserRoom) {
     Get.bottomSheet(
       ConfirmationSheet(

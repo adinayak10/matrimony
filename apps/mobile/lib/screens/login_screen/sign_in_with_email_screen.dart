@@ -2,8 +2,6 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
-import 'package:banjaramatch/common/api_service/notification_service.dart';
 import 'package:banjaramatch/common/api_service/user_service.dart';
 import 'package:banjaramatch/common/controller/base_controller.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
@@ -210,11 +208,9 @@ class _SignInWithEmailScreenState extends State<SignInWithEmailScreen> with Sing
                             print('ProfileController not found: $e');
                           }
 
-                          Purchases.logIn('${user?.id ?? 0}');
 
                           if (user?.isPushNotifications == 1) {
                             FirebaseNotificationManager.shared.subscribeToTopic(notificationTopic);
-                            NotificationService.shared.subscribeToAllMyRoom();
                           }
 
                           Widget w = TabBarScreen();
@@ -429,11 +425,9 @@ class _SignInWithEmailScreenState extends State<SignInWithEmailScreen> with Sing
                           print('ProfileController not found: $e');
                         }
 
-                        Purchases.logIn('${user?.id ?? 0}');
 
                         if (user?.isPushNotifications == 1) {
                           FirebaseNotificationManager.shared.subscribeToTopic(notificationTopic);
-                          NotificationService.shared.subscribeToAllMyRoom();
                         }
 
                         Widget w = TabBarScreen();

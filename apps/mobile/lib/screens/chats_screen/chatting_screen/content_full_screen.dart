@@ -1,10 +1,10 @@
+import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:banjaramatch/common/extensions/font_extension.dart';
 import 'package:banjaramatch/models/chat.dart';
-import 'package:banjaramatch/screens/post/video_player_sheet.dart';
 import 'package:banjaramatch/utilities/const.dart';
-import 'package:banjaramatch/utilities/firebase_const.dart';
 import 'package:video_player/video_player.dart';
 
 class ContentFullScreen extends StatefulWidget {
@@ -22,9 +22,7 @@ class _ContentFullScreenState extends State<ContentFullScreen> {
 
   @override
   void initState() {
-    var msgType = widget.message.msgType == 'TEXT'
-        ? MessageType.text
-        : (widget.message.msgType == 'IMAGE' ? MessageType.image : MessageType.video);
+    var msgType = MessageType.parse(widget.message.msgType);
     if (msgType == MessageType.video) {
       if (widget.playerController == null) {
         controller = VideoPlayerController.networkUrl(Uri.parse(widget.message.content?.addBaseURL() ?? ''))
@@ -41,9 +39,7 @@ class _ContentFullScreenState extends State<ContentFullScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var msgType = widget.message.msgType == 'TEXT'
-        ? MessageType.text
-        : (widget.message.msgType == 'IMAGE' ? MessageType.image : MessageType.video);
+    var msgType = MessageType.parse(widget.message.msgType);
     return Container(
       color: cBlack,
       child: SafeArea(
@@ -145,5 +141,63 @@ class _ContentFullScreenState extends State<ContentFullScreen> {
       controller?.dispose();
     }
     super.dispose();
+  }
+}
+
+String _formatDuration(Duration d) {
+  String twoDigits(int n) => n.toString().padLeft(2, "0");
+  final minutes = twoDigits(d.inMinutes.remainder(60));
+  final seconds = twoDigits(d.inSeconds.remainder(60));
+  return d.inHours == 0 ? "$minutes:$seconds" : "${twoDigits(d.inHours)}:$minutes:$seconds";
+}
+
+class VideoSlider extends StatelessWidget {
+  final VideoPlayerController? controller;
+  final Function(double) onChange;
+
+  const VideoSlider({Key? key, required this.controller, required this.onChange}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final position = controller?.value.position;
+    final duration = controller?.value.duration;
+    return Container(
+      decoration: ShapeDecoration(
+        shape: const SmoothRectangleBorder(
+            borderRadius: SmoothBorderRadius.all(SmoothRadius(cornerRadius: 5, cornerSmoothing: cornerSmoothing))),
+        color: cBlack.withOpacity(0.4),
+      ),
+      margin: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(7),
+      child: Row(
+        children: [
+          Text(
+            position == null ? "" : _formatDuration(position),
+            style: MyTextStyle.gilroyRegular(color: cWhite, size: 14),
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            child: SliderTheme(
+              data: const SliderThemeData().copyWith(trackHeight: 1, overlayShape: SliderComponentShape.noThumb),
+              child: Slider(
+                label: "",
+                thumbColor: cPrimary,
+                activeColor: cWhite,
+                inactiveColor: cWhite.withOpacity(0.4),
+                value: position?.inMilliseconds.toDouble() ?? 0,
+                max: duration?.inMilliseconds.toDouble() ?? 0,
+                onChanged: (value) {
+                  onChange(value);
+                },
+              ),
+            ),
+          ),
+          Text(
+            duration == null ? "" : _formatDuration(duration),
+            style: MyTextStyle.gilroyRegular(color: cWhite, size: 14),
+          ),
+        ],
+      ),
+    );
   }
 }

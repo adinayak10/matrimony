@@ -1,3 +1,6 @@
+import 'package:banjaramatch/localization/features/app_strings.dart';
+import 'package:banjaramatch/localization/features/call_strings.dart';
+import 'package:banjaramatch/localization/features/match_strings.dart';
 import 'package:banjaramatch/localization/languages.dart';
 
 const indonesianStrings = {
@@ -257,4 +260,8 @@ const indonesianStrings = {
   LKeys.method2: '',
   LKeys.method1: '',
   LKeys.pleaseConfigureSubscription: '',
+  // 1.1.0 feature strings (English until translated)
+  ...appStringsEn,
+  ...matchStringsEn,
+  ...callStringsEn,
 };
