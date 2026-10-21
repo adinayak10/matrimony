@@ -130,6 +130,9 @@ link_all() {
   for d in uploads downloads blog-images sitemaps; do
     [ -d "$SHARED/$d" ] || install -d -m 755 "$SHARED/$d"
   done
+  # Verification documents (ID + selfie): owner-only, never linked into a served path.
+  # The API reads it through PRIVATE_UPLOADS_DIR in api.env.
+  [ -d "$SHARED/private-uploads" ] || install -d -m 700 "$SHARED/private-uploads"
   link_shared "$SHARED/uploads"     "$REPO/apps/api/uploads"             || return 1
   link_shared "$SHARED/downloads"   "$REPO/apps/web/public/downloads"    || return 1
   link_shared "$SHARED/blog-images" "$REPO/apps/web/public/images/blog"  || return 1
