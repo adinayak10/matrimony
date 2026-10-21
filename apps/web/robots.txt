@@ -11,6 +11,11 @@ Disallow: /user-interests
 Disallow: /user-chat
 Disallow: /user-setting
 Disallow: /user-plan
+Disallow: /daily-matches
+Disallow: /saved-searches
+Disallow: /verify-profile
+Disallow: /share-success-story
+Disallow: /connections
 Disallow: /shortlisted
 Disallow: /blocked-users
 Disallow: /notifications

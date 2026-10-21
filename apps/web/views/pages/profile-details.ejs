@@ -130,6 +130,14 @@
       .action-btn-icon { font-size: 1.2rem; }
       .action-btn-label { font-size: 0.62rem; }
     }
+    .guna-panel { margin-top:24px; padding-top:16px; border-top:1px solid #eee; }
+    .guna-ring { --pct:0; width:84px; height:84px; border-radius:50%; background:conic-gradient(#f6af04 calc(var(--pct) * 1%), #f1e7d2 0); display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .guna-ring span { width:64px; height:64px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; color:#555; }
+    .guna-ring b { font-size:20px; color:#3a1d00; }
+    .guna-verdict { display:inline-block; background:#fff4d6; color:#8a5a00; border:1px solid #f6d27a; font-weight:700; font-size:12px; padding:2px 10px; border-radius:12px; }
+    .guna-koota { padding:8px 0; }
+    .guna-bar { height:8px; background:#f1e7d2; border-radius:6px; overflow:hidden; margin:4px 0; }
+    .guna-bar div { height:100%; background:#f6af04; border-radius:6px; }
     </style>
 </head>
 
@@ -369,6 +377,28 @@
                                 </ul>
                             </div>
                             <!-- END PERSONAL INFORMATION -->
+
+                            <!-- CULTURAL & HOROSCOPE -->
+                            <%
+                              const hs = (profile && profile.horoscope) || {};
+                              const createdByLabel = { self: 'Self', parent: 'Parent', sibling: 'Sibling', relative: 'Relative', friend: 'Friend' }[String(profile?.profileCreatedBy || '').toLowerCase()];
+                              const langs = Array.isArray(profile?.knownLanguages) ? profile.knownLanguages.filter(Boolean) : [];
+                              const hasCultural = hs.rashi || hs.nakshatra || (profile?.manglikStatus && profile.manglikStatus !== 'Not specified') || typeof profile?.horoscopeRequired === 'boolean' || profile?.bloodGroup || langs.length || createdByLabel;
+                            %>
+                            <% if (hasCultural) { %>
+                            <div class="pr-bio-c pr-bio-info">
+                                <h3>Cultural &amp; horoscope</h3>
+                                <ul>
+                                    <% if (createdByLabel) { %><li><b>Profile created by:</b> <%= createdByLabel %></li><% } %>
+                                    <% if (hs.rashi) { %><li><b>Rashi:</b> <%= hs.rashi %></li><% } %>
+                                    <% if (hs.nakshatra) { %><li><b>Nakshatra:</b> <%= hs.nakshatra %></li><% } %>
+                                    <% if (profile?.manglikStatus && profile.manglikStatus !== 'Not specified') { %><li><b>Manglik:</b> <%= profile.manglikStatus %></li><% } %>
+                                    <% if (typeof profile?.horoscopeRequired === 'boolean') { %><li><b>Horoscope matching:</b> <%= profile.horoscopeRequired ? 'Important' : 'Not required' %></li><% } %>
+                                    <% if (profile?.bloodGroup) { %><li><b>Blood group:</b> <%= profile.bloodGroup %></li><% } %>
+                                    <% if (langs.length) { %><li><b>Languages known:</b> <%= langs.join(', ') %></li><% } %>
+                                </ul>
+                            </div>
+                            <% } %>
                             
                             <!-- FAMILY DETAILS -->
                             <% if (profile?.family) { %>
@@ -478,6 +508,7 @@ document.addEventListener('DOMContentLoaded', function () {
 const API_BASE_URL = '/api'; // same-origin proxy (middleware/apiProxy.js) injects the session Bearer
 const MY_USER_ID = '<%= user?._id || "" %>';
 const PROFILE_USER_ID = '<%= profile?._id || "" %>';
+const PROFILE_FIRST_NAME = <%- safeJson(String(profile?.full_name || 'Them').split(' ')[0] || 'Them') %>;
 const CONNECTION_STATUS = '<%= connectionStatus?.status || "" %>';
 const CONNECTION_TYPE = '<%= connectionStatus?.type || "" %>';
 
@@ -673,25 +704,58 @@ async function loadCompatibility() {
             body: JSON.stringify({ my_user_id: MY_USER_ID, user_id: PROFILE_USER_ID })
         }).then(r => r.json()).catch(() => null);
 
-        if (gunaRes && gunaRes.status && gunaRes.data && gunaRes.data.available) {
+        if (gunaRes && gunaRes.status && gunaRes.data) {
             const g = gunaRes.data;
-            html += `
-                <div style="margin-top:24px; padding-top:16px; border-top:1px solid #eee;">
-                    <h4 style="margin:0 0 10px;">🪔 Horoscope Match (Guna Milan)</h4>
-                    <div style="display:flex; align-items:center; gap:14px; margin-bottom:12px;">
-                        <div style="font-size:24px; font-weight:700; color:#f6af04;">${g.percentage}%</div>
-                        <div style="color:#666; font-size:13px;">${g.totalPoints} of ${g.maxPoints} points</div>
+            const manglik = g.manglikStatus && typeof g.manglikStatus === 'object' ? g.manglikStatus : null;
+            const manglikRow = manglik ? `
+                    <div style="display:flex; justify-content:space-between; padding:8px 0; border-top:1px solid #f0f0f0; font-size:13px;">
+                        <span><strong>Manglik</strong></span>
+                        <span>You: ${esc(manglik.viewer || 'Not specified')} &middot; ${esc(PROFILE_FIRST_NAME)}: ${esc(manglik.match || 'Not specified')}</span>
+                    </div>` : '';
+            if (g.available) {
+                const rows = Array.isArray(g.breakdown) && g.breakdown.length
+                    ? g.breakdown
+                    : (g.kootas || []).map(k => ({ koota: k.name, points: k.points, max: k.max, label: k.label }));
+                const total = Number(g.totalPoints) || 0;
+                const max = Number(g.maxPoints) || 0;
+                const pct = max ? Math.round((total / max) * 100) : 0;
+                html += `
+                <div class="guna-panel">
+                    <h4 style="margin:0 0 12px;">Horoscope Match (Guna Milan)</h4>
+                    <div style="display:flex; align-items:center; gap:18px; margin-bottom:14px; flex-wrap:wrap;">
+                        <div class="guna-ring" style="--pct:${esc(pct)};" role="img" aria-label="${esc(total)} of ${esc(max)} points">
+                            <span><b>${esc(total)}</b>/${esc(max)}</span>
+                        </div>
+                        <div>
+                            ${g.verdict ? `<span class="guna-verdict">${esc(g.verdict)}</span>` : ''}
+                            <div style="color:#666; font-size:13px; margin-top:6px;">${esc(total)} of ${esc(max)} points across ${esc(rows.length)} koota${rows.length === 1 ? '' : 's'}</div>
+                        </div>
                     </div>
-                    <ul style="list-style:none; padding:0; margin:0 0 8px;">
-                        ${g.kootas.map(k => `
-                            <li style="padding:6px 0; border-bottom:1px solid #f0f0f0;">
-                                <strong>${k.name}:</strong> ${k.points}/${k.max} — ${k.label}
-                            </li>
-                        `).join('')}
-                    </ul>
-                    <p style="color:#999; font-size:12px; margin:0;">${g.note}</p>
+                    ${rows.map(k => {
+                        const w = k.max ? Math.round((k.points / k.max) * 100) : 0;
+                        return `
+                        <div class="guna-koota">
+                            <div style="display:flex; justify-content:space-between; font-size:13px;">
+                                <strong>${esc(k.koota)}</strong><span>${esc(k.points)}/${esc(k.max)}</span>
+                            </div>
+                            <div class="guna-bar"><div style="width:${esc(w)}%;"></div></div>
+                            ${k.label ? `<div style="color:#777; font-size:12px;">${esc(k.label)}</div>` : ''}
+                        </div>`;
+                    }).join('')}
+                    ${manglikRow}
+                    ${g.note ? `<p style="color:#999; font-size:12px; margin:8px 0 0;">${esc(g.note)}</p>` : ''}
                 </div>
-            `;
+                `;
+            } else {
+                html += `
+                <div class="guna-panel">
+                    <h4 style="margin:0 0 8px;">Horoscope Match (Guna Milan)</h4>
+                    <p style="color:#666; font-size:13px; margin:0 0 8px;">Not enough horoscope details yet. A match needs the Rashi and Nakshatra of both profiles.</p>
+                    <a href="/update-profile" class="cta-3" style="font-size:13px;">Add your horoscope</a>
+                    ${manglikRow}
+                </div>
+                `;
+            }
         }
 
         if (html) {

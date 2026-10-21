@@ -64,26 +64,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-4 col-lg-3">
-                        <div class="db-nav">
-                            <div class="db-nav-pro">
-                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
-                            </div>
-                            <div class="db-nav-list">
-                                <ul>
-                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
-                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
-                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
-                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
-                                    <li><a href="/profile-visitors" class="act"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
-                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
-                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
-                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
-                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
-                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
-                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <%- include('../partials/member-nav', { active: 'visitors' }) %>
                     </div>
                     <div class="col-md-8 col-lg-9">
                         <h2 class="db-tit"><i class="fa fa-eye"></i> Profile Visitors</h2>

@@ -13,27 +13,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-4 col-lg-3">
-                        <div class="db-nav">
-                            <div class="db-nav-pro">
-                                <% const userProfileImage = user?.profile ? (user.profile.startsWith('http') ? user.profile : `https://api.banjaramatch.com/${user.profile}`) : '/images/default-user.jpg'; %>
-                                <img src="<%= userProfileImage %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
-                            </div>
-                            <div class="db-nav-list">
-                                <ul>
-                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
-                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
-                                    <li><a href="/user-interests" class="act"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
-                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
-                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
-                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
-                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
-                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
-                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
-                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
-                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <%- include('../partials/member-nav', { active: 'interests' }) %>
                     </div>
                     <div class="col-md-8 col-lg-9">
                         <div class="row">
@@ -47,7 +27,7 @@
                                         <ul class="dropdown-menu">
                                           <li><a class="dropdown-item" href="/update-profile">Edit profile</a></li>
                                           <li><a class="dropdown-item" href="/profile/<%= user?._id %>">View profile</a></li>
-                                          <li><a class="dropdown-item" href="/user-plan">Plan change</a></li>
+                                          <li><a class="dropdown-item" href="/user-chat">Chat list</a></li>
                                         </ul>
                                     </div>
                                     <div class="db-inte-main">
@@ -60,7 +40,7 @@
                                               <a class="nav-link" data-bs-toggle="tab" href="#menu1">Sent Requests (<span id="sentCount">0</span>)</a>
                                             </li>
                                             <li class="nav-item">
-                                              <a class="nav-link" data-bs-toggle="tab" href="#menu2">Accepted (<span id="acceptedCount">0</span>)</a>
+                                              <a class="nav-link" data-bs-toggle="tab" href="#menu2">Connections (<span id="acceptedCount">0</span>)</a>
                                             </li>
                                             <li class="nav-item">
                                               <a class="nav-link" data-bs-toggle="tab" href="#menu3">Rejected (<span id="rejectedCount">0</span>)</a>
@@ -91,7 +71,7 @@
       </div>
     </div>
     
-    <!-- Accepted Requests Tab -->
+    <!-- Connections Tab (accepted interests, both directions; /connections redirects here) -->
     <div id="menu2" class="container tab-pane fade"><br>
       <div class="db-inte-prof-list">
         <ul id="acceptedRequestsList">
@@ -293,8 +273,7 @@ async function loadInterestRequests() {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                my_user_id: MY_USER_ID,
-                type: 'accepted',
+                status: 'accepted',
                 limit: 100,
                 start: 1
             })
@@ -337,7 +316,7 @@ async function loadInterestRequests() {
         if (allAccepted.length > 0) {
             $('#acceptedRequestsList').html(allAccepted.map(r => renderRequestItem(r, 'accepted')).join(''));
         } else {
-            $('#acceptedRequestsList').html('<li class="text-center"><p class="text-muted py-4">No accepted connections yet</p></li>');
+            $('#acceptedRequestsList').html('<li class="text-center"><p class="text-muted py-4">No connections yet</p></li>');
         }
         
         // Render rejected requests
@@ -512,6 +491,29 @@ $(document).on('click', '.remove-btn', async function() {
 // Load requests on page load
 $(document).ready(function() {
     loadInterestRequests();
+
+    // Deep links: /user-interests#menu2 (and /connections, which redirects there)
+    // open that tab; switching tabs keeps the hash in the URL.
+    function showTab(hash) {
+        const link = document.querySelector('.db-inte-main .nav-link[href="' + hash + '"]');
+        if (!link) return;
+        if (window.bootstrap && bootstrap.Tab) {
+            bootstrap.Tab.getOrCreateInstance(link).show();
+            return;
+        }
+        document.querySelectorAll('.db-inte-main .nav-link').forEach((a) => a.classList.toggle('active', a === link));
+        document.querySelectorAll('.db-inte-main .tab-pane').forEach((p) => {
+            const on = '#' + p.id === hash;
+            p.classList.toggle('active', on);
+            p.classList.toggle('show', on);
+        });
+    }
+    if (/^#(home|menu[123])$/.test(window.location.hash)) showTab(window.location.hash);
+    document.querySelectorAll('.db-inte-main .nav-link[data-bs-toggle="tab"]').forEach(function (a) {
+        a.addEventListener('click', function () {
+            if (history.replaceState) history.replaceState(null, '', a.getAttribute('href'));
+        });
+    });
     
     // Logout confirmation
     $('a[href="/logout"]').on('click', function(e) {

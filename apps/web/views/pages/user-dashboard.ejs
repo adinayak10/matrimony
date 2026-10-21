@@ -2,6 +2,7 @@
 <html lang="<%= site.lang %>">
 <head>
 <%- include('../partials/head') %>
+<%- include('../partials/member-styles') %>
 </head>
 
 <body>
@@ -13,27 +14,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-4 col-lg-3">
-                        <div class="db-nav">
-                            <div class="db-nav-pro">
-                                <% const userProfileImage = user?.profile ? (user.profile.startsWith('http') ? user.profile : `https://api.banjaramatch.com/${user.profile}`) : '/images/default-user.jpg'; %>
-                                <img src="<%= userProfileImage %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
-                            </div>
-                            <div class="db-nav-list">
-                                <ul>
-                                    <li><a href="/dashboard" class="act"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
-                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
-                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
-                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
-                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
-                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
-                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
-                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
-                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
-                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
-                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <%- include('../partials/member-nav', { active: 'dashboard' }) %>
                     </div>
                     <div class="col-md-8 col-lg-9">
                         <!-- Welcome Notice Banner -->
@@ -79,6 +60,7 @@
           <h5><%= profile.full_name %></h5>
           <span class="city"><%= city %></span>
           <span class="age"><%= age %> Years old</span>
+          <% if (Number.isFinite(profile.matchPercent)) { %><span class="bm-match-chip"><%= profile.matchPercent %>% match</span><% } %>
         </div>
         <% if (profile.isOnline) { %>
           <div class="pro-ave" title="User currently available">
@@ -150,6 +132,13 @@
                                     <a href="/update-profile" class="cta-3" style="display: block; text-align: center; margin-bottom: 20px; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; font-weight: 600; border-radius: 8px; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
                                         <i class="fa fa-pencil"></i> Update Profile
                                     </a>
+
+                                    <% if (!user?.is_verified) { %>
+                                    <a href="/verify-profile" class="bm-verify-cta">
+                                        <i class="fa fa-shield" aria-hidden="true"></i>
+                                        <span><b>Get verified</b><br><small>Add a verified badge with an ID check</small></span>
+                                    </a>
+                                    <% } %>
                                 </div>
                             </div>
                             <% } else { %>
@@ -178,6 +167,13 @@
                                         </p>
                                     </div>
                                     
+                                    <% if (!user?.is_verified) { %>
+                                    <a href="/verify-profile" class="bm-verify-cta">
+                                        <i class="fa fa-shield" aria-hidden="true"></i>
+                                        <span><b>Get verified</b><br><small>Add a verified badge with an ID check</small></span>
+                                    </a>
+                                    <% } %>
+
                                     <!-- Action Cards -->
                                     <div style="display: grid; grid-template-columns: 1fr; gap: 12px; margin-bottom: 20px;">
                                         <a href="/all-profiles" style="text-decoration: none;">
@@ -375,6 +371,10 @@
                                                             <h5><%= match.full_name %></h5>
                                                             <span class="city"><%= city %></span>
                                                             <span class="age"><%= age %> Years old</span>
+                                                            <% if (Number.isFinite(match.matchPercent)) { %><span class="bm-match-chip"><%= match.matchPercent %>% match</span><% } else if (match.matchScore > 0) { %><span class="bm-match-chip">Match score <%= match.matchScore %></span><% } %>
+                                                            <% if (Array.isArray(match.matchedOn) && match.matchedOn.length) { %>
+                                                            <span class="bm-matched-on"><% match.matchedOn.slice(0, 3).forEach(function (reason) { %><span><%= reason %></span><% }) %></span>
+                                                            <% } %>
                                                         </div>
                                                         <% if (match.isOnline) { %>
                                                             <div class="pro-ave" title="User currently available">
@@ -386,11 +386,9 @@
                                                 </li>
                                         <% }) %>
                                     </ul>
-                                    <% if (dailyMatches.length > 5) { %>
-                                        <div class="text-center mt-3">
-                                            <a href="/all-profiles" class="cta-3">See All (<%= dailyMatches.length %>)</a>
-                                        </div>
-                                    <% } %>
+                                    <div class="text-center mt-3">
+                                        <a href="/daily-matches" class="cta-3">See All (<%= dailyMatches.length %>)</a>
+                                    </div>
                                 <% } else { %>
                                     <div class="text-center py-4">
                                         <div style="font-size: 48px; opacity: 0.3;">💝</div>

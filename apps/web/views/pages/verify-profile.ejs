@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%- include('../partials/member-styles') %>
+<style>
+    .vp-status { display:flex; gap:16px; align-items:flex-start; }
+    .vp-status .fa { font-size:34px; }
+    .vp-ok .fa { color:#2e7d32; }
+    .vp-wait .fa { color:#c79100; }
+    .vp-bad .fa { color:#b3261e; }
+    .vp-none .fa { color:#9aa5b1; }
+    .vp-status h3 { margin:0 0 4px; }
+    .vp-steps { padding-left:18px; margin:0 0 6px; color:#555; font-size:14px; line-height:1.8; }
+</style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <%
+      const v = verification || null;
+      const latest = (v && v.latest) || null;
+      const isVerified = v ? !!v.is_verified : !!(user && user.is_verified);
+      const latestStatus = latest ? String(latest.status || '').toLowerCase() : '';
+      const state = isVerified ? 'verified' : latestStatus === 'pending' ? 'pending' : latestStatus === 'rejected' ? 'rejected' : 'none';
+      const canSubmit = v && typeof v.canSubmit === 'boolean' ? v.canSubmit : (state === 'none' || state === 'rejected');
+      const fmt = (d) => { const x = d ? new Date(d) : null; return x && !isNaN(x) ? x.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
+    %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <%- include('../partials/member-nav', { active: 'verify' }) %>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit"><i class="fa fa-shield"></i> Verify your profile</h2>
+
+                        <% if (statusError) { %>
+                        <div class="bm-card"><p class="bm-muted" style="margin:0;">Your verification status could not be loaded right now. You can still submit the form below.</p></div>
+                        <% } %>
+
+                        <div class="bm-card">
+                            <% if (state === 'verified') { %>
+                            <div class="vp-status vp-ok">
+                                <i class="fa fa-check-circle" aria-hidden="true"></i>
+                                <div>
+                                    <h3>Your profile is verified <span class="bm-badge bm-badge-ok">Verified</span></h3>
+                                    <p class="bm-muted" style="margin:0;">Other members see a verified badge on your profile<% if (fmt(v && v.verifiedAt)) { %> (since <%= fmt(v.verifiedAt) %>)<% } %>.</p>
+                                </div>
+                            </div>
+                            <% } else if (state === 'pending') { %>
+                            <div class="vp-status vp-wait">
+                                <i class="fa fa-clock-o" aria-hidden="true"></i>
+                                <div>
+                                    <h3>Under review <span class="bm-badge bm-badge-wait">Pending</span></h3>
+                                    <p class="bm-muted" style="margin:0;">We received your documents<% if (fmt(latest.submittedAt)) { %> on <%= fmt(latest.submittedAt) %><% } %>. An administrator will review them and you will get a notification with the result.</p>
+                                </div>
+                            </div>
+                            <% } else if (state === 'rejected') { %>
+                            <div class="vp-status vp-bad">
+                                <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                <div>
+                                    <h3>Verification not approved <span class="bm-badge bm-badge-bad">Rejected</span></h3>
+                                    <% if (latest.reason) { %><p style="margin:0 0 4px;"><b>Reason:</b> <%= latest.reason %></p><% } %>
+                                    <p class="bm-muted" style="margin:0;">You can fix the issue and submit again below.</p>
+                                </div>
+                            </div>
+                            <% } else { %>
+                            <div class="vp-status vp-none">
+                                <i class="fa fa-shield" aria-hidden="true"></i>
+                                <div>
+                                    <h3>Not verified yet <span class="bm-badge bm-badge-none">Not verified</span></h3>
+                                    <p class="bm-muted" style="margin:0;">A verified badge tells other members that an administrator has checked your ID against your profile.</p>
+                                </div>
+                            </div>
+                            <% } %>
+                        </div>
+
+                        <% if (state !== 'verified' && state !== 'pending' && canSubmit) { %>
+                        <div class="bm-card">
+                            <h3>Submit your documents</h3>
+                            <ol class="vp-steps">
+                                <li>Enter your name exactly as it appears on the document.</li>
+                                <li>Upload a clear photo of the document (front, and back if it has one).</li>
+                                <li>Take a selfie so we can match your face to the document photo.</li>
+                            </ol>
+                            <p class="bm-muted">Your documents are stored privately, are seen only by the review team, and are deleted after a short retention period once the review is done.</p>
+                            <div class="bm-alert bm-alert-ok" id="vpOk" role="status"></div>
+                            <div class="bm-alert bm-alert-err" id="vpErr" role="alert"></div>
+                            <form id="vpForm" class="bm-form" enctype="multipart/form-data" novalidate>
+                                <div class="form-group">
+                                    <label for="vpName">Full name on the document</label>
+                                    <input type="text" class="form-control" id="vpName" name="full_name" maxlength="100" required value="<%= (user && user.full_name) || '' %>">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vpType">Document type</label>
+                                    <% if (documentTypes && documentTypes.length) { %>
+                                    <select class="form-control" id="vpType" name="document_type" required>
+                                        <option value="">Select a document</option>
+                                        <% documentTypes.forEach(function (t) { %><option value="<%= t %>"><%= t %></option><% }) %>
+                                    </select>
+                                    <% } else { %>
+                                    <input type="text" class="form-control" id="vpType" name="document_type" maxlength="60" required placeholder="e.g. Aadhaar card, passport, driving licence">
+                                    <% } %>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vpDoc1">Document photo (front)</label>
+                                    <input type="file" class="form-control" id="vpDoc1" accept="image/jpeg,image/png,image/webp" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="vpDoc2">Document photo (back, optional)</label>
+                                    <input type="file" class="form-control" id="vpDoc2" accept="image/jpeg,image/png,image/webp">
+                                </div>
+                                <div class="form-group">
+                                    <label for="vpSelfie">Selfie</label>
+                                    <input type="file" class="form-control" id="vpSelfie" name="selfie" accept="image/*" capture="user" required>
+                                    <small class="bm-muted">On a phone this opens the front camera.</small>
+                                </div>
+                                <button type="submit" class="bm-btn-sm bm-btn-primary" id="vpSubmit" style="padding:10px 22px; font-size:14px;">Submit for verification</button>
+                            </form>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('vpForm');
+    if (!form) return;
+    const okBox = document.getElementById('vpOk');
+    const errBox = document.getElementById('vpErr');
+    const MAX = 5 * 1024 * 1024;
+    const show = (box, msg) => { box.textContent = msg; box.classList.add('show'); };
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        okBox.classList.remove('show');
+        errBox.classList.remove('show');
+        const name = document.getElementById('vpName').value.trim();
+        const type = document.getElementById('vpType').value.trim();
+        const doc1 = document.getElementById('vpDoc1').files[0];
+        const doc2 = document.getElementById('vpDoc2').files[0];
+        const selfie = document.getElementById('vpSelfie').files[0];
+        if (!name) return show(errBox, 'Please enter your full name.');
+        if (!type) return show(errBox, 'Please choose the document type.');
+        if (!doc1) return show(errBox, 'Please add a photo of your document.');
+        if (!selfie) return show(errBox, 'Please add a selfie.');
+        if ([doc1, doc2, selfie].some((f) => f && f.size > MAX)) return show(errBox, 'Each photo must be 5 MB or smaller.');
+
+        const fd = new FormData();
+        fd.append('full_name', name);
+        fd.append('document_type', type);
+        fd.append('document', doc1);
+        if (doc2) fd.append('document', doc2);
+        fd.append('selfie', selfie);
+
+        const btn = document.getElementById('vpSubmit');
+        btn.disabled = true;
+        try {
+            // Multipart streams through the same-origin proxy (middleware/apiProxy.js).
+            const res = await fetch('/api/profileVerification', { method: 'POST', credentials: 'same-origin', body: fd });
+            let data = {};
+            try { data = await res.json(); } catch (err) { data = {}; }
+            if (res.ok && data.status) {
+                show(okBox, 'Thank you! Your documents were submitted and are now under review.');
+                form.reset();
+                setTimeout(function () { window.location.reload(); }, 2000);
+            } else if (data.code === 'PENDING_EXISTS') {
+                show(errBox, 'You already have a request under review.');
+            } else if (data.code === 'ALREADY_VERIFIED') {
+                show(errBox, 'Your profile is already verified.');
+            } else {
+                show(errBox, data.message || 'Your documents could not be submitted. Please try again.');
+            }
+        } catch (err) {
+            show(errBox, 'An error occurred. Please check your connection and try again.');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+});
+</script>
+</body>
+</html>

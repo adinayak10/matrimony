@@ -40,6 +40,7 @@ const pages = [
   { loc: 'banjara-community-history', sourceFile: 'views/pages/banjara-community-history.ejs', priority: '0.8', changefreq: 'monthly' },
   { loc: 'child-safety-policy', sourceFile: 'views/pages/child-safety-policy.ejs', priority: '0.3', changefreq: 'yearly' },
   { loc: 'faq', sourceFile: 'views/pages/faq.ejs', priority: '0.6', changefreq: 'monthly' },
+  { loc: 'success-stories', sourceFile: 'views/pages/success-stories.ejs', priority: '0.6', changefreq: 'weekly' },
 ];
 
 // GET /api/blogs/categories -> { data: [{ category: 'Tips', count: 3 }, ...] }

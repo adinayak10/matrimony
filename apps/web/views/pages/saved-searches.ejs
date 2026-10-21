@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%- include('../partials/member-styles') %>
+<style>
+    .ss-row { display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap; }
+    .ss-row h3 { margin:0 0 4px; font-size:16px; }
+    .ss-sum { color:#666; font-size:13px; }
+</style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <%
+      const summary = (f) => {
+        f = f || {};
+        const out = [];
+        const n = (v) => (Array.isArray(v) ? v.length : v ? 1 : 0);
+        if (f.age_range && (f.age_range.min || f.age_range.max)) out.push('Age ' + (f.age_range.min || 18) + '–' + (f.age_range.max || 70));
+        if (f.height_range && (f.height_range.min || f.height_range.max)) out.push('Height ' + (f.height_range.min || '') + '–' + (f.height_range.max || '') + ' cm');
+        const ms = Array.isArray(f.marital_status) ? f.marital_status : (f.marital_status ? [f.marital_status] : []);
+        if (ms.length) out.push(ms.join(', '));
+        [['caste', 'caste'], ['gotra', 'gotra'], ['qualification', 'qualification'], ['profession', 'profession']].forEach(([k, label]) => {
+          const c = n(f[k]);
+          if (c) out.push(c + ' ' + label + (c > 1 ? 's' : ''));
+        });
+        if (f.incomeRange || f.income) out.push('Income range');
+        if (f.isVerify) out.push('Verified only');
+        if (f.recentlyActive) out.push('Recently active');
+        return out.length ? out.join(' · ') : 'All profiles';
+      };
+    %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <%- include('../partials/member-nav', { active: 'saved-searches' }) %>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit"><i class="fa fa-search"></i> Saved searches</h2>
+                        <p class="bm-muted">Save a search from <a href="/all-profiles">Browse Profiles</a> and turn on alerts to get a notification when new profiles match it. You can keep up to 10.</p>
+                        <div class="bm-alert" id="ssMsg" role="status"></div>
+
+                        <% if (searches && searches.length) { %>
+                        <div id="ssList">
+                            <% searches.forEach(function (s) { const id = s._id || s.id; %>
+                            <div class="bm-card ss-item" data-id="<%= id %>">
+                                <div class="ss-row">
+                                    <div>
+                                        <h3><%= s.name || 'Untitled search' %></h3>
+                                        <div class="ss-sum"><%= summary(s.filters) %></div>
+                                    </div>
+                                    <div class="bm-btn-row" style="align-items:center;">
+                                        <label class="bm-switch"><input type="checkbox" class="ss-alert"<% if (s.alertEnabled) { %> checked<% } %>> Alerts</label>
+                                        <a class="bm-btn-sm bm-btn-primary" href="/all-profiles?saved=<%= encodeURIComponent(id) %>">Run</a>
+                                        <button type="button" class="bm-btn-sm bm-btn-danger ss-delete">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }) %>
+                        </div>
+                        <% } %>
+                        <div class="bm-empty" id="ssEmpty"<% if (searches && searches.length) { %> style="display:none;"<% } %>>
+                            <i class="fa fa-bookmark-o" aria-hidden="true"></i>
+                            <p><%= loadError ? 'Your saved searches could not be loaded right now.' : 'You have no saved searches yet.' %></p>
+                            <a href="/all-profiles" class="cta-3">Browse profiles</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const msg = document.getElementById('ssMsg');
+    function flash(text, ok) {
+        msg.textContent = text;
+        msg.className = 'bm-alert show ' + (ok ? 'bm-alert-ok' : 'bm-alert-err');
+    }
+    async function post(path, body) {
+        const res = await fetch('/api/' + path, {
+            credentials: 'same-origin',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        try { return await res.json(); } catch (e) { return { status: false }; }
+    }
+    document.querySelectorAll('.ss-item').forEach(function (item) {
+        const id = item.getAttribute('data-id');
+        const toggle = item.querySelector('.ss-alert');
+        toggle.addEventListener('change', async function () {
+            toggle.disabled = true;
+            try {
+                const data = await post('updateSavedSearch', { id: id, alertEnabled: toggle.checked });
+                if (data.status) flash(toggle.checked ? 'Alerts turned on.' : 'Alerts turned off.', true);
+                else { toggle.checked = !toggle.checked; flash(data.message || 'Could not update alerts.', false); }
+            } catch (e) {
+                toggle.checked = !toggle.checked;
+                flash('An error occurred. Please try again.', false);
+            }
+            toggle.disabled = false;
+        });
+        item.querySelector('.ss-delete').addEventListener('click', async function () {
+            if (!confirm('Delete this saved search?')) return;
+            try {
+                const data = await post('deleteSavedSearch', { id: id });
+                if (data.status) {
+                    item.remove();
+                    flash('Saved search deleted.', true);
+                    if (!document.querySelector('.ss-item')) document.getElementById('ssEmpty').style.display = '';
+                } else {
+                    flash(data.message || 'Could not delete this search.', false);
+                }
+            } catch (e) {
+                flash('An error occurred. Please try again.', false);
+            }
+        });
+    });
+});
+</script>
+</body>
+</html>

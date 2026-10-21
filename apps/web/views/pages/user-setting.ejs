@@ -87,6 +87,7 @@
         object-fit: cover;
     }
     </style>
+<%- include('../partials/member-styles') %>
 </head>
 
 <body>
@@ -98,29 +99,59 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-4 col-lg-3">
-                        <div class="db-nav">
-                            <div class="db-nav-pro">
-                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
-                            </div>
-                            <div class="db-nav-list">
-                                <ul>
-                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
-                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
-                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
-                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
-                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
-                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
-                                    <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
-                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
-                                    <li><a href="/user-setting" class="act"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
-                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
-                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <%- include('../partials/member-nav', { active: 'settings' }) %>
                     </div>
                     <div class="col-md-8 col-lg-9">
                         <h2 class="db-tit">Privacy & Settings</h2>
+
+                        <!-- Account -->
+                        <% const isGoogleLogin = Number(user?.login_type) === 3; const createdBy = String(user?.profileCreatedBy || 'self').toLowerCase(); %>
+                        <div class="settings-card" id="accountCard">
+                            <h4><i class="fa fa-user"></i> Account</h4>
+
+                            <div class="setting-item">
+                                <div class="setting-label">Profile verification
+                                    <% if (user?.is_verified) { %><span class="bm-badge bm-badge-ok">Verified</span><% } else { %><span class="bm-badge bm-badge-none">Not verified</span><% } %>
+                                </div>
+                                <div class="setting-description"><% if (user?.is_verified) { %>Your profile shows a verified badge.<% } else { %>Verify your ID to add a verified badge to your profile.<% } %></div>
+                                <a href="/verify-profile" class="bm-btn-sm"><%= user?.is_verified ? 'View status' : 'Verify profile' %></a>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-label">Profile created by</div>
+                                <div class="setting-description">Who manages this profile. Saved with the button at the bottom of the page.</div>
+                                <select class="form-select" id="profileCreatedBy">
+                                    <% [['self','Self'],['parent','Parent'],['sibling','Sibling'],['relative','Relative'],['friend','Friend']].forEach(function (o) { %>
+                                    <option value="<%= o[0] %>" <%= createdBy === o[0] ? 'selected' : '' %>><%= o[1] %></option>
+                                    <% }) %>
+                                </select>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-label">Change password</div>
+                                <% if (isGoogleLogin) { %>
+                                <div class="setting-description">You sign in with Google, so your password is managed by Google.</div>
+                                <% } else { %>
+                                <div class="setting-description">We will email a password reset link to <b><%= user?.email || 'your email address' %></b>.</div>
+                                <div class="bm-alert" id="pwMsg" role="status"></div>
+                                <button type="button" class="bm-btn-sm" id="pwResetBtn"<% if (!user?.email) { %> disabled<% } %>>Send reset link</button>
+                                <% } %>
+                            </div>
+
+                            <div class="setting-item">
+                                <div class="setting-label">Delete account</div>
+                                <div class="setting-description">Permanently deletes your profile, photos, interests and messages. This cannot be undone.</div>
+                                <div class="bm-alert" id="delMsg" role="alert"></div>
+                                <div id="delConfirm" style="display:none; margin-bottom:8px;">
+                                    <label for="delInput" style="font-size:13px;">Type <b>DELETE</b> to confirm</label>
+                                    <input type="text" class="form-control" id="delInput" autocomplete="off" style="max-width:220px;">
+                                </div>
+                                <div class="bm-btn-row">
+                                    <button type="button" class="bm-btn-sm bm-btn-danger" id="delStartBtn">Delete my account</button>
+                                    <button type="button" class="bm-btn-sm bm-btn-danger" id="delGoBtn" style="display:none;" disabled>Permanently delete</button>
+                                </div>
+                            </div>
+                        </div>
                         
                         <!-- Privacy Settings -->
                         <div class="settings-card">
@@ -147,7 +178,6 @@
                                 <div class="setting-description">Who can see your profile picture</div>
                                 <select class="form-select" id="profilePicVisibility">
                                     <option value="everyone" <%= user?.settings?.profilePicVisibility === 'everyone' ? 'selected' : '' %>>Everyone</option>
-                                    <option value="onlyPremium" <%= user?.settings?.profilePicVisibility === 'onlyPremium' ? 'selected' : '' %>>Only Premium Members</option>
                                     <option value="onlyAccepted" <%= user?.settings?.profilePicVisibility === 'onlyAccepted' ? 'selected' : '' %>>Only Accepted Connections</option>
                                     <option value="nobody" <%= user?.settings?.profilePicVisibility === 'nobody' ? 'selected' : '' %>>Nobody (Private)</option>
                                 </select>
@@ -166,7 +196,6 @@
                                 <div class="setting-description">Who can send you interest requests</div>
                                 <select class="form-select" id="allowConnections">
                                     <option value="everyone" <%= user?.settings?.allowConnections === 'everyone' ? 'selected' : '' %>>Everyone</option>
-                                    <option value="onlyPremium" <%= user?.settings?.allowConnections === 'onlyPremium' ? 'selected' : '' %>>Only Premium Members</option>
                                     <option value="onlyAccepted" <%= user?.settings?.allowConnections === 'onlyAccepted' ? 'selected' : '' %>>Only Accepted Connections</option>
                                     <option value="nobody" <%= user?.settings?.allowConnections === 'nobody' ? 'selected' : '' %>>Nobody</option>
                                 </select>
@@ -303,7 +332,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({
                     user_id: MY_USER_ID,
-                    settings: settings
+                    settings: settings,
+                    profileCreatedBy: $('#profileCreatedBy').val()
                 })
             });
 
@@ -321,6 +351,79 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('An error occurred. Please try again.');
             btn.prop('disabled', false).html('<i class="fa fa-save"></i> Save Settings');
         }
+    });
+
+    // Change password: Firebase sends the reset email (same flow as /forgot-password).
+    const pwBtn = document.getElementById('pwResetBtn');
+    if (pwBtn) {
+        pwBtn.addEventListener('click', async function () {
+            const box = document.getElementById('pwMsg');
+            pwBtn.disabled = true;
+            try {
+                if (typeof firebase === 'undefined') throw new Error('Firebase not loaded');
+                if (!firebase.apps.length) {
+                    firebase.initializeApp({
+                        apiKey: "AIzaSyBEQVygTdSOOUczWmUezTt0CyoGm4l5Qe8",
+                        authDomain: "socialmedia-dcdd8.firebaseapp.com",
+                        projectId: "socialmedia-dcdd8",
+                        storageBucket: "socialmedia-dcdd8.firebasestorage.app",
+                        messagingSenderId: "799990198329",
+                        appId: "1:799990198329:web:ee65ff58d4992177a21de8"
+                    });
+                }
+                await firebase.auth().sendPasswordResetEmail(<%- safeJson(user?.email || '') %>, {
+                    url: 'https://www.banjaramatch.com/reset-password',
+                    handleCodeInApp: false
+                });
+                box.textContent = 'Reset link sent. Please check your inbox and spam folder.';
+                box.className = 'bm-alert show bm-alert-ok';
+            } catch (err) {
+                console.error('Password reset failed', err);
+                box.textContent = 'The reset email could not be sent. Please try again later.';
+                box.className = 'bm-alert show bm-alert-err';
+                pwBtn.disabled = false;
+            }
+        });
+    }
+
+    // Delete account: typed confirmation, then POST /api/deleteUser and log out.
+    const delStart = document.getElementById('delStartBtn');
+    const delGo = document.getElementById('delGoBtn');
+    const delInput = document.getElementById('delInput');
+    delStart.addEventListener('click', function () {
+        document.getElementById('delConfirm').style.display = '';
+        delStart.style.display = 'none';
+        delGo.style.display = '';
+        delInput.focus();
+    });
+    delInput.addEventListener('input', function () {
+        delGo.disabled = delInput.value.trim() !== 'DELETE';
+    });
+    delGo.addEventListener('click', async function () {
+        if (delInput.value.trim() !== 'DELETE') return;
+        const box = document.getElementById('delMsg');
+        delGo.disabled = true;
+        try {
+            const res = await fetch(`${API_BASE_URL}/deleteUser`, {
+                credentials: 'same-origin',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: MY_USER_ID })
+            });
+            let data = {};
+            try { data = await res.json(); } catch (e) { data = {}; }
+            if (res.ok && data.status) {
+                // /logout clears the web session (POST /auth/logout) and the Firebase session.
+                window.location.href = '/logout';
+                return;
+            }
+            box.textContent = data.message || 'Your account could not be deleted. Please try again.';
+            box.className = 'bm-alert show bm-alert-err';
+        } catch (err) {
+            box.textContent = 'An error occurred. Please try again.';
+            box.className = 'bm-alert show bm-alert-err';
+        }
+        delGo.disabled = false;
     });
 
     // Logout confirmation

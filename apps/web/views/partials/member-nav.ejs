@@ -1,0 +1,38 @@
+<%#
+  Member sidebar for every logged-in page (replaces the .db-nav block that was
+  copy-pasted in each view). Usage:
+    include('../partials/member-nav', { active: 'dashboard' })  via an unescaped EJS tag
+  `active` is one of the keys below; the matching link gets class="act".
+%>
+<%
+  const _navActive = (typeof active !== 'undefined' && active) || '';
+  const _navUser = (typeof user !== 'undefined' && user) || {};
+  const _navImg = (typeof photoUrl === 'function') ? photoUrl(_navUser.profile) : (_navUser.profile || '/images/default-user.jpg');
+  const _navItems = [
+    { key: 'dashboard', href: '/dashboard', icon: 'fa-tachometer', label: 'Dashboard' },
+    { key: 'profile', href: '/update-profile', icon: 'fa-male', label: 'Profile' },
+    { key: 'daily-matches', href: '/daily-matches', icon: 'fa-heart', label: 'Daily matches' },
+    { key: 'interests', href: '/user-interests', icon: 'fa-handshake-o', label: 'Interests' },
+    { key: 'shortlist', href: '/shortlisted', icon: 'fa-star', label: 'Shortlist' },
+    { key: 'saved-searches', href: '/saved-searches', icon: 'fa-search', label: 'Saved searches' },
+    { key: 'visitors', href: '/profile-visitors', icon: 'fa-eye', label: 'Visitors' },
+    { key: 'chat', href: '/user-chat', icon: 'fa-commenting-o', label: 'Chat list' },
+    { key: 'notifications', href: '/notifications', icon: 'fa-bell', label: 'Notifications' },
+    { key: 'verify', href: '/verify-profile', icon: 'fa-shield', label: 'Verify profile' },
+    { key: 'settings', href: '/user-setting', icon: 'fa-cog', label: 'Setting' },
+    { key: 'blocked', href: '/blocked-users', icon: 'fa-ban', label: 'Blocked Users' },
+    { key: 'logout', href: '/logout', icon: 'fa-sign-out', label: 'Log out' },
+  ];
+%>
+<div class="db-nav">
+    <div class="db-nav-pro">
+        <img src="<%= _navImg %>" class="img-fluid" alt="<%= _navUser.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
+    </div>
+    <div class="db-nav-list">
+        <ul>
+            <% for (const it of _navItems) { %>
+            <li><a href="<%= it.href %>"<% if (it.key === _navActive) { %> class="act" aria-current="page"<% } %>><i class="fa <%= it.icon %>" aria-hidden="true"></i><%= it.label %></a></li>
+            <% } %>
+        </ul>
+    </div>
+</div>

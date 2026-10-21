@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%- include('../partials/member-styles') %>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <%- include('../partials/member-nav', { active: '' }) %>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit"><i class="fa fa-heart"></i> Share your success story</h2>
+
+                        <% if (myStories && myStories.length) { %>
+                        <div class="bm-card">
+                            <h3>Your stories</h3>
+                            <% myStories.forEach(function (s) {
+                                 const st = String(s.status || 'pending').toLowerCase();
+                                 const cls = st === 'published' || st === 'approved' ? 'bm-badge-ok' : st === 'rejected' ? 'bm-badge-bad' : 'bm-badge-wait';
+                                 const label = st === 'published' ? 'Published' : st === 'approved' ? 'Approved' : st === 'rejected' ? 'Not approved' : 'Under review';
+                            %>
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:10px 0; border-top:1px solid #f2f2f2;">
+                                <div>
+                                    <b><%= [s.groomName, s.brideName].filter(Boolean).join(' & ') %></b>
+                                    <% if (s.createdAt || s.submittedAt) { %><div class="bm-muted">Submitted <%= new Date(s.createdAt || s.submittedAt).toLocaleDateString('en-IN') %></div><% } %>
+                                    <% if (st === 'rejected' && (s.reason || s.rejectionReason)) { %><div class="bm-muted">Reason: <%= s.reason || s.rejectionReason %></div><% } %>
+                                </div>
+                                <span class="bm-badge <%= cls %>"><%= label %></span>
+                            </div>
+                            <% }) %>
+                            <p class="bm-muted" style="margin:10px 0 0;">Published stories appear on <a href="/success-stories">Success Stories</a>.</p>
+                        </div>
+                        <% } else if (loadError) { %>
+                        <div class="bm-card"><p class="bm-muted" style="margin:0;">Your earlier submissions could not be loaded right now.</p></div>
+                        <% } %>
+
+                        <div class="bm-card">
+                            <h3>Tell us how you met</h3>
+                            <p class="bm-muted">Every story is reviewed by our team before it is published. Only the names, photo, wedding date, city and story you enter here are shown publicly.</p>
+                            <div class="bm-alert bm-alert-ok" id="storyOk" role="status"></div>
+                            <div class="bm-alert bm-alert-err" id="storyErr" role="alert"></div>
+                            <form id="storyForm" class="bm-form" enctype="multipart/form-data" novalidate>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label for="groomName">Groom's name</label>
+                                        <input type="text" class="form-control" id="groomName" name="groom_name" maxlength="80" required>
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="brideName">Bride's name</label>
+                                        <input type="text" class="form-control" id="brideName" name="bride_name" maxlength="80" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="partnerUser">Your partner on BanjaraMatch (optional)</label>
+                                    <select class="form-control" id="partnerUser" name="partner_user_id">
+                                        <option value="">Not listed / not on BanjaraMatch</option>
+                                    </select>
+                                    <small class="bm-muted">Only your connections are listed.</small>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6 form-group">
+                                        <label for="weddingDate">Wedding date (optional)</label>
+                                        <input type="date" class="form-control" id="weddingDate" name="wedding_date">
+                                    </div>
+                                    <div class="col-md-6 form-group">
+                                        <label for="storyCity">City (optional)</label>
+                                        <input type="text" class="form-control" id="storyCity" name="city" maxlength="80">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="storyText">Your story</label>
+                                    <textarea class="form-control" id="storyText" name="story" rows="7" minlength="50" maxlength="3000" required placeholder="How did you meet? What made you say yes?"></textarea>
+                                    <small class="bm-muted"><span id="storyCount">0</span> / 3000 characters (at least 50)</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="storyPhoto">Couple photo</label>
+                                    <input type="file" class="form-control" id="storyPhoto" name="photo" accept="image/jpeg,image/png,image/webp">
+                                    <small class="bm-muted">JPG, PNG or WebP, up to 5 MB.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="bm-switch" style="font-weight:400;"><input type="checkbox" id="storyConsent" required> We both agree to BanjaraMatch publishing this story and photo on the website and app.</label>
+                                </div>
+                                <button type="submit" class="bm-btn-sm bm-btn-primary" id="storySubmit" style="padding:10px 22px; font-size:14px;">Submit for review</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('storyForm');
+    const okBox = document.getElementById('storyOk');
+    const errBox = document.getElementById('storyErr');
+    const text = document.getElementById('storyText');
+    const show = (box, msg) => { box.textContent = msg; box.classList.add('show'); };
+    const hide = () => { okBox.classList.remove('show'); errBox.classList.remove('show'); };
+
+    text.addEventListener('input', function () {
+        document.getElementById('storyCount').textContent = text.value.length;
+    });
+
+    // Partner picker: accepted connections (user = the other party).
+    fetch('/api/getInterestList', {
+        credentials: 'same-origin',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'accepted', start: 1, limit: 100 })
+    }).then((r) => r.json()).then(function (data) {
+        const rows = Array.isArray(data && data.data) ? data.data : [];
+        const sel = document.getElementById('partnerUser');
+        const seen = new Set();
+        rows.forEach(function (row) {
+            const u = row && row.user;
+            if (!u || !u._id || seen.has(u._id)) return;
+            seen.add(u._id);
+            const opt = document.createElement('option');
+            opt.value = u._id;
+            opt.textContent = u.full_name || u.username || 'Connection';
+            sel.appendChild(opt);
+        });
+    }).catch(function () { /* optional field: leave the picker empty */ });
+
+    form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        hide();
+        const groom = document.getElementById('groomName').value.trim();
+        const bride = document.getElementById('brideName').value.trim();
+        const story = text.value.trim();
+        const photo = document.getElementById('storyPhoto').files[0];
+        if (!groom || !bride) return show(errBox, "Please enter both the groom's and the bride's name.");
+        if (story.length < 50) return show(errBox, 'Please write at least 50 characters about your story.');
+        if (photo && photo.size > 5 * 1024 * 1024) return show(errBox, 'The photo must be 5 MB or smaller.');
+        if (!document.getElementById('storyConsent').checked) return show(errBox, 'Please confirm that you both agree to publishing this story.');
+
+        const fd = new FormData();
+        fd.append('groom_name', groom);
+        fd.append('bride_name', bride);
+        fd.append('story', story);
+        const wd = document.getElementById('weddingDate').value;
+        if (wd) fd.append('wedding_date', wd);
+        const city = document.getElementById('storyCity').value.trim();
+        if (city) fd.append('city', city);
+        const partner = document.getElementById('partnerUser').value;
+        if (partner) fd.append('partner_user_id', partner);
+        if (photo) fd.append('photo', photo);
+
+        const btn = document.getElementById('storySubmit');
+        btn.disabled = true;
+        try {
+            // Multipart streams through the same-origin proxy (middleware/apiProxy.js).
+            const res = await fetch('/api/submitSuccessStory', { method: 'POST', credentials: 'same-origin', body: fd });
+            let data = {};
+            try { data = await res.json(); } catch (err) { data = {}; }
+            if (res.ok && data.status) {
+                form.reset();
+                document.getElementById('storyCount').textContent = '0';
+                show(okBox, 'Thank you! Your story has been sent for review. We will let you know once it is published.');
+                setTimeout(function () { window.location.reload(); }, 2500);
+            } else {
+                show(errBox, data.message || 'Your story could not be submitted. Please try again.');
+            }
+        } catch (err) {
+            show(errBox, 'An error occurred. Please check your connection and try again.');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+});
+</script>
+</body>
+</html>

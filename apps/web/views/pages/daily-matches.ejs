@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%- include('../partials/member-styles') %>
+<style>
+    .dm-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:20px; }
+    .dm-card { background:#fff; border-radius:8px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.1); display:flex; flex-direction:column; }
+    .dm-card img { width:100%; height:220px; object-fit:cover; }
+    .dm-card .body { padding:12px 14px; display:flex; flex-direction:column; gap:4px; flex:1; }
+    .dm-card h5 { margin:0; font-size:16px; }
+    .dm-card h5 a { color:#222; }
+    .dm-card .meta { color:#777; font-size:13px; }
+    .dm-card .bm-btn-row { margin-top:auto; padding-top:8px; }
+</style>
+</head>
+
+<body>
+    <%- include('../partials/header') %>
+
+    <section>
+        <div class="db">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 col-lg-3">
+                        <%- include('../partials/member-nav', { active: 'daily-matches' }) %>
+                    </div>
+                    <div class="col-md-8 col-lg-9">
+                        <h2 class="db-tit"><i class="fa fa-heart"></i> Today's matches for you</h2>
+                        <p class="bm-muted">Ranked by how well your profile fits each person's partner preferences. The list refreshes as members update their profiles.</p>
+                        <div class="bm-alert" id="dmMsg" role="status"></div>
+
+                        <% if (matches && matches.length) { %>
+                        <div class="dm-grid">
+                            <% matches.forEach(function (p) {
+                                 const age = p.age || (p.dob ? new Date().getFullYear() - new Date(p.dob).getFullYear() : null);
+                                 const city = (p.location && ((p.location.city && p.location.city.name) || (p.location.state && p.location.state.name))) || '';
+                            %>
+                            <div class="dm-card" data-user-id="<%= p._id %>">
+                                <a href="/profile/<%= p._id %>"><img src="<%= photoUrl(p.profile) %>" alt="<%= p.full_name || 'Profile' %>" loading="lazy" onerror="this.src='/images/default-user.jpg'"></a>
+                                <div class="body">
+                                    <h5><a href="/profile/<%= p._id %>"><%= p.full_name || 'Member' %></a><% if (p.is_verified) { %> <span class="bm-badge bm-badge-ok" title="Verified profile">Verified</span><% } %></h5>
+                                    <div class="meta"><%= [city, age ? age + ' years' : ''].filter(Boolean).join(' · ') %></div>
+                                    <div>
+                                        <% if (Number.isFinite(p.matchPercent)) { %><span class="bm-match-chip"><%= p.matchPercent %>% match</span><% } else if (p.matchScore > 0) { %><span class="bm-match-chip">Match score <%= p.matchScore %></span><% } %>
+                                    </div>
+                                    <% if (Array.isArray(p.matchedOn) && p.matchedOn.length) { %>
+                                    <div class="bm-matched-on"><% p.matchedOn.slice(0, 3).forEach(function (r) { %><span><%= r %></span><% }) %></div>
+                                    <% } %>
+                                    <div class="bm-btn-row">
+                                        <button type="button" class="bm-btn-sm bm-btn-primary" data-action="interest">Send interest</button>
+                                        <button type="button" class="bm-btn-sm" data-action="shortlist"><i class="fa fa-star-o" aria-hidden="true"></i> Shortlist</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <% }) %>
+                        </div>
+                        <% } else { %>
+                        <div class="bm-empty">
+                            <i class="fa fa-heart-o" aria-hidden="true"></i>
+                            <% if (loadError) { %>
+                            <p>Your matches could not be loaded right now. Please try again in a moment.</p>
+                            <% } else { %>
+                            <p>No matches yet. Complete your profile and partner preferences to get better matches.</p>
+                            <% } %>
+                            <a href="/update-profile" class="cta-3">Update profile</a>
+                            <a href="/all-profiles" class="cta-3">Browse profiles</a>
+                        </div>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <%- include('../partials/footer') %>
+    <%- include('../partials/scripts') %>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const msg = document.getElementById('dmMsg');
+    function flash(text, ok) {
+        msg.textContent = text;
+        msg.className = 'bm-alert show ' + (ok ? 'bm-alert-ok' : 'bm-alert-err');
+    }
+    async function post(path, body) {
+        const res = await fetch('/api/' + path, {
+            credentials: 'same-origin',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        let data = { status: false };
+        try { data = await res.json(); } catch (e) { /* non-JSON */ }
+        data.httpStatus = res.status;
+        return data;
+    }
+    document.querySelectorAll('.dm-card [data-action]').forEach(function (btn) {
+        btn.addEventListener('click', async function () {
+            const card = btn.closest('.dm-card');
+            const userId = card.getAttribute('data-user-id');
+            btn.disabled = true;
+            try {
+                if (btn.dataset.action === 'interest') {
+                    const data = await post('sendInterestRequest', { user_id: userId });
+                    if (data.status) { btn.textContent = 'Interest sent'; flash('Interest sent.', true); return; }
+                    flash(data.message || 'Could not send interest.', false);
+                } else {
+                    const data = await post('toggleShortlist', { user_id: userId });
+                    if (data.status) {
+                        // toggleShortlist answers 201 when added, 200 when removed.
+                        const on = data.httpStatus === 201;
+                        btn.classList.toggle('bm-btn-primary', on);
+                        btn.textContent = on ? 'Shortlisted' : 'Shortlist';
+                    } else {
+                        flash(data.message || 'Could not update your shortlist.', false);
+                    }
+                }
+            } catch (e) {
+                flash('An error occurred. Please try again.', false);
+            }
+            btn.disabled = false;
+        });
+    });
+});
+</script>
+</body>
+</html>

@@ -1,13 +1,16 @@
 'use strict';
 
 const express = require('express');
-const { apiGet, apiPost, forwardAuth, hashKey, UpstreamError, cache } = require('../utils/apiClient');
+const { apiGet, apiPost, forwardAuth, UpstreamError } = require('../utils/apiClient');
+const { listOf, cachedPost, upstreamStatus } = require('../utils/apiHelpers');
+const { optionalUser, ensureAuth, redirectIfAuthenticated, checkProfileCompletion } = require('../middleware/session');
 const { SwrCache } = require('../utils/swrCache');
 const blogCategories = require('../config/blogCategories');
 const { pageMeta } = require('../config/pageMeta');
 const { robotsFor, uniqueCmsWords } = require('../utils/regionalIndexing');
 const site = require('../config/site');
-const { setSession, clearSession, SESSION_COOKIE, LEGACY_COOKIE, RETURN_TO_COOKIE } = require('./auth');
+const { faqPageJsonLd } = require('../utils/jsonLd');
+const { RETURN_TO_COOKIE } = require('./auth');
 
 const router = express.Router();
 
@@ -16,151 +19,17 @@ const SITE_URL = 'https://www.banjaramatch.com';
 const OBJECT_ID_RE = /^[a-f0-9]{24}$/i;
 const BLOG_SLUG_RE = /^[A-Za-z0-9._-]{1,200}$/;
 
-// ---------------------------------------------------------------------------
-// Session helpers (D1.10, D1.12, integrator conflict #1)
-// ---------------------------------------------------------------------------
-
-// bm_session (web-owned, httpOnly, host-only) or, for the 14-day migration
-// window, the legacy API-set `token` cookie — which is re-issued as bm_session
-// and cleared from .banjaramatch.com so it cannot shadow the new cookie.
-function readSession(req, res) {
-  const c = req.cookies || {};
-  if (typeof c[SESSION_COOKIE] === 'string' && c[SESSION_COOKIE]) return c[SESSION_COOKIE];
-  if (typeof c[LEGACY_COOKIE] === 'string' && c[LEGACY_COOKIE]) {
-    setSession(req, res, c[LEGACY_COOKIE]);
-    res.clearCookie(LEGACY_COOKIE, { path: '/', domain: '.banjaramatch.com' });
-    return c[LEGACY_COOKIE];
-  }
-  return null;
-}
-
-const upstreamStatus = (err) => (err && (err.upstreamStatus || (err.response && err.response.status))) || null;
-
-// /api/auth/me, cached 60 s per token hash. 401 surfaces as an UpstreamError
-// with upstreamStatus 401; a timeout or 5xx is an UpstreamError without one.
-async function fetchMe(token) {
-  const data = await apiGet('/api/auth/me', {
-    key: 'me:' + hashKey(token),
-    ttl: 60e3,
-    stale: 0,
-    timeout: 1500,
-    headers: { Authorization: 'Bearer ' + token },
-  });
-  return (data && data.user) || null;
-}
-
-function redirectToLogin(req, res) {
-  res.cookie(RETURN_TO_COOKIE, req.originalUrl, {
-    httpOnly: true,
-    secure: isProd || req.secure,
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 600000,
-  });
-  return res.redirect(302, '/login');
-}
-
-// --- Middleware: Optional User Check (for all pages) ---
-async function optionalUser(req, res, next) {
-  req.user = null;
-  const token = readSession(req, res);
-  if (!token) return next();
-  try {
-    req.user = await fetchMe(token);
-  } catch (err) {
-    if (upstreamStatus(err) === 401) clearSession(req, res);
-    else console.warn('[optionalUser] /me unavailable:', err.message);
-  }
-  next();
-}
-
-// --- Middleware: Auth Check ---
-async function ensureAuth(req, res, next) {
-  const token = readSession(req, res);
-  if (!token) return redirectToLogin(req, res);
-  try {
-    const user = await fetchMe(token);
-    if (!user) {
-      clearSession(req, res);
-      return redirectToLogin(req, res);
-    }
-    req.user = user;
-    return next();
-  } catch (err) {
-    const status = upstreamStatus(err);
-    if (status === 401) {
-      clearSession(req, res);
-      return redirectToLogin(req, res);
-    }
-    if (status === 403) return redirectToLogin(req, res);
-    // API down / timeout: 503 via the error handler, never a logout.
-    return next(err);
-  }
-}
-
-// --- Middleware: Redirect if Authenticated ---
-async function redirectIfAuthenticated(req, res, next) {
-  const token = readSession(req, res);
-  if (!token) return next();
-  try {
-    const user = await fetchMe(token);
-    if (user) return res.redirect(302, '/dashboard');
-  } catch (err) {
-    if (upstreamStatus(err) === 401) clearSession(req, res);
-  }
-  return next();
-}
-
-// --- Middleware: Check Profile Completion ---
-function checkProfileCompletion(req, res, next) {
-  const user = req.user;
-
-  // Skip onboarding check if already on onboarding page
-  if (req.path === '/onboarding') {
-    return next();
-  }
-
-  // Check if mandatory fields are completed (removed username as it's optional and captured during registration)
-  const mandatoryFields = ['gender', 'dob', 'height', 'maritalStatus', 'caste', 'gotra'];
-  const missingFields = mandatoryFields.filter(field => !user[field]);
-
-  if (missingFields.length > 0) {
-    return res.redirect('/onboarding');
-  }
-
-  return next();
-}
+// Session middleware and data helpers live in middleware/session.js and
+// utils/apiHelpers.js (shared with routes/member.js and routes/stories.js).
 
 // ---------------------------------------------------------------------------
 // Data helpers
 // ---------------------------------------------------------------------------
 
-const listOf = (body) => (body && Array.isArray(body.data) ? body.data : []);
-
 // Featured posts for the content pages: never fails a page.
 const featuredBlogs = () => apiGet('/api/blogs/featured?limit=3', { key: 'blogs:featured' })
   .then(listOf)
   .catch(() => []);
-
-// Cached POST reads (the lookup endpoints are POST-only). Same semantics as
-// apiGet: fresh hit -> cached; error -> stale copy if any, else UpstreamError.
-async function cachedPost(path, body, { key, ttl = 10 * 60e3, stale = 24 * 3600e3, store = cache, timeout } = {}) {
-  const hit = store.get(key);
-  if (hit && hit.fresh) return hit.value;
-  try {
-    const data = await apiPost(path, body, { timeout });
-    store.set(key, data, { ttl, stale });
-    return data;
-  } catch (err) {
-    const staleHit = store.get(key);
-    if (staleHit) {
-      console.warn(`[routes] ${path}: serving stale copy (${err.message})`);
-      return staleHit.value;
-    }
-    if (err instanceof UpstreamError) throw err;
-    throw new UpstreamError(`API unavailable for ${path}: HTTP ${upstreamStatus(err)}`, { cause: err, path, status: upstreamStatus(err) });
-  }
-}
 
 function blogsQuery(req) {
   const rawPage = parseInt(req.query.page, 10);
@@ -379,13 +248,38 @@ router.get('/about', optionalUser, async (req, res) => {
   });
 });
 
-// FAQ Hub Page
+// FAQ categories from GET /api/faqs ([{id, _id, title, faqs: [{question, answer}]}]),
+// cached 10 min. Empty categories/questions are dropped; [] on any failure, and
+// the page then keeps its static markup.
+async function loadFaqCategories() {
+  try {
+    const body = await apiGet('/api/faqs', { key: 'faqs:public', ttl: 10 * 60e3 });
+    const rows = Array.isArray(body) ? body : listOf(body);
+    return rows
+      .map((c) => ({
+        title: String((c && c.title) || '').trim(),
+        faqs: (Array.isArray(c && c.faqs) ? c.faqs : [])
+          .map((f) => ({ question: String((f && f.question) || '').trim(), answer: String((f && f.answer) || '').trim() }))
+          .filter((f) => f.question && f.answer),
+      }))
+      .filter((c) => c.title && c.faqs.length);
+  } catch (err) {
+    console.warn('[faq] /api/faqs unavailable, using the static FAQ:', err.message);
+    return [];
+  }
+}
+
+// FAQ Hub Page: dynamic when the admin has published FAQs, static otherwise.
 router.get('/faq', optionalUser, async (req, res) => {
+  const [faqCategories, blogs] = await Promise.all([loadFaqCategories(), featuredBlogs()]);
+  // Exactly one FAQPage either way: the data-built block replaces the static one.
+  const meta = faqCategories.length ? { ...pageMeta('faq'), jsonLd: [faqPageJsonLd(faqCategories)] } : pageMeta('faq');
   res.render('pages/faq', {
     title: 'FAQ - Frequently Asked Questions | BanjaraMatch',
-    meta: pageMeta('faq'),
+    meta,
+    faqCategories,
     user: req.user || null,
-    featuredBlogs: await featuredBlogs(),
+    featuredBlogs: blogs,
     breadcrumbs: [
       { name: 'FAQ', url: '/faq' }
     ]
@@ -850,14 +744,6 @@ router.get('/user-setting', ensureAuth, checkProfileCompletion, (req, res) => {
   res.render('pages/user-setting', {
     title: 'Privacy Settings - Banjara Match',
     meta: pageMeta('userSetting'),
-    user: req.user,
-  });
-});
-
-router.get('/user-plan', ensureAuth, checkProfileCompletion, (req, res) => {
-  res.render('pages/user-plan', {
-    title: 'My Plan - Banjara Match',
-    meta: pageMeta('userPlan'),
     user: req.user,
   });
 });

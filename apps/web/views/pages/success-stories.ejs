@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<style>
+    .ss-hero { background: linear-gradient(135deg, #2a1500, #5a2a00, #8b4500); padding: 70px 0 55px; position: relative; overflow: hidden; }
+    .ss-hero .container { position:relative; z-index:2; }
+    .ss-hero h1 { color:#fff; font-size:34px; font-weight:800; line-height:1.3; margin-bottom:14px; }
+    .ss-hero h1 span { color:#f6af04; }
+    .ss-hero p { color:rgba(255,255,255,.85); font-size:16px; line-height:1.75; max-width:680px; }
+    .ss-cta { background:#f6af04; color:#000; padding:12px 28px; border-radius:8px; font-weight:700; font-size:15px; text-decoration:none; display:inline-block; margin-top:10px; }
+    .ss-cta:hover { background:#e09e00; color:#000; text-decoration:none; }
+    .ss-section { padding:55px 0; background:#fdf8f0; }
+    .ss-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:24px; }
+    .ss-card { background:#fff; border:1px solid #f0e0c8; border-radius:16px; overflow:hidden; box-shadow:0 4px 16px rgba(0,0,0,.06); display:flex; flex-direction:column; }
+    .ss-card img { width:100%; height:240px; object-fit:cover; background:#f5ede0; }
+    .ss-body { padding:18px 20px 20px; display:flex; flex-direction:column; flex:1; }
+    .ss-names { font-size:18px; font-weight:800; color:#3a1d00; margin:0 0 4px; }
+    .ss-meta { font-size:13px; color:#8a6a40; margin-bottom:10px; }
+    .ss-story { font-size:14.5px; color:#555; line-height:1.7; white-space:pre-line; display:-webkit-box; -webkit-line-clamp:6; -webkit-box-orient:vertical; overflow:hidden; }
+    .ss-card.open .ss-story { -webkit-line-clamp:unset; display:block; }
+    .ss-more { background:none; border:none; color:#a05000; font-weight:600; font-size:13px; padding:8px 0 0; cursor:pointer; align-self:flex-start; }
+    .ss-empty { max-width:620px; margin:0 auto; text-align:center; background:#fff; border:1px dashed #e6cfa8; border-radius:16px; padding:50px 24px; }
+    .ss-empty h2 { font-size:22px; font-weight:800; color:#3a1d00; margin-bottom:10px; }
+    .ss-empty p { color:#666; font-size:15px; line-height:1.7; }
+    .ss-pager { display:flex; justify-content:center; gap:10px; margin-top:34px; }
+    .ss-pager a, .ss-pager span { padding:8px 16px; border-radius:8px; border:1px solid #e6cfa8; background:#fff; color:#3a1d00; text-decoration:none; font-weight:600; font-size:14px; }
+    .ss-pager span { background:#f6af04; border-color:#f6af04; }
+    @media(max-width:767px){ .ss-hero h1{font-size:24px;} .ss-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+
+<body>
+  <%- include('../partials/header') %>
+  <%- include('../partials/breadcrumb') %>
+
+  <section class="ss-hero">
+    <div class="container">
+      <h1>Banjara Matrimony <span>Success Stories</span></h1>
+      <p>Couples who found each other on BanjaraMatch, in their own words. Met your partner here? We would love to hear from you.</p>
+      <a href="/share-success-story" class="ss-cta">Share your story</a>
+    </div>
+  </section>
+
+  <section class="ss-section">
+    <div class="container">
+      <% if (stories && stories.length) { %>
+      <div class="ss-grid">
+        <% stories.forEach(function (s) {
+             const names = [s.groomName, s.brideName].filter(Boolean).join(' & ');
+             const wedding = s.weddingDate ? new Date(s.weddingDate) : null;
+             const weddingText = wedding && !isNaN(wedding) ? wedding.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '';
+        %>
+        <article class="ss-card">
+          <% if (s.photo) { %><img src="<%= photoUrl(s.photo) %>" alt="<%= names %>" width="400" height="240" loading="lazy" decoding="async"><% } %>
+          <div class="ss-body">
+            <h2 class="ss-names"><%= names %></h2>
+            <% if (weddingText || s.city) { %><div class="ss-meta"><%= [weddingText ? 'Married ' + weddingText : '', s.city || ''].filter(Boolean).join(' · ') %></div><% } %>
+            <div class="ss-story"><%= s.story %></div>
+            <% if (String(s.story || '').length > 320) { %><button type="button" class="ss-more" onclick="ssToggle(this)">Read more</button><% } %>
+          </div>
+        </article>
+        <% }) %>
+      </div>
+      <% if (totalPages > 1) { %>
+      <nav class="ss-pager" aria-label="Success stories pages">
+        <% if (currentPage > 1) { %><a href="<%= currentPage === 2 ? '/success-stories' : '/success-stories?page=' + (currentPage - 1) %>" rel="prev">Previous</a><% } %>
+        <span aria-current="page">Page <%= currentPage %></span>
+        <% if (currentPage < totalPages) { %><a href="/success-stories?page=<%= currentPage + 1 %>" rel="next">Next</a><% } %>
+      </nav>
+      <% } %>
+      <% } else { %>
+      <div class="ss-empty">
+        <h2>No stories published yet</h2>
+        <p>When couples who met on BanjaraMatch share their story and it is approved, it will appear here. If you found your partner on BanjaraMatch, you can be the first to share yours.</p>
+        <a href="/share-success-story" class="ss-cta">Share your story</a>
+      </div>
+      <% } %>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+  <%- include('../partials/scripts') %>
+<script>
+    function ssToggle(btn) {
+      const card = btn.closest('.ss-card');
+      const open = card.classList.toggle('open');
+      btn.textContent = open ? 'Show less' : 'Read more';
+    }
+</script>
+</body>
+</html>

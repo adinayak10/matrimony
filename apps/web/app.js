@@ -212,6 +212,8 @@ app.use(require('./middleware/regionalIndex'));
 app.use(require('./routes/wellKnown'));
 app.use(require('./routes/auth'));
 app.use(require('./routes/cspReport'));
+app.use(require('./routes/stories'));
+app.use(require('./routes/member'));
 const indexRoutes = require('./routes/index');
 app.use('/', indexRoutes);
 app.use(require('./middleware/apiProxy'));

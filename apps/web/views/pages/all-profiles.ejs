@@ -2,7 +2,11 @@
 <html lang="<%= site.lang %>">
 <head>
 <%- include('../partials/head') %>
+<%- include('../partials/member-styles') %>
 <style>
+        dialog.bm-dialog { border:none; border-radius:12px; padding:22px; max-width:420px; width:92%; box-shadow:0 10px 40px rgba(0,0,0,.25); }
+        dialog.bm-dialog::backdrop { background:rgba(0,0,0,.45); }
+        .bm-saved-banner { background:#fff8e1; border:1px solid #f6d27a; border-radius:8px; padding:8px 12px; margin-bottom:12px; font-size:13px; display:none; }
         /* Button state styles */
         .cta-connected {
             pointer-events: none;
@@ -245,6 +249,15 @@
                             </div>
                         </div>
                         
+                        <!-- VERIFIED / ACTIVE -->
+                        <div class="filt-com lhs-cate">
+                            <h4><i class="fa fa-check-circle" aria-hidden="true"></i> More</h4>
+                            <div class="form-group">
+                                <label class="bm-switch"><input type="checkbox" id="verifiedFilter"> Verified profiles only</label><br>
+                                <label class="bm-switch"><input type="checkbox" id="recentFilter"> Recently active</label>
+                            </div>
+                        </div>
+
                         <!-- APPLY FILTERS BUTTON -->
                         <div class="filt-com filt-send-query">
                             <div class="send-query">
@@ -254,6 +267,10 @@
                                 <button onclick="resetFilters()" class="btn btn-default btn-block" style="width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px;">
                                     <i class="fa fa-refresh"></i> Reset All
                                 </button>
+                                <button type="button" onclick="openSaveSearch()" class="btn btn-default btn-block" style="width: 100%; padding: 12px; margin-top: 10px; border-radius: 5px;">
+                                    <i class="fa fa-bookmark"></i> Save this search
+                                </button>
+                                <a href="/saved-searches" style="display:block; text-align:center; margin-top:8px; font-size:13px;">My saved searches</a>
                             </div>
                         </div>
                         
@@ -299,6 +316,7 @@
                             </div>
                         </div>
                         
+                        <div class="bm-saved-banner" id="savedBanner" role="status"></div>
                         <div class="all-list-sh">
                             <ul id="profilesList">
                                 <!-- Profiles will be loaded here -->
@@ -333,6 +351,24 @@
         </div>
     </section>
     <!-- END -->
+
+    <dialog class="bm-dialog" id="saveSearchDialog" aria-labelledby="saveSearchTitle">
+        <form method="dialog" class="bm-form" id="saveSearchForm">
+            <h3 id="saveSearchTitle" style="font-size:18px; font-weight:700; margin:0 0 12px;">Save this search</h3>
+            <div class="bm-alert bm-alert-err" id="saveSearchError" role="alert"></div>
+            <div class="form-group">
+                <label for="saveSearchName">Name</label>
+                <input type="text" class="form-control" id="saveSearchName" maxlength="60" required placeholder="e.g. Hyderabad, 25-30">
+            </div>
+            <div class="form-group">
+                <label class="bm-switch"><input type="checkbox" id="saveSearchAlert" checked> Notify me about new matching profiles</label>
+            </div>
+            <div class="bm-btn-row" style="justify-content:flex-end;">
+                <button type="button" class="bm-btn-sm" onclick="document.getElementById('saveSearchDialog').close()">Cancel</button>
+                <button type="submit" class="bm-btn-sm bm-btn-primary" id="saveSearchSubmit">Save</button>
+            </div>
+        </form>
+    </dialog>
 
     <%- include('../partials/footer') %>
 
@@ -383,12 +419,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Initialize page
-        $(document).ready(function() {
-            loadDropdownData();
-            loadProfiles();
-            
+        $(document).ready(async function() {
             // Initialize range sliders
             initRangeSliders();
+            const savedId = new URLSearchParams(window.location.search).get('saved');
+            if (savedId && /^[a-f0-9]{24}$/i.test(savedId)) {
+                // ?saved=<id>: fill the form from the saved search once the dropdowns exist, then run it.
+                await loadDropdownData();
+                await applySavedSearch(savedId);
+            } else {
+                loadDropdownData();
+            }
+            loadProfiles();
         });
 
         // Initialize range sliders
@@ -575,60 +617,127 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        // Current form state in the saved-search filter shape (shared contract):
+        // {age_range, height_range, marital_status[], caste[], gotra[], qualification[],
+        //  profession[], incomeRange, isVerify, recentlyActive}
+        function buildFilters() {
+            const filters = {};
+            const ageMin = parseInt($('#ageMin').val());
+            const ageMax = parseInt($('#ageMax').val());
+            if (ageMin && ageMax) filters.age_range = { min: ageMin, max: ageMax };
+            const heightMin = parseInt($('#heightMin').val());
+            const heightMax = parseInt($('#heightMax').val());
+            if (heightMin && heightMax) filters.height_range = { min: heightMin, max: heightMax };
+            const maritalStatus = $('#maritalFilter').val();
+            if (maritalStatus) filters.marital_status = [maritalStatus];
+            const caste = $('#casteFilter').val();
+            if (caste) filters.caste = [caste];
+            const gotra = $('#gotraFilter').val();
+            if (gotra) filters.gotra = [gotra];
+            const qualification = $('#qualificationFilter').val();
+            if (qualification) filters.qualification = [qualification];
+            const profession = $('#professionFilter').val();
+            if (profession) filters.profession = [profession];
+            const income = $('#incomeFilter').val();
+            if (income) filters.incomeRange = income;
+            if ($('#verifiedFilter').is(':checked')) filters.isVerify = true;
+            if ($('#recentFilter').is(':checked')) filters.recentlyActive = true;
+            return filters;
+        }
+
+        function setRange(minSel, maxSel, range) {
+            if (!range) return;
+            if (range.min) $(minSel).val(range.min);
+            if (range.max) $(maxSel).val(range.max);
+            $(minSel).trigger('input');
+            $(maxSel).trigger('input');
+        }
+
+        // Inverse of buildFilters(): put saved filters back into the form controls.
+        function fillFilters(f) {
+            f = f || {};
+            setRange('#ageMin', '#ageMax', f.age_range);
+            setRange('#heightMin', '#heightMax', f.height_range);
+            const first = (v) => (Array.isArray(v) ? v[0] : v) || '';
+            $('#maritalFilter').val(first(f.marital_status));
+            $('#casteFilter').val(first(f.caste));
+            $('#gotraFilter').val(first(f.gotra));
+            $('#qualificationFilter').val(first(f.qualification));
+            $('#professionFilter').val(first(f.profession));
+            $('#incomeFilter').val(first(f.incomeRange || f.income));
+            $('#verifiedFilter').prop('checked', !!f.isVerify);
+            $('#recentFilter').prop('checked', !!f.recentlyActive);
+            if (typeof $.fn.chosen !== 'undefined') $('.chosen-select').trigger('chosen:updated');
+        }
+
+        async function postJson(path, body) {
+            const res = await fetch(`${API_BASE_URL}/${path}`, {
+                credentials: 'same-origin',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body || {})
+            });
+            let data = {};
+            try { data = await res.json(); } catch (e) { data = { status: false, message: 'Unexpected response' }; }
+            if (!res.ok && data.status === undefined) data.status = false;
+            return data;
+        }
+
+        async function applySavedSearch(id) {
+            try {
+                const data = await postJson('fetchSavedSearches', {});
+                const rows = Array.isArray(data.data) ? data.data : [];
+                const saved = rows.find((r) => String(r._id || r.id) === id);
+                if (!saved) return;
+                fillFilters(saved.filters);
+                const banner = document.getElementById('savedBanner');
+                banner.textContent = 'Showing saved search: ' + (saved.name || 'Untitled');
+                banner.style.display = 'block';
+            } catch (e) {
+                console.error('Could not load the saved search', e);
+            }
+        }
+
+        function openSaveSearch() {
+            document.getElementById('saveSearchError').classList.remove('show');
+            document.getElementById('saveSearchName').value = '';
+            document.getElementById('saveSearchDialog').showModal();
+        }
+
+        document.getElementById('saveSearchForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const name = document.getElementById('saveSearchName').value.trim();
+            const errBox = document.getElementById('saveSearchError');
+            if (!name) { errBox.textContent = 'Please give this search a name.'; errBox.classList.add('show'); return; }
+            const btn = document.getElementById('saveSearchSubmit');
+            btn.disabled = true;
+            try {
+                const data = await postJson('createSavedSearch', {
+                    name: name,
+                    filters: buildFilters(),
+                    alertEnabled: document.getElementById('saveSearchAlert').checked
+                });
+                if (data.status) {
+                    document.getElementById('saveSearchDialog').close();
+                    const banner = document.getElementById('savedBanner');
+                    banner.textContent = 'Search saved. Manage it on My saved searches.';
+                    banner.style.display = 'block';
+                } else {
+                    errBox.textContent = data.message || 'Could not save this search.';
+                    errBox.classList.add('show');
+                }
+            } catch (err) {
+                errBox.textContent = 'An error occurred. Please try again.';
+                errBox.classList.add('show');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+
         // Load profiles
         async function loadProfiles() {
             try {
-                const filters = {};
-
-                // Age filter from range sliders
-                const ageMin = parseInt($('#ageMin').val());
-                const ageMax = parseInt($('#ageMax').val());
-                if (ageMin && ageMax) {
-                    filters.age_range = { min: ageMin, max: ageMax };
-                }
-
-                // Height filter from range sliders
-                const heightMin = parseInt($('#heightMin').val());
-                const heightMax = parseInt($('#heightMax').val());
-                if (heightMin && heightMax) {
-                    filters.height_range = { min: heightMin, max: heightMax };
-                }
-
-                // Marital status
-                const maritalStatus = $('#maritalFilter').val();
-                if (maritalStatus) {
-                    filters.marital_status = maritalStatus;
-                }
-
-                // Caste
-                const caste = $('#casteFilter').val();
-                if (caste) {
-                    filters.caste = [caste];
-                }
-
-                // Gotra
-                const gotra = $('#gotraFilter').val();
-                if (gotra) {
-                    filters.gotra = [gotra];
-                }
-
-                // Qualification
-                const qualification = $('#qualificationFilter').val();
-                if (qualification) {
-                    filters.qualification = [qualification];
-                }
-
-                // Profession
-                const profession = $('#professionFilter').val();
-                if (profession) {
-                    filters.profession = [profession];
-                }
-
-                // Income
-                const income = $('#incomeFilter').val();
-                if (income) {
-                    filters.income = income;
-                }
+                const filters = buildFilters();
 
                 // Sort
                 const sortByNewest = $('#sortBy').val() === 'newest';
@@ -638,6 +747,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     page: currentPage,
                     limit: 12,
                     filters: filters,
+                    isVerify: !!filters.isVerify,
+                    recentlyActive: !!filters.recentlyActive,
                     sortByNewUsers: sortByNewest
                 };
 
@@ -654,7 +765,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (data.status && data.data) {
                     allProfiles = data.data;
-                    totalProfiles = data.totalCount || data.data.length;
+                    totalProfiles = Number.isFinite(data.total) ? data.total : (data.totalCount || data.data.length);
                     renderProfiles(data.data);
                     updatePagination();
                 } else {
@@ -732,6 +843,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <!--PROFILE NAME-->
                             <div class="pro-detail">
                                 <h4><a href="/profile/${profile._id}">${esc(profile.full_name || profile.username || 'Anonymous')}</a>${profile.is_verified ? ' <span title="Verified profile" style="display:inline-flex;align-items:center;gap:3px;background:#e8f5e9;color:#2e7d32;font-size:11px;font-weight:600;padding:1px 8px;border-radius:10px;vertical-align:middle;"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg>Verified</span>' : ''}</h4>
+                                ${Number.isFinite(profile.matchPercent) ? `<span class="bm-match-chip">${esc(profile.matchPercent)}% match</span>` : ''}
                                 <div class="pro-bio">
                                     <span>${esc(education)}</span>
                                     <span>${esc(profession)}</span>
@@ -845,6 +957,8 @@ document.addEventListener('DOMContentLoaded', function () {
             // Reset dropdowns
             $('#maritalFilter, #casteFilter, #gotraFilter, #qualificationFilter, #professionFilter, #incomeFilter').val('');
             $('#sortBy').val('newest');
+            $('#verifiedFilter, #recentFilter').prop('checked', false);
+            $('#savedBanner').hide();
             
             if (typeof $.fn.chosen !== 'undefined') {
                 $('.chosen-select').trigger('chosen:updated');
@@ -955,8 +1069,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
-                        userId: USER_ID,
-                        shortlistedUserId: userId
+                        user_id: userId
                     })
                 });
 
@@ -989,6 +1102,8 @@ document.addEventListener('DOMContentLoaded', function () {
   window.cancelInterest = cancelInterest;
   window.acceptInterest = acceptInterest;
   window.shortlistProfile = shortlistProfile;
+  window.buildFilters = buildFilters;
+  window.openSaveSearch = openSaveSearch;
 });
 </script>
 </body>

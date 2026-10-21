@@ -13,27 +13,7 @@
     <div class="container">
       <div class="row">
         <div class="col-md-4 col-lg-3">
-          <div class="db-nav">
-            <div class="db-nav-pro">
-              <% const editProfileNavImg = user?.profile ? (user.profile.startsWith('http') ? user.profile : `https://api.banjaramatch.com/${user.profile}`) : '/images/default-user.jpg'; %>
-              <img src="<%= editProfileNavImg %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
-            </div>
-            <div class="db-nav-list">
-              <ul>
-                <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
-                <li><a href="/update-profile" class="act"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
-                <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
-                <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
-                <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
-                <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
-                <li><a href="/notifications"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
-                <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
-                <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
-                <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
-                <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
-              </ul>
-            </div>
-          </div>
+          <%- include('../partials/member-nav', { active: 'profile' }) %>
         </div>
         <div class="col-md-8 col-lg-9">
           <div class="form-login">
@@ -144,6 +124,35 @@
                       <input type="text" class="form-control" name="motherTongue" value="<%= user.motherTongue || '' %>" placeholder="E.g., Telugu, Hindi, Lambadi">
                     </div>
                   </div>
+
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb" for="knownLanguages">Languages Known:</label>
+                      <input type="text" class="form-control" id="knownLanguages" name="knownLanguages" maxlength="400" value="<%= Array.isArray(user.knownLanguages) ? user.knownLanguages.join(', ') : '' %>" placeholder="Comma separated, e.g. Gormati, Telugu, English">
+                    </div>
+
+                    <div class="col-md-6 form-group">
+                      <label class="lb" for="bloodGroup">Blood Group:</label>
+                      <select class="form-select" id="bloodGroup" name="bloodGroup">
+                        <option value="">Select Blood Group</option>
+                        <% ['A+','A-','B+','B-','AB+','AB-','O+','O-'].forEach(function (bg) { %>
+                          <option value="<%= bg %>" <%= user.bloodGroup === bg ? 'selected' : '' %>><%= bg %></option>
+                        <% }) %>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="row">
+                    <div class="col-md-6 form-group">
+                      <label class="lb" for="profileCreatedBy">Profile Created By:</label>
+                      <% const createdBy = String(user.profileCreatedBy || 'self').toLowerCase(); %>
+                      <select class="form-select" id="profileCreatedBy" name="profileCreatedBy">
+                        <% [['self','Self'],['parent','Parent'],['sibling','Sibling'],['relative','Relative'],['friend','Friend']].forEach(function (o) { %>
+                          <option value="<%= o[0] %>" <%= createdBy === o[0] ? 'selected' : '' %>><%= o[1] %></option>
+                        <% }) %>
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
                 <!-- Cultural & Religious -->
@@ -224,6 +233,12 @@
                     <div class="col-md-6 form-group">
                       <label class="lb">Birth Place (optional):</label>
                       <input type="text" class="form-control" id="horoscopeBirthPlace" placeholder="e.g. Nagpur, Maharashtra" value="<%= user.horoscope?.birthPlace || '' %>">
+                    </div>
+                    <div class="col-md-12 form-group">
+                      <label class="lb" style="font-weight:400; display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" id="horoscopeRequired" <%= user.horoscopeRequired ? 'checked' : '' %>>
+                        Horoscope matching is important to me / my family
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -759,6 +774,8 @@ $('#profileForm').on('submit', async function(e) {
         if (horoscope.rashi || horoscope.nakshatra || horoscope.birthTime || horoscope.birthPlace) {
             formData.append('horoscope', JSON.stringify(horoscope));
         }
+        // Unchecked boxes are left out of FormData; send the flag explicitly.
+        formData.set('horoscopeRequired', document.getElementById('horoscopeRequired')?.checked ? 'true' : 'false');
 
         // Transform nested field names for API compatibility
         // Location fields: location_country -> location[country]

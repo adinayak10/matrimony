@@ -59,6 +59,14 @@ https://www.banjaramatch.com/login 200
 https://www.banjaramatch.com/dashboard 302
 https://www.banjaramatch.com/all-profiles 302
 https://www.banjaramatch.com/profile/000000000000000000000000 302
+# feature expansion (Track C): new public page, member pages redirect to /login when logged out
+https://www.banjaramatch.com/success-stories 200
+https://www.banjaramatch.com/share-success-story 302
+https://www.banjaramatch.com/verify-profile 302
+https://www.banjaramatch.com/daily-matches 302
+https://www.banjaramatch.com/saved-searches 302
+https://www.banjaramatch.com/connections 302
+https://www.banjaramatch.com/user-plan 302
 https://www.banjaramatch.com/doesnotexist-xyz 404
 https://www.banjaramatch.com/robots.txt 200
 https://www.banjaramatch.com/ads.txt 200

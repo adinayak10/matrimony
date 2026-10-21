@@ -258,7 +258,7 @@ const PAGES = {
             name: "How are profiles verified on BanjaraMatch?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "Administrators can review a profile and mark it as verified. Report tools are also available if you encounter suspicious behavior."
+              text: "Members can submit a government ID and a selfie from the Verify profile page in their account. An administrator reviews the request and, once it is approved, the profile shows a verified badge. Report tools are also available if you encounter suspicious behavior."
             }
           },
           {
@@ -903,12 +903,11 @@ const PAGES = {
   userSetting: {
     title: "Privacy Settings - Banjara Match",
     description: "",
-    robots: "noindex, nofollow"
-  },
-  userPlan: {
-    title: "My Plan - Banjara Match",
-    description: "",
-    robots: "noindex, nofollow"
+    robots: "noindex, nofollow",
+    scripts: [
+      "https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js",
+      "https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"
+    ]
   },
   shortlisted: {
     title: "My Shortlist - Banjara Match",
@@ -938,6 +937,37 @@ const PAGES = {
   },
   profile: {
     title: "Profile - Banjara Match",
+    description: "",
+    robots: "noindex, nofollow"
+  },
+  successStories: {
+    title: "Banjara Matrimony Success Stories",
+    description: "Real couples who met on BanjaraMatch share their stories. Read Banjara, Lambadi and Gormati matrimony success stories, or share your own.",
+    keywords: [
+      "banjara matrimony success stories",
+      "banjara marriage stories",
+      "lambadi matrimony success",
+      "banjaramatch couples"
+    ],
+    pageCategory: "success_stories"
+  },
+  shareSuccessStory: {
+    title: "Share Your Success Story - Banjara Match",
+    description: "",
+    robots: "noindex, nofollow"
+  },
+  verifyProfile: {
+    title: "Verify Your Profile - Banjara Match",
+    description: "",
+    robots: "noindex, nofollow"
+  },
+  dailyMatches: {
+    title: "Daily Matches - Banjara Match",
+    description: "",
+    robots: "noindex, nofollow"
+  },
+  savedSearches: {
+    title: "Saved Searches - Banjara Match",
     description: "",
     robots: "noindex, nofollow"
   }

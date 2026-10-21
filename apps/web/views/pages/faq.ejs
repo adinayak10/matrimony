@@ -21,6 +21,7 @@
     .fq-item.open .fq-icon { transform:rotate(45deg); }
     .fq-body { display:none; padding:0 20px 18px; font-size:14.5px; color:#555; line-height:1.75; }
     .fq-item.open .fq-body { display:block; }
+    .fq-plain { white-space:pre-line; }
 
     .fq-cta-banner { background:linear-gradient(135deg,#8b4500,#5a2a00); padding:55px 0; text-align:center; }
     .fq-cta-banner h2 { color:#fff; font-size:28px; font-weight:800; margin-bottom:12px; }
@@ -46,6 +47,17 @@
   <section class="fq-section">
     <div class="container">
       <div class="fq-wrap">
+        <% if (typeof faqCategories !== 'undefined' && faqCategories.length) { %>
+        <% faqCategories.forEach(function (cat) { %>
+        <h2 class="fq-cat-title"><%= cat.title %></h2>
+        <% cat.faqs.forEach(function (f) { %>
+        <div class="fq-item">
+          <button class="fq-btn" onclick="fqToggle(this)"><%= f.question %><span class="fq-icon">+</span></button>
+          <div class="fq-body fq-plain"><%= f.answer %></div>
+        </div>
+        <% }) %>
+        <% }) %>
+        <% } else { %>
 
         <h2 class="fq-cat-title">Getting Started</h2>
         <div class="fq-item">
@@ -82,7 +94,7 @@
         <h2 class="fq-cat-title">Verification, Safety &amp; Privacy</h2>
         <div class="fq-item">
           <button class="fq-btn" onclick="fqToggle(this)">How are profiles verified on BanjaraMatch?<span class="fq-icon">+</span></button>
-          <div class="fq-body">Administrators can review a profile and mark it as verified. Report tools are also available if you encounter suspicious behavior.</div>
+          <div class="fq-body">Members can submit a government ID and a selfie from the Verify profile page in their account. An administrator reviews the request and, once it is approved, the profile shows a verified badge. Report tools are also available if you encounter suspicious behavior.</div>
         </div>
         <div class="fq-item">
           <button class="fq-btn" onclick="fqToggle(this)">Is my data and privacy safe on BanjaraMatch?<span class="fq-icon">+</span></button>
@@ -107,6 +119,7 @@
           <div class="fq-body">BanjaraMatch covers Banjara communities across Telangana, Andhra Pradesh, Maharashtra, Karnataka, Rajasthan, Gujarat, Madhya Pradesh, Delhi NCR, and other states with a Banjara population. Check our <a href="/sitemap">Site Map</a> for the full list of regional pages.</div>
         </div>
 
+        <% } %>
       </div>
     </div>
   </section>

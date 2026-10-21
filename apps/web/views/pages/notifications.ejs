@@ -43,6 +43,14 @@
     .notif-time { font-size: 12px; color: #999; margin-top: 3px; }
     .notif-pagination { text-align: center; margin-top: 20px; }
     .notif-pagination button { margin: 0 4px; }
+    .notif-tabs { display:flex; gap:6px; margin-bottom:14px; border-bottom:1px solid #eee; }
+    .notif-tabs button { background:none; border:none; border-bottom:3px solid transparent; padding:8px 14px; font-weight:600; color:#666; cursor:pointer; }
+    .notif-tabs button[aria-selected="true"] { color:#222; border-bottom-color:#f6af04; }
+    .ann-item { padding:14px 10px; border-bottom:1px solid #f0f0f0; }
+    .ann-item:last-child { border-bottom:none; }
+    .ann-item h5 { font-size:15px; font-weight:700; margin:0 0 4px; }
+    .ann-type { display:inline-block; font-size:11px; text-transform:capitalize; background:#eef2f7; color:#456; border-radius:9px; padding:1px 8px; margin-left:6px; vertical-align:middle; }
+    .ann-body { color:#444; font-size:14px; white-space:pre-line; }
     </style>
 </head>
 
@@ -54,26 +62,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-4 col-lg-3">
-                        <div class="db-nav">
-                            <div class="db-nav-pro">
-                                <img src="<%= user?.profile || '/images/default-user.jpg' %>" class="img-fluid" alt="<%= user?.full_name || 'User' %>" onerror="this.src='/images/default-user.jpg'">
-                            </div>
-                            <div class="db-nav-list">
-                                <ul>
-                                    <li><a href="/dashboard"><i class="fa fa-tachometer" aria-hidden="true"></i>Dashboard</a></li>
-                                    <li><a href="/update-profile"><i class="fa fa-male" aria-hidden="true"></i>Profile</a></li>
-                                    <li><a href="/user-interests"><i class="fa fa-handshake-o" aria-hidden="true"></i>Interests</a></li>
-                                    <li><a href="/shortlisted"><i class="fa fa-star" aria-hidden="true"></i>Shortlist</a></li>
-                                    <li><a href="/profile-visitors"><i class="fa fa-eye" aria-hidden="true"></i>Visitors</a></li>
-                                    <li><a href="/user-chat"><i class="fa fa-commenting-o" aria-hidden="true"></i>Chat list</a></li>
-                                    <li><a href="/notifications" class="act"><i class="fa fa-bell" aria-hidden="true"></i>Notifications</a></li>
-                                    <li><a href="/user-plan"><i class="fa fa-money" aria-hidden="true"></i>Plan</a></li>
-                                    <li><a href="/user-setting"><i class="fa fa-cog" aria-hidden="true"></i>Setting</a></li>
-                                    <li><a href="/blocked-users"><i class="fa fa-ban" aria-hidden="true"></i>Blocked Users</a></li>
-                                    <li><a href="/logout"><i class="fa fa-sign-out" aria-hidden="true"></i>Log out</a></li>
-                                </ul>
-                            </div>
-                        </div>
+                        <%- include('../partials/member-nav', { active: 'notifications' }) %>
                     </div>
                     <div class="col-md-8 col-lg-9">
                         <div class="notif-header">
@@ -81,11 +70,23 @@
                             <button class="btn btn-sm btn-outline-secondary" id="markAllReadBtn">Mark all as read</button>
                         </div>
 
-                        <div class="settings-card">
+                        <div class="notif-tabs" role="tablist">
+                            <button type="button" role="tab" id="tabActivity" aria-controls="panelActivity" aria-selected="true">Activity</button>
+                            <button type="button" role="tab" id="tabAnnouncements" aria-controls="panelAnnouncements" aria-selected="false">Announcements</button>
+                        </div>
+
+                        <div class="settings-card" id="panelActivity" role="tabpanel" aria-labelledby="tabActivity">
                             <div id="notifList">
                                 <p class="text-center text-muted">Loading notifications...</p>
                             </div>
                             <div class="notif-pagination" id="notifPagination"></div>
+                        </div>
+
+                        <div class="settings-card" id="panelAnnouncements" role="tabpanel" aria-labelledby="tabAnnouncements" hidden>
+                            <div id="annList">
+                                <p class="text-center text-muted">Loading announcements...</p>
+                            </div>
+                            <div class="notif-pagination"><button type="button" class="btn btn-sm btn-outline-secondary" id="annMore" style="display:none;">Load more</button></div>
                         </div>
                     </div>
                 </div>
@@ -199,6 +200,72 @@
         });
 
         loadNotifications(1);
+
+        // ---- Announcements: POST /api/fetchPlatformNotification {start (0-based offset), limit} ----
+        const ANN_LIMIT = 20;
+        let annStart = 0;
+        let annLoaded = false;
+        // Only http(s) URLs and same-site paths become links (no javascript:, no //host).
+        const safeLink = (u) => (typeof u === 'string' && /^(https?:\/\/|\/(?!\/))/i.test(u.trim()) ? u.trim() : '');
+
+        function renderAnnouncement(a) {
+            const link = safeLink(a.linkUrl);
+            const external = /^https?:/i.test(link);
+            return `
+                <div class="ann-item">
+                    <h5>${esc(a.title || 'Announcement')}${a.type && a.type !== 'announcement' ? `<span class="ann-type">${esc(a.type)}</span>` : ''}</h5>
+                    <div class="ann-body">${esc(a.content || a.body || '')}</div>
+                    ${link ? `<div style="margin-top:6px;"><a href="${esc(link)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''}>Learn more</a></div>` : ''}
+                    <div class="notif-time">${esc(a.createdAt ? timeAgo(a.createdAt) : '')}</div>
+                </div>`;
+        }
+
+        async function loadAnnouncements(reset) {
+            const list = document.getElementById('annList');
+            const more = document.getElementById('annMore');
+            if (reset) { annStart = 0; list.innerHTML = '<p class="text-center text-muted">Loading announcements...</p>'; }
+            more.disabled = true;
+            try {
+                const res = await fetch(`${API_BASE_URL}/fetchPlatformNotification`, {
+                    credentials: 'same-origin',
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ start: annStart, limit: ANN_LIMIT })
+                });
+                const data = await res.json();
+                const rows = data && data.status && Array.isArray(data.data) ? data.data : [];
+                if (reset) list.innerHTML = '';
+                if (!rows.length && annStart === 0) {
+                    list.innerHTML = '<p class="text-center text-muted py-5">No announcements right now.</p>';
+                } else {
+                    // raw-ok: renderAnnouncement() passes every field through esc()
+                    list.insertAdjacentHTML('beforeend', rows.map(renderAnnouncement).join(''));
+                }
+                annStart += rows.length;
+                more.style.display = rows.length === ANN_LIMIT ? '' : 'none';
+                annLoaded = true;
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                if (reset) list.innerHTML = '<p class="text-center text-danger">Failed to load announcements</p>';
+            } finally {
+                more.disabled = false;
+            }
+        }
+        document.getElementById('annMore').addEventListener('click', function () { loadAnnouncements(false); });
+
+        function selectTab(name) {
+            const ann = name === 'announcements';
+            document.getElementById('tabActivity').setAttribute('aria-selected', String(!ann));
+            document.getElementById('tabAnnouncements').setAttribute('aria-selected', String(ann));
+            document.getElementById('panelActivity').hidden = ann;
+            document.getElementById('panelAnnouncements').hidden = !ann;
+            document.getElementById('markAllReadBtn').style.visibility = ann ? 'hidden' : '';
+            if (ann && !annLoaded) loadAnnouncements(true);
+            if (history.replaceState) history.replaceState(null, '', ann ? '#announcements' : window.location.pathname);
+        }
+        document.getElementById('tabActivity').addEventListener('click', function () { selectTab('activity'); });
+        document.getElementById('tabAnnouncements').addEventListener('click', function () { selectTab('announcements'); });
+        if (window.location.hash === '#announcements') selectTab('announcements');
     });
     </script>
 </body>
