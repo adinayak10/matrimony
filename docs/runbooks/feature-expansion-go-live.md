@@ -52,3 +52,11 @@ bash deploy/check-urls.sh /var/www/banjaramatch-shared/baseline/urls-after.jsonl
 Follow `apps/mobile/README.md` ("1.1.0 laptop build checklist"): `flutter pub get`, `flutter analyze`, fix anything it reports, `flutter build apk --release` (and `pod install` + `flutter build ios` for iOS). Then upload the APK in **Admin → APK manager**. The code was written on a server without a Flutter toolchain, so `flutter analyze` is the first real compile check.
 
 Older installed builds keep working against the new API (responses only gained fields).
+
+## Known gaps (not blockers)
+
+- **Uncompiled Dart.** Scripted checks passed (imports resolve, string keys defined and unique, brackets balance in every file), but `flutter analyze` on the laptop is the first real compile. The Agora calls use `renewToken` and `enableLocalVideo` beyond the core API; confirm against agora_rtc_engine 6.x if analyze complains.
+- **Guna Milan** scores two kootas (Rashi, Gana) out of 8. App and web show what the API returns; adding the other six kootas needs a fuller table in `apps/api/utils/gunaMilanTable.js`.
+- **Saved search "Run" in the app** goes through the normal search screen, which ignores `isVerify`/`recentlyActive` inside saved filters (the app's search form cannot set them anyway).
+- Several older `UserService` methods in the app never call back on an error response (`fetchProfiles`, `fetchChatRoom`, `fetchProfileVisitors`, `fetchFAQs`); the new screens time out around them.
+- The plan's M1 grep matches `success_story_service` and `call_history_screen`; use word boundaries: `grep -rnE "(^|[^a-z_])(story_service|story_screen|feed_screen|rooms_screen)\b" apps/mobile/lib` (must be empty).
