@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
+import 'package:banjaramatch/common/managers/call_manager.dart';
 import 'package:banjaramatch/common/extensions/image_extension.dart';
 import 'package:banjaramatch/common/widgets/functions.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
+import 'package:banjaramatch/localization/features/call_strings.dart';
 import 'package:banjaramatch/localization/languages.dart';
 import 'package:banjaramatch/models/chat.dart';
 import 'package:banjaramatch/models/model_chat_room_list.dart';
@@ -247,36 +249,40 @@ class ChattingView extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
-            GestureDetector(
-              onTap: () {
-                Get.to(ProfileScreen(userId: chatRoom?.userId ?? ""));
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        controller.chatRoom?.fullName ?? '',
-                        style: MyTextStyle.gilroyBold(size: 18, color: cWhite),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(width: 1),
-                      VerifyIcon(user: controller.user)
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Text(
-                        "${controller.chatRoom?.isOnline == true ? "Online" : "last ago"}",
-                        style: MyTextStyle.gilroyLight(size: 15, color: cGreen),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  )
-                ],
+            Flexible(
+              child: GestureDetector(
+                onTap: () {
+                  Get.to(ProfileScreen(userId: chatRoom?.userId ?? ""));
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            controller.chatRoom?.fullName ?? '',
+                            style: MyTextStyle.gilroyBold(size: 18, color: cWhite),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 1),
+                        VerifyIcon(user: controller.user)
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          "${controller.chatRoom?.isOnline == true ? "Online" : "last ago"}",
+                          style: MyTextStyle.gilroyLight(size: 15, color: cGreen),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    )
+                  ],
+                ),
               ),
             ),
             controller.isTyping
@@ -286,6 +292,23 @@ class ChattingView extends StatelessWidget {
                   )
                 : Container(),
             Spacer(),
+            // Voice/video call buttons: only for an accepted (connected) chat.
+            if (controller.chatRoom?.status == 'accepted' &&
+                !(controller.chatUserRoom?.iAmBlocked ?? false) &&
+                !(controller.chatUserRoom?.iBlocked ?? false)) ...[
+              IconButton(
+                tooltip: CallKeys.voiceCall.tr,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.call_rounded, color: cWhite, size: 24),
+                onPressed: () => CallManager.shared.startCall(room: controller.chatRoom!, callType: 'audio'),
+              ),
+              IconButton(
+                tooltip: CallKeys.videoCall.tr,
+                visualDensity: VisualDensity.compact,
+                icon: const Icon(Icons.videocam_rounded, color: cWhite, size: 26),
+                onPressed: () => CallManager.shared.startCall(room: controller.chatRoom!, callType: 'video'),
+              ),
+            ],
             // controller.chatUserRoom?.type == 2
             //     ? RoomMenu(controller: controller)
             //     : Menu(

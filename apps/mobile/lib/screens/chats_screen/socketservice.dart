@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
+import '../../common/managers/call_manager.dart';
 import '../../common/managers/session_manager.dart';
 import '../../main.dart';
 import '../../models/chat.dart';
@@ -56,6 +57,7 @@ class SocketService {
   void startCommonListening() {
     connectSocket();
     register(SessionManager.shared.getUserID());
+    CallManager.shared.bindIncoming();
 
     final tabController = Get.find<TabBarController>();
 
