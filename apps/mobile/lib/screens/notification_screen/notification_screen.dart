@@ -1,222 +1,27 @@
-// import 'package:figma_squircle/figma_squircle.dart';
-// import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:get/get.dart';
-// import 'package:banjaramatch/common/extensions/font_extension.dart';
-// import 'package:banjaramatch/common/widgets/my_cached_image.dart';
-// import 'package:banjaramatch/common/widgets/no_data_found.dart';
-// import 'package:banjaramatch/localization/languages.dart';
-// import 'package:banjaramatch/models/user_notification_model.dart';
-// import 'package:banjaramatch/screens/extra_views/back_button.dart';
-// import 'package:banjaramatch/screens/extra_views/top_bar.dart';
-// import 'package:banjaramatch/screens/notification_screen/notification_controller.dart';
-// import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
-// import 'package:banjaramatch/utilities/const.dart';
-//
-// class NotificationScreen extends StatelessWidget {
-//   const NotificationScreen({Key? key}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     NotificationScreenController controller = NotificationScreenController();
-//     return Scaffold(
-//       body: Column(
-//         children: [
-//           const TopBarForInView(title: LKeys.notification),
-//           GetBuilder<NotificationScreenController>(
-//               init: controller,
-//               builder: (controller) {
-//                 return Expanded(
-//                   child: controller.notifications.isEmpty && controller.userNotifications.isEmpty
-//                       ? NoDataFound(controller: controller)
-//                       : Column(
-//                           children: [
-//                             Container(
-//                               color: cDarkBG,
-//                               width: double.infinity,
-//                               child: Column(
-//                                 children: [
-//                                   const SizedBox(height: 15),
-//                                   segmentController(controller),
-//                                   const SizedBox(height: 15),
-//                                 ],
-//                               ),
-//                             ),
-//                             Expanded(
-//                               child: PageView(
-//                                 controller: controller.controller,
-//                                 onPageChanged: controller.onChangePage,
-//                                 children: [
-//                                   controller.userNotifications.isEmpty
-//                                       ? NoDataFound(
-//                                           controller: controller,
-//                                         )
-//                                       : ListView.builder(
-//                                           controller: controller.userScrollController,
-//                                           padding: const EdgeInsets.all(10),
-//                                           itemCount: controller.userNotifications.length,
-//                                           itemBuilder: (context, index) {
-//                                             return NotificationCard(
-//                                               notification: controller.userNotifications[index],
-//                                             );
-//                                           },
-//                                         ),
-//                                   controller.notifications.isEmpty
-//                                       ? NoDataFound(
-//                                           controller: controller,
-//                                         )
-//                                       : listView(controller: controller),
-//                                 ],
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                 );
-//               }),
-//           BannerAdView(bottom: true)
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget segmentController(NotificationScreenController controller) {
-//     return CupertinoSlidingSegmentedControl(
-//       children: {0: buildSegment(LKeys.forYou, 0, controller), 1: buildSegment(LKeys.platform, 1, controller)},
-//       groupValue: controller.selectedPage,
-//       backgroundColor: cWhite.withOpacity(0.12),
-//       thumbColor: cWhite,
-//       padding: const EdgeInsets.all(0),
-//       onValueChanged: (value) {
-//         controller.onChangeSegment(value ?? 0);
-//       },
-//     );
-//   }
-//
-//   Widget buildSegment(String text, int index, NotificationScreenController controller) {
-//     return Container(
-//       alignment: Alignment.center,
-//       width: (Get.width / 2) - 30,
-//       child: Text(
-//         text.tr.toUpperCase(),
-//         style: MyTextStyle.gilroySemiBold(size: 13, color: controller.selectedPage == index ? cBlack : cWhite)
-//             .copyWith(letterSpacing: 2),
-//       ),
-//     );
-//   }
-//
-//   Widget listView({required NotificationScreenController controller}) {
-//     return ListView.builder(
-//       controller: controller.scrollController,
-//       padding: const EdgeInsets.all(10),
-//       itemCount: controller.notifications.length,
-//       itemBuilder: (context, index) {
-//         return NotificationCard(
-//           notification: controller.notifications[index],
-//         );
-//       },
-//     );
-//   }
-// }
-//
-// class NotificationCard extends StatelessWidget {
-//   final UserNotification notification;
-//
-//   const NotificationCard({Key? key, required this.notification}) : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     final String name = notification.fromUser?.fullName ?? 'Someone';
-//     final String content = notification.content ?? '';
-//     final String time = _formatTime(notification.createdAt);
-//
-//     return GestureDetector(
-//       onTap: () {
-//         Get.to(ProfileScreen(userId: notification.fromUser!.sId!));
-//       },
-//       child: Column(
-//         children: [
-//           Row(
-//             crossAxisAlignment: CrossAxisAlignment.start,
-//             children: [
-//               ClipSmoothRect(
-//                 radius: SmoothBorderRadius(cornerRadius: 12, cornerSmoothing: cornerSmoothing),
-//                 child: Container(
-//                     color: cBlack,
-//                     //   padding: const EdgeInsets.all(10),
-//                     child: MyCachedImage(
-//                       imageUrl: notification.fromUser?.profile ?? "",
-//                       width: 48,
-//                       height: 48,
-//                     )),
-//               ),
-//               const SizedBox(width: 10),
-//               Expanded(
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Row(
-//                       children: [
-//                         Text(
-//                           name,
-//                           style: MyTextStyle.gilroyBold(),
-//                         ),
-//                         const SizedBox(width: 5),
-//                         const VerifyIcon(),
-//                         const Spacer(),
-//                         Text(
-//                           time,
-//                           style: MyTextStyle.gilroyRegular(color: cLightText, size: 12),
-//                         ),
-//                       ],
-//                     ),
-//                     const SizedBox(height: 4),
-//                     Text(
-//                       content,
-//                       style: MyTextStyle.gilroyLight(color: cLightText, size: 14),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ],
-//           ),
-//           const Divider()
-//         ],
-//       ),
-//     );
-//   }
-//
-//   String _formatTime(String? time) {
-//     if (time == null) return '';
-//     try {
-//       final date = DateTime.parse(time).toLocal();
-//       final now = DateTime.now();
-//       final diff = now.difference(date);
-//
-//       if (diff.inMinutes < 1) return 'Just now';
-//       if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-//       if (diff.inHours < 24) return '${diff.inHours} hrs ago';
-//       return '${date.day}/${date.month}/${date.year}';
-//     } catch (e) {
-//       return '';
-//     }
-//   }
-// }
-
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:banjaramatch/common/controller/base_controller.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
+import 'package:banjaramatch/localization/features/match_strings.dart';
+import 'package:banjaramatch/localization/languages.dart';
+import 'package:banjaramatch/models/announcement_model.dart';
 import 'package:banjaramatch/models/user_notification_model.dart';
+import 'package:banjaramatch/utilities/const.dart';
 import 'package:banjaramatch/screens/notification_screen/notification_controller.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
 
 class NotificationScreen extends StatelessWidget {
-  const NotificationScreen({Key? key}) : super(key: key);
+  /// [initialSegment]: 0 = For You, 1 = Platform (announcements).
+  const NotificationScreen({Key? key, this.initialSegment = 0}) : super(key: key);
+
+  final int initialSegment;
 
   @override
   Widget build(BuildContext context) {
-    NotificationScreenController controller = NotificationScreenController();
+    NotificationScreenController controller = NotificationScreenController(initialSegment: initialSegment);
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color(0xFFFDF2F8),
@@ -232,7 +37,7 @@ class NotificationScreen extends StatelessWidget {
               init: controller,
               builder: (controller) {
                 return Expanded(
-                  child: controller.notifications.isEmpty && controller.userNotifications.isEmpty
+                  child: controller.announcements.isEmpty && controller.userNotifications.isEmpty
                       ? _buildEmptyState()
                       : Column(
                           children: [
@@ -267,20 +72,17 @@ class NotificationScreen extends StatelessWidget {
                                     children: [
                                       // For You notifications
                                       controller.userNotifications.isEmpty
-                                          ? _buildPageEmptyState("No personal notifications",
-                                              "Your matrimony updates will appear here", Icons.person_outline)
+                                          ? _buildPageEmptyState(MatchKeys.noPersonalNotifications.tr,
+                                              MatchKeys.noPersonalNotificationsMsg.tr, Icons.person_outline)
                                           : _buildNotificationList(
                                               controller.userNotifications,
                                               controller.userScrollController,
                                             ),
-                                      // Platform notifications
-                                      controller.notifications.isEmpty
-                                          ? _buildPageEmptyState("No platform updates",
-                                              "System notifications will appear here", Icons.notifications_none)
-                                          : _buildNotificationList(
-                                              controller.notifications,
-                                              controller.scrollController,
-                                            ),
+                                      // Platform announcements
+                                      controller.announcements.isEmpty
+                                          ? _buildPageEmptyState(MatchKeys.noAnnouncements.tr,
+                                              MatchKeys.noAnnouncementsMsg.tr, Icons.campaign_outlined)
+                                          : _buildAnnouncementList(controller),
                                     ],
                                   ),
                                 ),
@@ -375,7 +177,7 @@ class NotificationScreen extends StatelessWidget {
         children: [
           Expanded(
             child: _buildSegmentTab(
-              "For You",
+              LKeys.forYou.tr,
               0,
               controller,
               Icons.favorite_outline,
@@ -384,11 +186,11 @@ class NotificationScreen extends StatelessWidget {
           ),
           Expanded(
             child: _buildSegmentTab(
-              "Platform",
+              LKeys.platform.tr,
               1,
               controller,
               Icons.campaign_outlined,
-              controller.notifications.length,
+              controller.announcements.length,
             ),
           ),
         ],
@@ -472,7 +274,7 @@ class NotificationScreen extends StatelessWidget {
 
   Widget _buildNotificationStats(NotificationScreenController controller) {
     int unreadCount = controller.userNotifications.where((n) => n.isRead != true).length +
-        controller.notifications.where((n) => n.isRead != true).length;
+        controller.announcements.where((n) => n.isRead != true).length;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -490,7 +292,7 @@ class NotificationScreen extends StatelessWidget {
         children: [
           _buildStatItem(
             "Total Notifications",
-            (controller.userNotifications.length + controller.notifications.length).toString(),
+            (controller.userNotifications.length + controller.announcements.length).toString(),
             const Color(0xFF3B82F6),
           ),
           Container(
@@ -541,6 +343,32 @@ class NotificationScreen extends StatelessWidget {
           child: EnhancedNotificationCard(
             notification: notifications[index],
           ),
+        );
+      },
+    );
+  }
+
+  /// Announcements with an auto-loading footer while more pages exist.
+  Widget _buildAnnouncementList(NotificationScreenController controller) {
+    final rows = controller.announcements;
+    return ListView.builder(
+      controller: controller.scrollController,
+      padding: const EdgeInsets.all(20),
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      itemCount: rows.length + (controller.hasMoreAnnouncements ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= rows.length) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => controller.fetchNotification());
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+          );
+        }
+        return Padding(
+          padding: EdgeInsets.only(bottom: index == rows.length - 1 ? 0 : 12),
+          child: AnnouncementCard(announcement: rows[index]),
         );
       },
     );
@@ -830,5 +658,128 @@ class EnhancedNotificationCard extends StatelessWidget {
     } catch (e) {
       return '';
     }
+  }
+}
+
+/// Platform announcement row (title, body, date, type chip). Tapping opens
+/// `linkUrl` only when it is an http(s) or site-relative link.
+class AnnouncementCard extends StatelessWidget {
+  const AnnouncementCard({Key? key, required this.announcement}) : super(key: key);
+
+  final Announcement announcement;
+
+  static const Color _pink = Color(0xFFEC4899);
+
+  /// Absolute URL for [Announcement.linkUrl] (site-relative paths go to the website).
+  static String resolveLink(String link) {
+    final url = link.trim();
+    if (url.startsWith('/')) return Uri.parse(helpURL).origin + url;
+    return url;
+  }
+
+  static String typeLabel(String? type) {
+    switch (type) {
+      case 'update':
+        return MatchKeys.typeUpdate.tr;
+      case 'maintenance':
+        return MatchKeys.typeMaintenance.tr;
+      case 'event':
+        return MatchKeys.typeEvent.tr;
+      default:
+        return MatchKeys.typeAnnouncement.tr;
+    }
+  }
+
+  static IconData typeIcon(String? type) {
+    switch (type) {
+      case 'update':
+        return Icons.system_update_rounded;
+      case 'maintenance':
+        return Icons.build_circle_outlined;
+      case 'event':
+        return Icons.event_rounded;
+      default:
+        return Icons.campaign_rounded;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final title = (announcement.title ?? '').trim();
+    final body = (announcement.content ?? '').trim();
+    final date = announcement.createdAt;
+    final canOpen = announcement.hasSafeLink;
+    return GestureDetector(
+      onTap: canOpen ? () => BaseController.share.handleURL(url: resolveLink(announcement.linkUrl!)) : null,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
+          boxShadow: [
+            BoxShadow(color: _pink.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [_pink.withOpacity(0.15), const Color(0xFFF97316).withOpacity(0.15)]),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(typeIcon(announcement.type), color: _pink, size: 22),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          typeLabel(announcement.type),
+                          style: MyTextStyle.gilroySemiBold(size: 11, color: _pink),
+                        ),
+                      ),
+                      if (date != null)
+                        Text(
+                          DateFormat('d MMM yyyy').format(date),
+                          style: MyTextStyle.gilroyMedium(size: 11, color: const Color(0xFF9CA3AF)),
+                        ),
+                    ],
+                  ),
+                  if (title.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(title, style: MyTextStyle.gilroyBold(size: 15, color: const Color(0xFF1F2937))),
+                  ],
+                  if (body.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      body,
+                      style: MyTextStyle.gilroyMedium(size: 13, color: const Color(0xFF4B5563)).copyWith(height: 1.4),
+                    ),
+                  ],
+                  if (canOpen) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(MatchKeys.openLink.tr, style: MyTextStyle.gilroySemiBold(size: 13, color: _pink)),
+                        const SizedBox(width: 4),
+                        const Icon(Icons.open_in_new_rounded, size: 14, color: _pink),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

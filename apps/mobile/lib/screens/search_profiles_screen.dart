@@ -482,28 +482,45 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:banjaramatch/common/controller/base_controller.dart';
+import 'package:banjaramatch/common/managers/navigation.dart';
+import 'package:banjaramatch/localization/features/match_strings.dart';
+import 'package:banjaramatch/models/saved_search_model.dart';
+import 'package:banjaramatch/screens/saved_searches_screen/saved_searches_screen.dart';
 import 'package:banjaramatch/screens/extra_views/top_bar.dart';
 import 'package:banjaramatch/screens/search_profile_controller.dart';
 import 'package:banjaramatch/screens/user_list_screen_search_result.dart';
 import 'package:banjaramatch/screens/users_list_controller.dart';
+import 'package:banjaramatch/utilities/const.dart';
 
-import '../../../common/extensions/font_extension.dart';
+import 'package:banjaramatch/common/extensions/font_extension.dart';
 import '../models/ModelCommonEducationQualificationListResponse.dart';
 import '../models/model_cast_gotra_list.dart';
 
 class SearchUserScreen extends StatelessWidget {
-  const SearchUserScreen({super.key});
+  const SearchUserScreen({super.key, this.savedSearch});
+
+  /// Opened from Saved searches → Edit: starts with these filters and the
+  /// save sheet can update this saved search.
+  final SavedSearch? savedSearch;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFFAFAFA),
       body: GetBuilder<SearchUserController>(
-        init: SearchUserController(),
+        init: SearchUserController(editingSavedSearch: savedSearch),
         builder: (controller) {
           return Column(
             children: [
-              TopBarForInView(title: "Search your match"),
+              TopBarForInView(
+                title: "Search your match",
+                child: IconButton(
+                  tooltip: MatchKeys.savedSearches.tr,
+                  onPressed: () => Navigate.to(const SavedSearchesScreen()),
+                  icon: const Icon(Icons.bookmarks_outlined, color: Colors.white),
+                ),
+              ),
               // _buildEnhancedHeader(),
 
               Expanded(
@@ -628,6 +645,8 @@ class SearchUserScreen extends StatelessWidget {
 
                       const SizedBox(height: 32),
                       _buildSearchButton(controller),
+                      const SizedBox(height: 12),
+                      _buildSaveSearchButton(context, controller),
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -1055,6 +1074,177 @@ class SearchUserScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSaveSearchButton(BuildContext context, SearchUserController controller) {
+    final editing = controller.editingSavedSearch;
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton.icon(
+        onPressed: () => _showSaveSearchSheet(context, controller),
+        icon: Icon(editing != null ? Icons.bookmark_rounded : Icons.bookmark_add_outlined, size: 20),
+        label: Text(
+          editing != null
+              ? MatchKeys.editingSavedSearch.trParams({'name': editing.name})
+              : MatchKeys.saveThisSearch.tr,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: MyTextStyle.gilroySemiBold(size: 15, color: Colors.pink.shade400),
+        ),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.pink.shade400,
+          side: BorderSide(color: Colors.pink.shade200),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+    );
+  }
+
+  /// "Save this search" sheet: name + alert switch. When editing a saved
+  /// search it offers "Update saved search" and "Save as new".
+  void _showSaveSearchSheet(BuildContext context, SearchUserController controller) {
+    final editing = controller.editingSavedSearch;
+    final nameController = TextEditingController(text: editing?.name ?? '');
+    bool alertEnabled = editing?.alertEnabled ?? false;
+    bool saving = false;
+    String? errorText;
+
+    Get.bottomSheet(
+      StatefulBuilder(
+        builder: (context, setState) {
+          void submit({required bool asNew}) {
+            final name = nameController.text.trim().replaceAll(RegExp(r'\s+'), ' ');
+            if (name.isEmpty || name.length > 60) {
+              setState(() => errorText = MatchKeys.searchNameRequired.tr);
+              return;
+            }
+            setState(() {
+              saving = true;
+              errorText = null;
+            });
+            controller.saveCurrentSearch(
+              name: name,
+              alertEnabled: alertEnabled,
+              asNew: asNew,
+              completion: (search, created) {
+                if (Get.isBottomSheetOpen ?? false) Get.back();
+                BaseController.share.showSnackBar(
+                  created ? MatchKeys.searchSaved.tr : MatchKeys.searchUpdated.tr,
+                  type: SnackBarType.success,
+                );
+              },
+              onError: (message) {
+                if (!context.mounted) return;
+                setState(() {
+                  saving = false;
+                  errorText = message;
+                });
+              },
+            );
+          }
+
+          return Container(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 16 + MediaQuery.of(context).viewInsets.bottom),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2)),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    editing != null ? MatchKeys.updateSavedSearch.tr : MatchKeys.saveThisSearch.tr,
+                    style: MyTextStyle.gilroyBold(size: 18, color: cDarkText),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(MatchKeys.searchName.tr, style: MyTextStyle.gilroySemiBold(size: 14, color: cDarkText)),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    decoration: BoxDecoration(color: cLightBg, borderRadius: BorderRadius.circular(10)),
+                    child: TextField(
+                      controller: nameController,
+                      maxLength: 60,
+                      autofocus: editing == null,
+                      textCapitalization: TextCapitalization.sentences,
+                      style: MyTextStyle.gilroyRegular(color: cDarkText),
+                      decoration: InputDecoration(
+                        hintText: MatchKeys.searchNameHint.tr,
+                        hintStyle: MyTextStyle.gilroyRegular(color: cLightText),
+                        border: InputBorder.none,
+                        counterText: '',
+                      ),
+                    ),
+                  ),
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: alertEnabled,
+                    activeColor: Colors.pink.shade400,
+                    onChanged: saving ? null : (v) => setState(() => alertEnabled = v),
+                    title: Text(MatchKeys.alertMe.tr, style: MyTextStyle.gilroySemiBold(size: 14, color: cDarkText)),
+                    subtitle: Text(MatchKeys.alertMeHint.tr,
+                        style: MyTextStyle.gilroyRegular(size: 12, color: cLightText)),
+                  ),
+                  if (errorText != null) ...[
+                    Text(errorText!, style: MyTextStyle.gilroyMedium(size: 13, color: cError)),
+                    const SizedBox(height: 8),
+                  ],
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: saving ? null : () => submit(asNew: editing == null),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.pink.shade400,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                      child: saving
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(
+                              editing != null ? MatchKeys.updateSavedSearch.tr : MatchKeys.save.tr,
+                              style: MyTextStyle.gilroyBold(size: 15, color: Colors.white),
+                            ),
+                    ),
+                  ),
+                  if (editing != null) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 46,
+                      child: TextButton(
+                        onPressed: saving ? null : () => submit(asNew: true),
+                        child: Text(MatchKeys.saveAsNew.tr,
+                            style: MyTextStyle.gilroySemiBold(size: 14, color: Colors.pink.shade400)),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      isScrollControlled: true,
     );
   }
 

@@ -1189,7 +1189,8 @@ class UserService {
   }) {
     final param = <String, dynamic>{
       Param.myUserId: SessionManager.shared.getUserID(),
-      Param.start: page,
+      // API `start` is a 1-based row offset (skip = start - 1), not a page number
+      Param.start: (page < 1 ? 0 : page - 1) * limit + 1,
       Param.limit: limit,
     };
 
@@ -1351,7 +1352,8 @@ class UserService {
       param: {
         Param.myUserId: SessionManager.shared.getUserID(),
         'status': 'accepted',
-        Param.start: page,
+        // API `start` is a 1-based row offset (skip = start - 1), not a page number
+        Param.start: (page < 1 ? 0 : page - 1) * limit + 1,
         Param.limit: limit,
       },
       completion: (response) {

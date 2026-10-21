@@ -2,14 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:banjaramatch/screens/personal_info_controller.dart';
 
+import '../common/api_service/saved_search_service.dart';
 import '../common/api_service/user_service.dart';
 import '../common/extensions/font_extension.dart';
 import '../models/ModelCommonEducationQualificationListResponse.dart';
 import '../models/model_cast_gotra_list.dart';
 import '../models/registration.dart';
+import '../models/saved_search_model.dart';
 import '../utilities/const.dart';
 
 class SearchUserController extends GetxController {
+  /// Opened from "Saved searches → Edit": the screen starts with its filters
+  /// and the save sheet offers to update it.
+  SearchUserController({this.editingSavedSearch});
+
+  SavedSearch? editingSavedSearch;
+
+  /// Saved-search filter keys this screen has no control for (incomeRange,
+  /// isVerify, recentlyActive); kept so editing a saved search does not drop them.
+  Map<String, dynamic> _carriedSavedFilters = {};
+
   // ---------------- Filters ----------------
   double minAgeIndex = 18;
   double maxAgeIndex = 30;
@@ -43,6 +55,8 @@ class SearchUserController extends GetxController {
     fetchGotras();
     fetchEducation("");
     fetchProfession("");
+    final saved = editingSavedSearch;
+    if (saved != null) applySavedFilters(saved.filters);
   }
 
   // ---------------- Filters Data Fetch ----------------
@@ -52,6 +66,7 @@ class SearchUserController extends GetxController {
         completion: (list) {
           allCastes = list;
           filteredCastes = List.from(list);
+          _resolveSavedSelections();
           update();
         });
   }
@@ -62,6 +77,7 @@ class SearchUserController extends GetxController {
         completion: (list) {
           allGotras = list;
           filteredGotras = List.from(list);
+          _resolveSavedSelections();
           update();
         });
   }
@@ -93,6 +109,7 @@ class SearchUserController extends GetxController {
         search: query,
         completion: (res) {
           educationSuggestions = res;
+          _resolveSavedSelections();
           update();
         });
   }
@@ -102,6 +119,7 @@ class SearchUserController extends GetxController {
         search: query,
         completion: (res) {
           professionSuggestions = res;
+          _resolveSavedSelections();
           update();
         });
   }
@@ -173,6 +191,167 @@ class SearchUserController extends GetxController {
       "qualification": selectedQualification.map((e) => e.sId).toList(),
       "profession": selectedProfession.map((e) => e.sId).toList(),
     };
+  }
+
+  // ---------------- Saved searches ----------------
+
+  /// The current selections in the saved-search contract shape
+  /// `{age_range:{min,max}, height_range:{min,max} (cm), marital_status[],
+  /// caste[], gotra[], qualification[], profession[], incomeRange?, isVerify?,
+  /// recentlyActive?}`, derived from [buildFilterPayload] so a saved search
+  /// returns what "Find Matches" returns.
+  Map<String, dynamic> buildSavedSearchFilters() {
+    final payload = buildFilterPayload();
+    final out = <String, dynamic>{};
+
+    final age = payload['age_range'];
+    if (age is Map) {
+      final min = int.tryParse('${age['min']}');
+      final max = int.tryParse('${age['max']}');
+      if (min != null || max != null) out['age_range'] = {'min': min, 'max': max};
+    }
+    final height = payload['height_range'];
+    if (height is Map) {
+      final min = height['min'] is num ? (height['min'] as num).round() : null;
+      final max = height['max'] is num ? (height['max'] as num).round() : null;
+      if (min != null || max != null) out['height_range'] = {'min': min, 'max': max};
+    }
+    final marital = '${payload['marital_status'] ?? ''}'.trim();
+    if (marital.isNotEmpty) out['marital_status'] = [marital];
+    for (final key in const ['caste', 'gotra', 'qualification', 'profession']) {
+      final list = payload[key];
+      if (list is List) {
+        final ids = list.whereType<String>().where((e) => e.isNotEmpty).toSet().toList();
+        if (ids.isNotEmpty) out[key] = ids;
+      }
+    }
+    for (final entry in _carriedSavedFilters.entries) {
+      out.putIfAbsent(entry.key, () => entry.value);
+    }
+    return out;
+  }
+
+  /// Loads a saved search's filters into the selections (see [buildSavedSearchFilters]).
+  /// Ids not yet in the loaded caste/gotra/education/profession lists are kept
+  /// selected and get their names once the lists arrive.
+  void applySavedFilters(Map<String, dynamic> filters) {
+    final age = filters['age_range'];
+    if (age is Map) {
+      double minAge = (_asInt(age['min']) ?? minAgeIndex.round()).toDouble().clamp(18, 60).toDouble();
+      double maxAge = (_asInt(age['max']) ?? maxAgeIndex.round()).toDouble().clamp(18, 60).toDouble();
+      if (minAge > maxAge) {
+        final t = minAge;
+        minAge = maxAge;
+        maxAge = t;
+      }
+      minAgeIndex = minAge;
+      maxAgeIndex = maxAge;
+    }
+    final height = filters['height_range'];
+    if (height is Map) {
+      final minCm = _asInt(height['min']);
+      final maxCm = _asInt(height['max']);
+      double minH = minCm != null ? _heightIndexForCm(minCm).toDouble() : minHeightIndex;
+      double maxH = maxCm != null ? _heightIndexForCm(maxCm).toDouble() : maxHeightIndex;
+      if (minH > maxH) {
+        final t = minH;
+        minH = maxH;
+        maxH = t;
+      }
+      minHeightIndex = minH;
+      maxHeightIndex = maxH;
+    }
+    final marital = filters['marital_status'];
+    final maritalList = marital is List ? marital.map((e) => '$e').toList() : (marital is String ? [marital] : <String>[]);
+    selectedMaritalStatus = maritalList.isNotEmpty ? maritalList.first : '';
+
+    selectedCastes = _idsOf(filters['caste']).map((id) => CasteGotra(sId: id)).toList();
+    selectedGotras = _idsOf(filters['gotra']).map((id) => CasteGotra(sId: id)).toList();
+    selectedQualification = _idsOf(filters['qualification']).map((id) => CommonItem(sId: id)).toList();
+    selectedProfession = _idsOf(filters['profession']).map((id) => CommonItem(sId: id)).toList();
+
+    _carriedSavedFilters = {
+      for (final key in const ['incomeRange', 'isVerify', 'recentlyActive'])
+        if (filters[key] != null) key: filters[key],
+    };
+    _resolveSavedSelections();
+    update();
+  }
+
+  /// Creates a saved search from the current selections, or updates
+  /// [editingSavedSearch] when [asNew] is false. 409 LIMIT_REACHED and
+  /// validation messages arrive in [onError].
+  void saveCurrentSearch({
+    required String name,
+    required bool alertEnabled,
+    bool asNew = true,
+    required Function(SavedSearch search, bool created) completion,
+    required Function(String message) onError,
+  }) {
+    final filters = buildSavedSearchFilters();
+    final editing = editingSavedSearch;
+    if (!asNew && editing != null && editing.id != null) {
+      SavedSearchService.shared.update(
+        id: editing.id!,
+        name: name,
+        filters: filters,
+        alertEnabled: alertEnabled,
+        completion: (search) {
+          editingSavedSearch = search;
+          update();
+          completion(search, false);
+        },
+        onError: onError,
+      );
+      return;
+    }
+    SavedSearchService.shared.create(
+      name: name,
+      filters: filters,
+      alertEnabled: alertEnabled,
+      completion: (search) {
+        editingSavedSearch = search;
+        update();
+        completion(search, true);
+      },
+      onError: onError,
+    );
+  }
+
+  int _heightIndexForCm(int cm) {
+    var best = 0;
+    var bestDiff = 1 << 30;
+    for (var i = 0; i < heightOptions.length; i++) {
+      final diff = (HeightConverter.imperialToCm(heightOptions[i]) - cm).abs();
+      if (diff < bestDiff) {
+        best = i;
+        bestDiff = diff;
+      }
+    }
+    return best;
+  }
+
+  void _resolveSavedSelections() {
+    CasteGotra resolveCg(CasteGotra item, List<CasteGotra> all) =>
+        item.name != null ? item : (all.firstWhereOrNull((e) => e.sId == item.sId) ?? item);
+    CommonItem resolveCi(CommonItem item, List<CommonItem> all) =>
+        item.name != null ? item : (all.firstWhereOrNull((e) => e.sId == item.sId) ?? item);
+    selectedCastes = selectedCastes.map((e) => resolveCg(e, allCastes)).toList();
+    selectedGotras = selectedGotras.map((e) => resolveCg(e, allGotras)).toList();
+    selectedQualification = selectedQualification.map((e) => resolveCi(e, educationSuggestions)).toList();
+    selectedProfession = selectedProfession.map((e) => resolveCi(e, professionSuggestions)).toList();
+  }
+
+  static int? _asInt(dynamic v) {
+    if (v is int) return v;
+    if (v is num) return v.round();
+    if (v is String) return num.tryParse(v)?.round();
+    return null;
+  }
+
+  static List<String> _idsOf(dynamic v) {
+    final list = v is List ? v : (v == null ? const [] : [v]);
+    return list.map((e) => '$e').where((e) => e.isNotEmpty).toSet().toList();
   }
 }
 

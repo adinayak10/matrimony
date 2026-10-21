@@ -10,10 +10,13 @@ import 'package:banjaramatch/common/managers/session_manager.dart';
 import 'package:banjaramatch/common/widgets/functions.dart';
 import 'package:banjaramatch/common/widgets/menu.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
+import 'package:banjaramatch/localization/features/match_strings.dart';
 import 'package:banjaramatch/localization/languages.dart';
 import 'package:banjaramatch/models/registration.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/chatting_view.dart';
 import 'package:banjaramatch/screens/extra_views/back_button.dart';
+import 'package:banjaramatch/screens/guna_milan_screen/guna_milan_screen.dart';
+import 'package:banjaramatch/screens/horoscope_screen/horoscope_screen.dart';
 import 'package:banjaramatch/screens/personal_info_controller.dart';
 import 'package:banjaramatch/screens/personal_info_screen.dart';
 import 'package:banjaramatch/screens/preference_fit_model.dart';
@@ -21,6 +24,7 @@ import 'package:banjaramatch/screens/profile_screen/profile_controller.dart';
 import 'package:banjaramatch/screens/profile_screen/preference_fit_widget.dart';
 import 'package:banjaramatch/screens/report_screen/report_sheet.dart';
 import 'package:banjaramatch/utilities/const.dart';
+import 'package:banjaramatch/utilities/horoscope_constants.dart';
 
 import '../eduction_profession_screen.dart';
 import '../family_details_screen.dart';
@@ -181,10 +185,17 @@ class ProfileScreen extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(Icons.verified, color: Colors.blue.shade500, size: 20),
+              if (controller.user?.isVerified == 1) ...[
+                const SizedBox(width: 8),
+                Icon(Icons.verified, color: Colors.blue.shade500, size: 20),
+              ],
             ],
           ),
+          // The API defaults profileCreatedBy to 'self'; only family-managed profiles get the chip.
+          if (!['', 'self'].contains((controller.user?.profileCreatedBy ?? '').trim().toLowerCase())) ...[
+            const SizedBox(height: 8),
+            _buildManagedByChip(controller.user!.profileCreatedBy!),
+          ],
           const SizedBox(height: 8),
 
           // Age, location, height
@@ -538,6 +549,8 @@ class ProfileScreen extends StatelessWidget {
       children: [
         _buildPersonalInfoSection(controller),
         SizedBox(height: 8),
+        _buildHoroscopeSection(controller),
+        SizedBox(height: 8),
         _buildLocationLanguageSection(controller),
         SizedBox(height: 8),
         _buildCareerSection(controller),
@@ -574,9 +587,122 @@ class ProfileScreen extends StatelessWidget {
           ),
           _buildInfoRow(
               'Height', HeightConverter().cmToImperialString(controller.user?.height) ?? '-', Icons.height_outlined),
+          _buildInfoRow(MatchKeys.bloodGroup.tr, _orDash(controller.user?.bloodGroup), Icons.bloodtype_outlined),
           _buildInfoRow('Marital Status', controller.user?.maritalStatus ?? '-', Icons.favorite_border),
           _buildInfoRow('Caste', controller.user?.caste?.name ?? '-', Icons.group_outlined),
           _buildInfoRow('Gotra', controller.user?.gotra?.name ?? '-', Icons.family_restroom_outlined),
+        ],
+      ),
+    );
+  }
+
+  static String _orDash(String? value) {
+    final v = (value ?? '').trim();
+    return v.isEmpty ? '-' : v;
+  }
+
+  /// "Profile managed by Parent" (API stores lowercase; 'self' gets no chip).
+  Widget _buildManagedByChip(String createdBy) {
+    final value = createdBy.trim().toLowerCase();
+    String who;
+    switch (value) {
+      case 'parent':
+        who = MatchKeys.createdByParent.tr;
+        break;
+      case 'sibling':
+        who = MatchKeys.createdBySibling.tr;
+        break;
+      case 'relative':
+        who = MatchKeys.createdByRelative.tr;
+        break;
+      case 'friend':
+        who = MatchKeys.createdByFriend.tr;
+        break;
+      default:
+        who = createdBy.trim();
+    }
+    final text = MatchKeys.managedBy.trParams({'who': who});
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: cPrimary.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: cPrimary.withOpacity(0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.supervisor_account_outlined, size: 14, color: cPrimary),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: MyTextStyle.gilroySemiBold(size: 12, color: cPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Horoscope details; self can edit (→ HoroscopeScreen), others get "Check Kundli match".
+  Widget _buildHoroscopeSection(ProfileController controller) {
+    final user = controller.user;
+    final horoscope = user?.horoscope;
+    final rashi = (horoscope?.rashi ?? '').trim();
+    final manglik = (user?.manglikStatus ?? '').trim();
+    final requiredFlag = user?.horoscopeRequired;
+    final isEmpty = horoscope == null || horoscope.isEmpty;
+    return _buildInfoCard(
+      title: MatchKeys.horoscope.tr,
+      icon: Icons.auto_awesome_outlined,
+      isEditable: controller.isSelf,
+      onEdit: () => Navigate.to(const HoroscopeScreen()),
+      child: Column(
+        children: [
+          _buildInfoRow(
+            MatchKeys.rashi.tr,
+            rashi.isEmpty ? '-' : HoroscopeConstants.rashiLabel(rashi),
+            Icons.brightness_3_outlined,
+          ),
+          _buildInfoRow(MatchKeys.nakshatra.tr, _orDash(horoscope?.nakshatra), Icons.star_border_rounded),
+          _buildInfoRow(MatchKeys.birthTime.tr, _orDash(horoscope?.birthTime), Icons.schedule_outlined),
+          _buildInfoRow(MatchKeys.birthPlace.tr, _orDash(horoscope?.birthPlace), Icons.place_outlined),
+          _buildInfoRow(
+            MatchKeys.manglikStatus.tr,
+            manglik.isEmpty ? '-' : manglikLabel(manglik),
+            Icons.brightness_5_outlined,
+          ),
+          _buildInfoRow(
+            MatchKeys.horoscopeMatch.tr,
+            requiredFlag == null ? '-' : (requiredFlag ? MatchKeys.required.tr : MatchKeys.notRequired.tr),
+            Icons.handshake_outlined,
+          ),
+          if (!controller.isSelf || isEmpty) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => controller.isSelf
+                    ? Navigate.to(const HoroscopeScreen())
+                    : Navigate.to(GunaMilanScreen(userId: controller.userID, user: controller.user)),
+                icon: Icon(controller.isSelf ? Icons.add_rounded : Icons.auto_awesome, size: 18),
+                label: Text(
+                  controller.isSelf ? MatchKeys.addHoroscope.tr : MatchKeys.checkKundli.tr,
+                  style: MyTextStyle.gilroySemiBold(size: 14, color: cOnPrimary),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: cPrimary,
+                  foregroundColor: cOnPrimary,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
