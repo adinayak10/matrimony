@@ -9,6 +9,7 @@ import 'package:banjaramatch/localization/languages.dart';
 import 'package:banjaramatch/screens/chats_screen/chats_screen.dart';
 import 'package:banjaramatch/screens/explore_screen/Explorescreen.dart';
 import 'package:banjaramatch/screens/partner_preference-view_screen.dart';
+import 'package:banjaramatch/screens/setting_screen/setting_screen.dart';
 import 'package:banjaramatch/screens/setting_screen/settings_screen_side.dart';
 import 'package:banjaramatch/screens/tabbar/tabbar_controller.dart';
 import 'package:banjaramatch/screens/user_interest_screen.dart';
@@ -16,6 +17,7 @@ import 'package:banjaramatch/screens/users_list.dart';
 import 'package:banjaramatch/utilities/const.dart';
 
 import '../../common/managers/navigation.dart';
+import '../../common/managers/notification_router.dart';
 import '../../common/managers/session_manager.dart';
 import '../../common/widgets/my_cached_image.dart';
 import '../notification_screen/notification_screen.dart';
@@ -31,6 +33,9 @@ class TabBarScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Functions.changStatusBar(StatusBarStyle.black);
+    // Push taps that arrived before the tab bar existed (cold start) are
+    // routed once it is on screen.
+    WidgetsBinding.instance.addPostFrameCallback((_) => NotificationRouter.shared.onTabBarReady());
 
     return SafeArea(
       child: Scaffold(
@@ -67,9 +72,7 @@ class TabBarScreen extends StatelessWidget {
 
                           scaffoldKey.currentState?.openDrawer()
                         },
-                        onEditTap: () {
-                          scaffoldKey.currentState?.openDrawer();
-                        },
+                        onEditTap: () => Navigate.to(const SettingScreen()),
                         onNotificationTap: () => Navigate.to(NotificationScreen()),
                         onSearchTap: () => Navigate.to(SearchUserScreen()),
                         title: controller.currentTabTitle,
@@ -261,7 +264,7 @@ class DashboardTopHeader extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.all(2),
                           child: const Icon(
-                            CupertinoIcons.line_horizontal_3,
+                            Icons.settings_rounded,
                             size: 14,
                             color: cPrimary,
                           ),

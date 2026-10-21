@@ -822,8 +822,7 @@ class BigUserCardItem extends StatelessWidget {
   }
 
   void _handleChatAction(User profile, UsersListController controller) {
-    // Navigate to chat
-    _showActionFeedback("Free Chat Coming Soon", Colors.blue);
+    controller.openChat(profile);
   }
 
   Widget _buildActionButton({
@@ -1029,12 +1028,6 @@ class BigUserCardItem extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 7),
-              if (profile.membershipPlan != null)
-                const ImageIcon(
-                  AssetImage('assets/icon/icon_premium.png'),
-                  size: 14,
-                  color: Colors.amber,
-                ),
               OnlineStatusWidget(
                 isOnline: profile.isOnline == true,
                 lastSeen: profile.lastSeen != null ? DateTime.parse(profile.lastSeen!) : null,
@@ -1284,43 +1277,6 @@ class BigUserCardItem extends StatelessWidget {
                 // Premium Badge & Menu
                 Row(
                   children: [
-                    if (profile.membershipPlan != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-                          ),
-                          borderRadius: BorderRadius.circular(25),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFFD700).withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.diamond,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Premium',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (profile.membershipPlan != null) const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.6),
@@ -1508,8 +1464,6 @@ class BigUserCardItem extends StatelessWidget {
 
           const Spacer(),
 
-          // Premium Badge
-          if (profile.membershipPlan != null) _buildPremiumBadge(),
 
           // More Options
           _buildMoreOptions(profile, contetx),
@@ -1550,44 +1504,6 @@ class BigUserCardItem extends StatelessWidget {
               color: Colors.white,
               fontSize: 10,
               fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPremiumBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFFD700), Color(0xFFFFB800)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFD700).withOpacity(0.4),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.star,
-            color: Colors.white,
-            size: 14,
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'Premium',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -1989,43 +1905,6 @@ class _ModernMatrimonyCardState extends State<ModernMatrimonyCard> with SingleTi
                 // Premium Badge & Menu
                 Row(
                   children: [
-                    if (widget.profile.membershipPlan != null)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-                          ),
-                          borderRadius: BorderRadius.circular(25),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFFD700).withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.diamond,
-                              color: Colors.white,
-                              size: 14,
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Premium',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    if (widget.profile.membershipPlan != null) const SizedBox(width: 8),
                     Container(
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.6),

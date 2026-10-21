@@ -335,7 +335,9 @@ import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:banjaramatch/common/extensions/date_time_extension.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
+import 'package:get/get.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
+import 'package:banjaramatch/localization/features/app_strings.dart';
 import 'package:banjaramatch/models/model_interest_user_list.dart';
 import 'package:banjaramatch/screens/member_card.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
@@ -349,7 +351,18 @@ class InterestCard extends StatelessWidget {
   final VoidCallback? onReject;
   final VoidCallback? onCancel;
   final VoidCallback? onSendRequest;
+
+  /// "Call Now" on accepted interests / connections.
   final VoidCallback? onCall;
+
+  /// "Send Message" (opens the chat) on accepted interests / connections.
+  final VoidCallback? onMessage;
+
+  /// "Remove" on the Connections tab.
+  final VoidCallback? onRemove;
+
+  /// Renders the Connections-tab footer instead of the sent/received one.
+  final bool isConnection;
 
   const InterestCard({
     super.key,
@@ -359,6 +372,9 @@ class InterestCard extends StatelessWidget {
     this.onCancel,
     this.onSendRequest,
     this.onCall,
+    this.onMessage,
+    this.onRemove,
+    this.isConnection = false,
   });
 
   @override
@@ -425,6 +441,7 @@ class InterestCard extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          if (user.isVerified == 1)
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
@@ -496,9 +513,11 @@ class InterestCard extends StatelessWidget {
               ),
             ),
             padding: const EdgeInsets.all(14),
-            child: userInterest.type == "received"
-                ? _buildReceivedInterestWidget(userInterest)
-                : _buildSentInterestWidget(userInterest),
+            child: isConnection
+                ? _buildConnectionWidget(userInterest)
+                : userInterest.type == "received"
+                    ? _buildReceivedInterestWidget(userInterest)
+                    : _buildSentInterestWidget(userInterest),
           ),
         ],
       ),
@@ -623,12 +642,13 @@ class InterestCard extends StatelessWidget {
               Expanded(
                 child: _buildActionButton(
                   text: "Send Message",
-                  onTap: () {
-                    Navigate.to(ProfileScreen(
-                      userId: interest?.user?.id ?? "",
-                      isFromTabBar: false,
-                    ));
-                  },
+                  onTap: onMessage ??
+                      () {
+                        Navigate.to(ProfileScreen(
+                          userId: interest.user?.id ?? "",
+                          isFromTabBar: false,
+                        ));
+                      },
                   backgroundColor: Colors.blue[500]!,
                   textColor: Colors.white,
                   icon: Icons.message,
@@ -639,7 +659,7 @@ class InterestCard extends StatelessWidget {
               Expanded(
                 child: _buildActionButton(
                   text: "Call Now",
-                  onTap: () {},
+                  onTap: onCall ?? () {},
                   backgroundColor: Colors.green[500]!,
                   textColor: Colors.white,
                   icon: Icons.call,
@@ -688,7 +708,7 @@ class InterestCard extends StatelessWidget {
               Expanded(
                 child: _buildActionButton(
                   text: "Send Interest",
-                  onTap: onSendRequest!,
+                  onTap: onSendRequest ?? () {},
                   backgroundColor: Colors.pink[500]!,
                   textColor: Colors.white,
                   icon: Icons.favorite,
@@ -699,7 +719,7 @@ class InterestCard extends StatelessWidget {
               Expanded(
                 child: _buildActionButton(
                   text: "Call Directly",
-                  onTap: onCall!,
+                  onTap: onCall ?? () {},
                   backgroundColor: Colors.white,
                   textColor: Colors.green[700]!,
                   borderColor: Colors.green[300]!,
@@ -804,7 +824,7 @@ class InterestCard extends StatelessWidget {
               Expanded(
                 child: _buildActionButton(
                   text: "Send Message",
-                  onTap: onCall!,
+                  onTap: onMessage ?? () {},
                   backgroundColor: Colors.blue[500]!,
                   textColor: Colors.white,
                   icon: Icons.message,
@@ -815,7 +835,7 @@ class InterestCard extends StatelessWidget {
               Expanded(
                 child: _buildActionButton(
                   text: "Call Now",
-                  onTap: onCall!,
+                  onTap: onCall ?? () {},
                   backgroundColor: Colors.green[500]!,
                   textColor: Colors.white,
                   icon: Icons.call,
@@ -862,7 +882,7 @@ class InterestCard extends StatelessWidget {
           Center(
             child: _buildActionButton(
               text: "Try Again Later",
-              onTap: onSendRequest!,
+              onTap: onSendRequest ?? () {},
               backgroundColor: Colors.pink[500]!,
               textColor: Colors.white,
               icon: Icons.refresh,
@@ -875,6 +895,73 @@ class InterestCard extends StatelessWidget {
     }
 
     return const SizedBox();
+  }
+
+  Widget _buildConnectionWidget(UserInterest interest) {
+    final since = DateTime.tryParse(interest.updatedAt ?? interest.createdAt ?? '');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.green[100],
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.people_alt_rounded, size: 16, color: Colors.green[600]),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                since != null
+                    ? AppKeys.connectionSince.trParams({'date': since.formatFullDate()})
+                    : AppKeys.connectionConnected.tr,
+                style: MyTextStyle.gilroyBold(size: 13, color: Colors.green[800]),
+              ),
+            ),
+            if (onRemove != null)
+              GestureDetector(
+                onTap: onRemove,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                  child: Text(
+                    AppKeys.connectionRemove.tr,
+                    style: MyTextStyle.gilroySemiBold(size: 12, color: Colors.red[400]),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
+                text: AppKeys.connectionMessage.tr,
+                onTap: onMessage ?? () {},
+                backgroundColor: Colors.blue[500]!,
+                textColor: Colors.white,
+                icon: Icons.message,
+                isPrimary: true,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildActionButton(
+                text: AppKeys.connectionCall.tr,
+                onTap: onCall ?? () {},
+                backgroundColor: Colors.green[500]!,
+                textColor: Colors.white,
+                icon: Icons.call,
+                isPrimary: true,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   Widget _buildActionButton({

@@ -169,7 +169,8 @@ class User {
     }
 
     profileViewRequestStatus = json['profileViewRequestStatus'];
-    distanceKm = json['distanceKm'];
+    // the API rounds distances and can send an int (e.g. 3); a raw assignment to double? throws
+    distanceKm = (json['distanceKm'] as num?)?.toDouble();
 
     visitCount = json['visitCount'];
     dob = json['dob'];

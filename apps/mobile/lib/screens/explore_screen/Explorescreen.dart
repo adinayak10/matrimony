@@ -16,6 +16,14 @@ import 'package:banjaramatch/screens/personal_info_controller.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
 import 'package:banjaramatch/screens/search_profiles_screen.dart';
 import 'package:banjaramatch/utilities/const.dart';
+import 'package:banjaramatch/localization/features/app_strings.dart';
+import 'package:banjaramatch/screens/common/match_percent_chip.dart';
+import 'package:banjaramatch/screens/common/section_card.dart';
+import 'package:banjaramatch/screens/daily_matches_screen/daily_matches_screen.dart';
+import 'package:banjaramatch/screens/setting_screen/setting_screen.dart';
+import 'package:banjaramatch/screens/shortlist_screen/shortlist_screen.dart';
+import 'package:banjaramatch/screens/user_interests_controller.dart';
+import 'package:banjaramatch/screens/visitors_screen/visitors_screen.dart';
 
 import '../../common/managers/navigation.dart';
 import '../../common/widgets/my_cached_image.dart';
@@ -55,7 +63,7 @@ class ExplorePage extends StatelessWidget {
                       fullName:
                           profileController.user?.fullName ?? SessionManager.shared.getUser()?.fullName ?? 'Guest',
                       onProfileTap: () => scaffoldKey.currentState?.openDrawer(),
-                      onEditTap: () => scaffoldKey.currentState?.openDrawer(),
+                      onEditTap: () => Navigate.to(const SettingScreen()),
                       onNotificationTap: () => Navigate.to(NotificationScreen()),
                       onSearchTap: () => Navigate.to(SearchUserScreen()),
                     );
@@ -101,13 +109,15 @@ class ExplorePage extends StatelessWidget {
                                 users: controller.recentVisitors,
                                 icon: Icons.visibility,
                                 gradientColors: [Color(0xFFE8F0FF), Color(0xFFB8D4FF)],
-                                onSeeAll: () {},
+                                onSeeAll: () => Navigate.to(const VisitorsScreen(initialSegment: 0)),
                                 showViewedDate: true,
                                 showMatchPercentage: true,
                               ),
                             ),
 
-                            SliverToBoxAdapter(child: _buildAIRecommendationsSection(controller)),
+                            // Real activity counts + today's ranked matches
+                            SliverToBoxAdapter(child: _buildActivityStrip(controller)),
+                            SliverToBoxAdapter(child: _buildDailyMatchesStrip(controller)),
 
                             // Who Shortlisted You with Enhanced CTA
                             SliverToBoxAdapter(
@@ -117,7 +127,7 @@ class ExplorePage extends StatelessWidget {
                                 users: controller.usersshortlistedme,
                                 icon: Icons.favorite,
                                 gradientColors: [Color(0xFFFFE8F0), Color(0xFFFFB8D4)],
-                                onSeeAll: () {},
+                                onSeeAll: () => Navigate.to(const ShortlistScreen(initialSegment: 1)),
                                 showShortlistDate: true,
                                 showCallToAction: true,
                               ),
@@ -155,7 +165,7 @@ class ExplorePage extends StatelessWidget {
                                 users: controller.myShortListUsers,
                                 icon: Icons.heart_broken,
                                 gradientColors: [Color(0xFFFFF0E8), Color(0xFFFFD4B8)],
-                                onSeeAll: () {},
+                                onSeeAll: () => Navigate.to(const ShortlistScreen(initialSegment: 0)),
                                 showShortlistDate: true,
                               ),
                             ),
@@ -168,7 +178,7 @@ class ExplorePage extends StatelessWidget {
                                 users: controller.recentViewedUsers,
                                 icon: Icons.history,
                                 gradientColors: [Color(0xFFF0F0FF), Color(0xFFD4D4FF)],
-                                onSeeAll: () {},
+                                onSeeAll: () => Navigate.to(const VisitorsScreen(initialSegment: 1)),
                                 showViewedDate: true,
                                 showRevisitCTA: true,
                               ),
@@ -190,6 +200,155 @@ class ExplorePage extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+  void _openInterests(int segment) {
+    if (Get.isRegistered<TabBarController>()) {
+      Get.find<TabBarController>().selectIndex(2);
+    }
+    InterestUserScreenController.openSegment(segment);
+  }
+
+  static String _countLabel(int count, int cap) => count >= cap ? '$cap+' : '$count';
+
+  /// Real counts: profile visitors, members who shortlisted me, pending
+  /// received interests and accepted connections.
+  Widget _buildActivityStrip(ExploreController controller) {
+    return SectionCard(
+      title: AppKeys.exploreActivityTitle.tr,
+      icon: Icons.insights_rounded,
+      child: Row(
+        children: [
+          _activityTile(
+            icon: Icons.visibility_rounded,
+            color: const Color(0xFF3B82F6),
+            value: _countLabel(controller.visitorsCount, ExploreController.visitorsCap),
+            label: AppKeys.exploreActivityVisitors.tr,
+            onTap: () => Navigate.to(const VisitorsScreen(initialSegment: 0)),
+          ),
+          _activityTile(
+            icon: Icons.favorite_rounded,
+            color: const Color(0xFFEC4899),
+            value: _countLabel(controller.shortlistedMeCount, ExploreController.shortlistedMeCap),
+            label: AppKeys.exploreActivityShortlisted.tr,
+            onTap: () => Navigate.to(const ShortlistScreen(initialSegment: 1)),
+          ),
+          _activityTile(
+            icon: Icons.mark_email_unread_rounded,
+            color: const Color(0xFFF59E0B),
+            value: '${controller.pendingInterestsCount}',
+            label: AppKeys.exploreActivityInterests.tr,
+            onTap: () => _openInterests(0),
+          ),
+          _activityTile(
+            icon: Icons.people_alt_rounded,
+            color: cGreen,
+            value: '${controller.connectionsCount}',
+            label: AppKeys.exploreActivityConnections.tr,
+            onTap: () => _openInterests(2),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _activityTile({
+    required IconData icon,
+    required Color color,
+    required String value,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(9),
+              decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
+              child: Icon(icon, color: color, size: 18),
+            ),
+            const SizedBox(height: 6),
+            Text(value, style: MyTextStyle.gilroyBold(size: 17, color: cDarkText)),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+              style: MyTextStyle.gilroyMedium(size: 11, color: cLightText),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Today's ranked matches (`getTopDailyMatches`); hidden when empty.
+  Widget _buildDailyMatchesStrip(ExploreController controller) {
+    final users = controller.dailyMatches;
+    if (users.isEmpty) return const SizedBox.shrink();
+    return SectionCard(
+      title: AppKeys.dailyMatchesTitle.tr,
+      subtitle: AppKeys.dailyMatchesSubtitle.tr,
+      icon: Icons.auto_awesome_rounded,
+      onSeeAll: () => Navigate.to(const DailyMatchesScreen()),
+      padding: const EdgeInsets.fromLTRB(16, 16, 0, 16),
+      child: SizedBox(
+        height: 178,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.only(right: 16),
+          itemCount: users.length > 10 ? 10 : users.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemBuilder: (context, index) {
+            final user = users[index];
+            final percent = user.matchPercent ?? user.matchScore;
+            return GestureDetector(
+              onTap: () => _onUserCardTap(user),
+              child: SizedBox(
+                width: 112,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: MyCachedProfileImage(
+                        imageUrl: user.profile,
+                        fullName: user.fullName,
+                        width: 112,
+                        height: 112,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            (user.fullName ?? '').trim(),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: MyTextStyle.gilroyBold(size: 13, color: cDarkText),
+                          ),
+                        ),
+                        if (user.isVerified == 1) ...[
+                          const SizedBox(width: 3),
+                          const Icon(Icons.verified_rounded, size: 13, color: cBlueTick),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    if (percent != null) MatchPercentChip(percent: percent, compact: true),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -911,8 +1070,7 @@ class ExplorePage extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (displayUsers.length > 5)
-                  GestureDetector(
+                GestureDetector(
                     onTap: onSeeAll,
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1922,14 +2080,20 @@ class ExplorePage extends StatelessWidget {
                         ),
                     ],
                   ),
-                  if (showDistance) ...[
+                  if (showMatchPercentage && (user.matchPercent ?? user.matchScore) != null) ...[
+                    SizedBox(height: 6),
+                    MatchPercentChip(percent: user.matchPercent ?? user.matchScore, compact: true),
+                  ],
+                  if (showDistance && user.distanceKm != null) ...[
                     SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(Icons.location_on, size: 12, color: Colors.red),
                         SizedBox(width: 2),
                         Text(
-                          "${2 + (user.id?.hashCode.abs() ?? 0) % 8} km away",
+                          user.distanceKm != null
+                              ? AppKeys.nearbyDistance.trParams({'km': user.distanceKm!.toStringAsFixed(1)})
+                              : '',
                           style: MyTextStyle.gilroyMedium(color: Colors.red, size: 11),
                         ),
                       ],
@@ -2091,7 +2255,7 @@ class MatrimonyTopHeader extends StatelessWidget {
                           ),
                           padding: const EdgeInsets.all(2),
                           child: const Icon(
-                            CupertinoIcons.line_horizontal_3,
+                            Icons.settings_rounded,
                             size: 14,
                             color: cPrimary,
                           ),
@@ -2216,136 +2380,4 @@ class MatrimonyTopHeader extends StatelessWidget {
       ],
     );
   }
-}
-
-// Extension for ExploreController to add missing properties and methods
-extension ExploreControllerExtension on ExploreController {
-  // Mock data properties that should be added to the actual controller
-  Map<String, int> get profileStats => {
-        'views': 127,
-        'likes': 43,
-        'interests': 18,
-        'matches': 29,
-      };
-
-  Map<String, int> get todayStats => {
-        'newMatches': 5,
-        'profileViews': 12,
-        'interests': 3,
-      };
-
-  Future<void> refreshAllData() async {
-    // Call the controller's loadAllData method for consistent behavior
-    await loadAllData();
-  }
-}
-
-Widget _buildAIRecommendationsSection(ExploreController controller) {
-  return Container(
-    margin: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    padding: EdgeInsets.all(20),
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: [Color(0xFFE3F2FD), Color(0xFFF1F8E9)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      borderRadius: BorderRadius.circular(20),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.blue.withOpacity(0.1),
-          blurRadius: 20,
-          offset: Offset(0, 8),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.auto_awesome, color: Colors.blue, size: 24),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "AI Recommendations",
-                    style: MyTextStyle.gilroyBold(color: cDarkText, size: 20),
-                  ),
-                  Text(
-                    "Smart matches based on your behavior",
-                    style: MyTextStyle.gilroyRegular(color: cLightText, size: 14),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: _buildRecommendationCard(
-                "Profile Boost",
-                "Increase visibility by 3x",
-                Icons.trending_up,
-                Colors.green,
-              ),
-            ),
-            SizedBox(width: 12),
-            Expanded(
-              child: _buildRecommendationCard(
-                "Better Photos",
-                "Upload more pictures",
-                Icons.camera_alt,
-                Colors.orange,
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-}
-
-Widget _buildRecommendationCard(String title, String subtitle, IconData icon, Color color) {
-  return Container(
-    padding: EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(12),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black.withOpacity(0.05),
-          blurRadius: 8,
-          offset: Offset(0, 2),
-        ),
-      ],
-    ),
-    child: Column(
-      children: [
-        Icon(icon, color: color, size: 28),
-        SizedBox(height: 8),
-        Text(
-          title,
-          style: MyTextStyle.gilroyBold(color: cDarkText, size: 14),
-          textAlign: TextAlign.center,
-        ),
-        Text(
-          subtitle,
-          style: MyTextStyle.gilroyRegular(color: cLightText, size: 12),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    ),
-  );
 }

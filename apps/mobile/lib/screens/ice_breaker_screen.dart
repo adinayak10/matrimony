@@ -107,13 +107,29 @@ class _IceBreakerScreenState extends State<IceBreakerScreen> with TickerProvider
     _neuralController.dispose();
     _glowController.dispose();
     
-    // ⚡ Remove socket listeners to prevent memory leaks
-    SocketService.shared.socket.off('icebreaker:game_found');
-    SocketService.shared.socket.off('icebreaker:question');
-    SocketService.shared.socket.off('icebreaker:partner_answered');
-    SocketService.shared.socket.off('icebreaker:results');
-    SocketService.shared.socket.off('icebreaker:partner_revealed');
-    SocketService.shared.socket.off('icebreaker:queue_position');
+    // ⚡ Leave the matchmaking queue (no-op on the server when not queued)
+    // and remove exactly the listeners registered in _setupSocketListeners.
+    try {
+      final socket = SocketService.shared.socket;
+      if (gameState == 'scanning' || gameState == 'analyzing' || gameState == 'matching') {
+        socket.emit('leave_icebreaker_queue');
+      }
+      for (final event in const [
+        'game_found',
+        'game_started',
+        'partner_answered',
+        'next_question',
+        'game_results',
+        'partner_revealed',
+        'partner_disconnected',
+        'queue_joined',
+        'error',
+      ]) {
+        socket.off(event);
+      }
+    } catch (e) {
+      print('IceBreaker dispose: $e');
+    }
     
     super.dispose();
   }

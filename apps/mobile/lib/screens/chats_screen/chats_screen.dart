@@ -354,6 +354,8 @@ import 'package:banjaramatch/screens/chats_screen/chats_screen_controller.dart';
 import 'package:banjaramatch/screens/chats_screen/chatting_screen/chatting_view.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
 import 'package:banjaramatch/utilities/const.dart';
+import 'package:banjaramatch/localization/features/app_strings.dart';
+import 'package:banjaramatch/screens/tabbar/tabbar_controller.dart';
 
 import '../../common/managers/navigation.dart';
 import '../../models/model_chat_room_list.dart';
@@ -472,7 +474,13 @@ class ChatsScreen extends StatelessWidget {
                   const SizedBox(width: 12),
                   _buildStatChip("${controller.onlineUsers.length}", "Online Now", Colors.blue),
                   const SizedBox(width: 12),
-                  _buildStatChip("95%", "Response Rate", Colors.orange),
+                  GetBuilder<TabBarController>(
+                    builder: (tabs) => _buildStatChip(
+                      "${tabs.matchRequestCount}",
+                      AppKeys.chatsPendingRequests.tr,
+                      Colors.orange,
+                    ),
+                  ),
                 ],
               ),
             ],

@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:banjaramatch/screens/chats_screen/chatting_screen/chatting_view.dart';
 import 'package:banjaramatch/screens/chats_screen/socketservice.dart';
 
 import '../common/api_service/user_service.dart';
 import '../common/controller/base_controller.dart';
+import '../common/managers/navigation.dart';
+import '../localization/features/app_strings.dart';
 import '../models/registration.dart';
 import '../utilities/const.dart';
 
@@ -223,8 +226,27 @@ class UsersListController extends BaseController {
     });
   }
 
-  void sendMessage(User profile) {
-    // 📩 placeholder for messaging feature
+  /// Chat from a profile card: only for connected members.
+  void openChat(User profile) => openChatWithUser(profile);
+
+  /// Opens the 1:1 chat with [profile] (`fetchChatRoom` → [ChattingView]).
+  /// With [requireConnected] a member who is not a connection gets a hint
+  /// instead (chat opens once an interest is accepted).
+  static void openChatWithUser(User profile, {bool requireConnected = true}) {
+    if (requireConnected && profile.isFriend != true) {
+      BaseController.share.showSnackBar(AppKeys.chatConnectFirst.tr);
+      return;
+    }
+    final room = profile.chatRoom;
+    if (room != null && (room.roomId ?? '').isNotEmpty) {
+      Navigate.to(ChattingView(chatRoom: room));
+      return;
+    }
+    final id = profile.id;
+    if (id == null || id.isEmpty) return;
+    UserService.shared.fetchChatRoom(id, (room) {
+      Navigate.to(ChattingView(chatRoom: room));
+    });
   }
 
   /// 🔌 Socket Listeners

@@ -5,7 +5,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_branch_sdk/flutter_branch_sdk.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart';
 import 'package:one_context/one_context.dart';
@@ -65,57 +64,21 @@ void main() async {
     print("oaisdfjlsadfsadfrd");
   }
 
-  setupLocalNotifications();
   OnePlatform.app = () => MyApp();
 }
 
-void showLocalNotification({required String title, required String body, required String payload}) async {
-  const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-    'chat_channel',
-    'Chat Notifications',
-    importance: Importance.max,
-    priority: Priority.high,
-  );
-
-  const NotificationDetails notificationDetails = NotificationDetails(android: androidDetails);
-
-  await flutterLocalNotificationsPlugin.show(
-    0,
-    title,
-    body,
-    notificationDetails,
-    payload: payload,
-  );
-}
-
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-
-Future<void> setupLocalNotifications() async {
-  const AndroidInitializationSettings androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-
-  final InitializationSettings settings = InitializationSettings(android: androidSettings);
-
-  await flutterLocalNotificationsPlugin.initialize(
-    settings,
-    onDidReceiveNotificationResponse: (NotificationResponse response) {
-      final payload = response.payload;
-      if (payload != null && payload.contains('|')) {
-        final parts = payload.split('|');
-        final userId = parts[0];
-        final userName = parts.length > 1 ? parts[1] : '';
-
-        // Navigate using Get or Navigator
-        //  Get.to(() => ChatScreen(userId: userId, userName: userName));
-      }
-    },
-  );
+/// Chat messages from the socket while the app is open (called by
+/// socketservice.dart). Delegates to [FirebaseNotificationManager] so taps go
+/// through the notification router.
+void showLocalNotification({required String title, required String body, required String payload}) {
+  FirebaseNotificationManager.shared.showLocal(title: title, body: body, payload: payload);
 }
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message: ${message.data}");
   await Firebase.initializeApp();
-  FirebaseNotificationManager.shared.showNotification(message);
+  await FirebaseNotificationManager.showInBackground(message);
 }
 
 class MyApp extends StatelessWidget {
@@ -125,7 +88,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     Functions.changStatusBar(StatusBarStyle.black);
     Lang lang = SessionManager.shared.getLang();
-    getFcmToken();
     return GetMaterialApp(
       builder: OneContext().builder,
       navigatorKey: OneContext().key,
@@ -149,19 +111,6 @@ class MyApp extends StatelessWidget {
     );
     ;
   }
-}
-
-Future<void> getFcmToken() async {
-  FirebaseMessaging messaging = FirebaseMessaging.instance;
-
-  // Request permission on iOS
-  await messaging.requestPermission();
-
-  // Get the token
-  String? token = await messaging.getToken();
-  print('🔐 FCM Token: $token');
-
-  // You can now send this token to your backend
 }
 
 class MyHomePage extends StatefulWidget {

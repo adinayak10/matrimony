@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:banjaramatch/localization/features/app_strings.dart';
 import 'package:banjaramatch/screens/personal_info_controller.dart';
 
 import 'extra_views/buttons.dart';
@@ -88,6 +89,20 @@ class PersonalInfoScreen extends StatelessWidget {
                             controller.update();
                           },
                         ),
+
+                        /// Blood group (optional)
+                        controller.buildStringDropdown(
+                          label: AppKeys.bloodGroupLabel.tr,
+                          value: controller.selectedBloodGroup,
+                          items: controller.bloodGroups,
+                          onChanged: (val) {
+                            controller.selectedBloodGroup = val ?? '';
+                            controller.update();
+                          },
+                        ),
+
+                        /// Who manages this profile
+                        controller.buildCreatedByDropdown(),
 
                         /// Caste & Gotra Dropdowns
                         controller.buildCasteDropdown(),

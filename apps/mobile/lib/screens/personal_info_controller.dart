@@ -4,10 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // Import GetX
 import 'package:intl/intl.dart';
 import 'package:banjaramatch/common/controller/base_controller.dart';
+import 'package:banjaramatch/localization/features/app_strings.dart';
 import 'package:banjaramatch/models/model_cast_gotra_list.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_controller.dart';
 
-import '../../../common/managers/session_manager.dart';
+import 'package:banjaramatch/common/managers/session_manager.dart';
 import '../common/api_service/api_service.dart';
 import '../common/extensions/font_extension.dart';
 import '../models/registration.dart';
@@ -23,6 +24,9 @@ class PersonalInfoController extends BaseController {
   String selectedMaritalStatus = '';
   String selectedBloodGroup = '';
   String selectedGender = '';
+
+  /// Lowercase API value (`self|parent|sibling|relative|friend`); '' = not set.
+  String selectedCreatedBy = '';
   DateTime? dob;
 
   // Dropdown options
@@ -30,7 +34,25 @@ class PersonalInfoController extends BaseController {
       List.generate(37, (i) => "${(4 + (i ~/ 12))}'${(i % 12)}\""); // Generates from 4'0" to 7'0"
 
   final List<String> maritalStatusOptions = ['Never Married', 'Divorced', 'Widowed', 'Separated', 'Awaiting Divorce'];
-  final List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'];
+  /// Same values as the API's `User.BLOOD_GROUPS` ('' = not specified).
+  final List<String> bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+
+  /// API values for "Profile created by"; display with [createdByLabel].
+  static const List<String> createdByValues = ['self', 'parent', 'sibling', 'relative', 'friend'];
+
+  static const Map<String, String> _createdByKeys = {
+    'self': AppKeys.createdBySelf,
+    'parent': AppKeys.createdByParent,
+    'sibling': AppKeys.createdBySibling,
+    'relative': AppKeys.createdByRelative,
+    'friend': AppKeys.createdByFriend,
+  };
+
+  /// Translated label for a stored `profileCreatedBy` value ('' when unknown).
+  static String createdByLabel(String? value) {
+    final key = _createdByKeys[(value ?? '').trim().toLowerCase()];
+    return key == null ? '' : key.tr;
+  }
   final List<String> genderOptions = ['Male', 'Female', 'Not specified'];
 
   // Castes & Gotras
@@ -64,6 +86,10 @@ class PersonalInfoController extends BaseController {
         selectedGender = user.gender ?? '';
         selectedHeight = HeightConverter().cmToImperialString(user.height) ?? '';
         selectedMaritalStatus = user.maritalStatus ?? '';
+        final blood = (user.bloodGroup ?? '').trim().toUpperCase();
+        selectedBloodGroup = bloodGroups.contains(blood) ? blood : '';
+        final createdBy = (user.profileCreatedBy ?? '').trim().toLowerCase();
+        selectedCreatedBy = createdByValues.contains(createdBy) ? createdBy : '';
         dob = user.dob != null ? DateTime.tryParse(user.dob!) : null;
 
         isNewUser =
@@ -159,6 +185,7 @@ class PersonalInfoController extends BaseController {
       "dob": dob != null ? DateFormat('yyyy-MM-dd').format(dob!) : '',
       "gender": selectedGender,
       "bloodGroup": selectedBloodGroup,
+      if (selectedCreatedBy.isNotEmpty) "profileCreatedBy": selectedCreatedBy,
     };
 
     try {
@@ -249,6 +276,45 @@ extension PersonalInfoDropdowns on PersonalInfoController {
       items: items,
       onChanged: enabled ? onChanged : null,
       enabled: enabled,
+    );
+  }
+
+  /// "Profile created by" (stored lowercase, shown translated).
+  Widget buildCreatedByDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(AppKeys.createdByLabel.tr, style: MyTextStyle.gilroySemiBold(color: cDarkText, size: 14)),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: cLightBg,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: DropdownButton<String>(
+            value: selectedCreatedBy.isEmpty ? null : selectedCreatedBy,
+            isExpanded: true,
+            underline: const SizedBox(),
+            hint: Text(AppKeys.createdByHint.tr, style: MyTextStyle.gilroyRegular(color: cLightText)),
+            icon: const Icon(Icons.keyboard_arrow_down_rounded),
+            items: PersonalInfoController.createdByValues
+                .map((value) => DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(
+                        PersonalInfoController.createdByLabel(value),
+                        style: MyTextStyle.gilroyRegular(color: cDarkText),
+                      ),
+                    ))
+                .toList(),
+            onChanged: (value) {
+              selectedCreatedBy = value ?? '';
+              update();
+            },
+          ),
+        ),
+        const SizedBox(height: 14),
+      ],
     );
   }
 
