@@ -7,6 +7,42 @@ const { authenticate, selfOnly } = require('../middleware/identity');
 const { adminAuth } = require('../middleware/adminAuth');
 const rl = require('../middleware/rateLimits');
 const validateImages = require('../middleware/validateImages');
+const multer = require('multer');
+const crypto = require('crypto');
+const VerificationController = require('../controllers/VerificationController');
+const SavedSearchController = require('../controllers/SavedSearchController');
+const { verificationUpload } = require('../middleware/privateUpload');
+
+// Multer errors carry string codes (LIMIT_UNEXPECTED_FILE...) and no status,
+// which app.js would turn into a 500: answer 400/413 here instead.
+function multerSafe(mw) {
+  return (req, res, next) =>
+    mw(req, res, (err) => {
+      if (!err) return next();
+      if (err instanceof multer.MulterError) {
+        const status = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+        return res.status(status).json({ status: false, code: err.code, message: status === 413 ? 'File too large' : 'Unexpected or invalid upload' });
+      }
+      return next(err);
+    });
+}
+
+// POST /uploadFile: one chat image into the public profile_images dir (same
+// rules as middleware/upload.js; validateImages re-encodes it right after).
+const chatImageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, upload.uploadDir),
+    filename: (req, file, cb) => cb(null, `${crypto.randomUUID()}.bin`),
+  }),
+  fileFilter: (req, file, cb) => {
+    if (upload.ALLOWED_MIME.has(String(file.mimetype || '').toLowerCase())) return cb(null, true);
+    const err = new Error('Only JPEG, PNG or WebP images are allowed');
+    err.code = 'INVALID_IMAGE';
+    err.status = 400;
+    return cb(err, false);
+  },
+  limits: { fileSize: 5 * 1024 * 1024, files: 1, fields: 20, fieldSize: 64 * 1024 },
+}).single('uploadFile');
 
 // Every route below needs a logged-in user (A1.2). Public lookups live in
 // routes/publicLookupRoutes.js, which app.js mounts BEFORE this router.
@@ -96,5 +132,19 @@ router.post('/searchProfiles', UserController.searchProfiles);
 router.post('/fetchLiveActivity', UserController.fetchLiveActivity);
 
 router.post('/setMainProfileImage', UserController.setMainProfileImage);
+
+// Chat media (feature expansion A4)
+router.post('/uploadFile', multerSafe(chatImageUpload), validateImages, UserController.uploadFile);
+
+// Profile verification (feature expansion A1): files stay in PRIVATE_UPLOADS_DIR
+router.post('/profileVerification', multerSafe(verificationUpload), validateImages, VerificationController.submitVerification);
+router.post('/fetchVerificationStatus', VerificationController.fetchVerificationStatus);
+
+// Saved searches (feature expansion A2)
+router.post('/fetchSavedSearches', SavedSearchController.fetchSavedSearches);
+router.post('/createSavedSearch', SavedSearchController.createSavedSearch);
+router.post('/updateSavedSearch', SavedSearchController.updateSavedSearch);
+router.post('/deleteSavedSearch', SavedSearchController.deleteSavedSearch);
+router.post('/runSavedSearch', SavedSearchController.runSavedSearch);
 
 module.exports = router;

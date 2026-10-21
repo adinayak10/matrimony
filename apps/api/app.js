@@ -123,6 +123,11 @@ function createApp() {
   app.use('/api/calls', require('./routes/callRoutes')); // Agora video/voice calling (needs AGORA_APP_ID/AGORA_APP_CERTIFICATE)
   app.use('/api/admin', require('./routes/admin')); // New organized admin routes
   app.use('/api/admin', require('./routes/adminRoutes')); // Admin routes (blogs, apk)
+  // Feature expansion (2026-10): separate routers so tracks never share a file.
+  app.use('/api', require('./routes/communityRoutes')); // member community endpoints (own authenticate)
+  app.use('/api/success-stories', require('./routes/successStoryRoutes')); // public published stories
+  app.use('/api/admin', require('./routes/adminVerificationRoutes')); // verification queue
+  app.use('/api/admin', require('./routes/adminCommunityRoutes')); // stories, announcements, faqs, push, icebreaker, analytics, matchmaking
 
   // Root
   app.get('/', (req, res) => {

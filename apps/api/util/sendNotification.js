@@ -1,13 +1,6 @@
-const path = require('path');
-const admin = require('firebase-admin');
-
-// Reuse the app initialised by ../firebase.js; only load the key if nothing did
-if (!admin.apps.length) {
-  const serviceAccount = require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH || path.join(__dirname, '..', 'serviceAccountKey.json'));
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-  });
-}
+// Uses ../firebase.js (initialises firebase-admin from FIREBASE_SERVICE_ACCOUNT_PATH;
+// a stub under NODE_ENV=test), so requiring this file never needs a key on disk.
+const admin = require('../firebase');
 
 async function sendPushNotification(token, title, body, data = {}) {
   if (!token) return;

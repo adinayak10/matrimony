@@ -168,6 +168,15 @@ height: {
     type: Number,
     default: 0,
   },
+  verifiedAt: { type: Date, default: null },
+  // Who manages this profile (matrimony convention: parents often create it)
+  profileCreatedBy: {
+    type: String,
+    enum: ['self', 'parent', 'sibling', 'relative', 'friend'],
+    default: 'self',
+  },
+  // Admin-only note set when an admin blocks the account; never serialized to members
+  block_reason: { type: String, default: null, select: false },
   is_push_notifications: {
     type: Number,
     default: 0,
@@ -373,6 +382,12 @@ height: {
     enum: DISABILITY_ENUM,
     default: 'None'
   },
+  // '' = not specified (feature expansion 2026-10)
+  bloodGroup: {
+    type: String,
+    enum: ['', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+    default: ''
+  },
 
   // 🏠 Address & Residency
   presentAddress: { type: String, default: "" },
@@ -566,10 +581,13 @@ userSchema.index({ is_verified: -1, createdAt: -1 });
 // C4.6 dashboard counts
 userSchema.index({ is_block: 1 });
 userSchema.index({ is_verified: 1 });
+userSchema.index({ 'profileCompletion.percentage': -1 });
 userSchema.index({ gender: 1 });
 userSchema.index({ createdAt: -1 });
 userSchema.index({ role: 1, email: 1 });
 userSchema.index({ 'location.state': 1, is_block: 1 });
 userSchema.index({ 'location.city': 1, is_block: 1 });
+
+userSchema.statics.BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
 module.exports = mongoose.model('User', userSchema);

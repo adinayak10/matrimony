@@ -12,6 +12,7 @@
 const express = require('express');
 const UserController = require('../controllers/UserController');
 const CommunityFeedbackController = require('../controllers/CommunityFeedbackController');
+const FaqController = require('../controllers/FaqController');
 const rl = require('../middleware/rateLimits');
 
 const router = express.Router();
@@ -37,6 +38,10 @@ router.post('/fetchReportReasons', UserController.fetchReportReasons);
 
 // App boot
 router.post('/fetchBanner', UserController.fetchBanner);
+
+// FAQ (feature expansion A3): app (POST, numeric ids) and website (GET, cached 5 min)
+router.post('/fetchFAQs', FaqController.fetchFAQs);
+router.get('/faqs', FaqController.getFaqs);
 
 // Website "contributors" list: completed suggestions, safe fields only, no PII.
 router.get('/community-feedback/contributors', rl.publicListLimiter, CommunityFeedbackController.getPublicContributors);
@@ -78,6 +83,8 @@ router.PUBLIC_PATHS = [
   '/fetchBanner',
   '/community-feedback/contributors',
   '/getIcebreakerStats',
+  '/fetchFAQs',
+  '/faqs',
 ];
 
 module.exports = router;

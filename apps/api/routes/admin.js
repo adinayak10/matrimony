@@ -167,6 +167,7 @@ const User = require('../models/User');
 const BroadcastJob = require('../models/BroadcastJob');
 const { sendBroadcastEmail } = require('../services/emailService');
 const { sanitizeRich } = require('../services/sanitize');
+const { buildBroadcastQuery } = require('../services/broadcastQuery');
 
 const BROADCAST_MAX_RECIPIENTS = 500;
 const BROADCAST_MAX_PER_DAY = 2;
@@ -320,40 +321,5 @@ router.get('/broadcast-email/jobs', adminAuth, async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
-
-/** Build Mongoose query from admin filter params */
-function buildBroadcastQuery(filter) {
-  const query = {};
-  const { gender, minAge, maxAge, verified, blocked, platform } = filter;
-
-  if (gender && gender !== 'all' && ['Male', 'Female', 'Not specified'].includes(gender)) query.gender = gender;
-
-  if (minAge || maxAge) {
-    const now = new Date();
-    query.dob = {};
-    // dob is stored as a date — older dob means higher age
-    if (minAge && Number.isFinite(parseInt(minAge, 10))) {
-      const maxDob = new Date(now);
-      maxDob.setFullYear(maxDob.getFullYear() - parseInt(minAge, 10));
-      query.dob.$lte = maxDob;
-    }
-    if (maxAge && Number.isFinite(parseInt(maxAge, 10))) {
-      const minDob = new Date(now);
-      minDob.setFullYear(minDob.getFullYear() - parseInt(maxAge, 10) - 1);
-      query.dob.$gte = minDob;
-    }
-    if (!Object.keys(query.dob).length) delete query.dob;
-  }
-
-  if (verified === '1' || verified === true) query.is_verified = 1;
-  if (verified === '0' || verified === false) query.is_verified = 0;
-
-  if (blocked === '1' || blocked === true) query.is_block = 1;
-  if (blocked === '0' || blocked === false) query.is_block = 0;
-
-  if (platform && ['mobile', 'web'].includes(platform)) query.last_login_platform = platform;
-
-  return query;
-}
 
 module.exports = router;

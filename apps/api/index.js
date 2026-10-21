@@ -2,6 +2,7 @@
 // Entry point: env first (fail-fast on a missing/short JWT_SECRET), then DB,
 // then the app (apps/api/app.js builds express + socket.io without listening).
 const env = require('./config/env');
+const cluster = require('cluster');
 const { connectDB } = require('./db');
 const createApp = require('./app');
 
@@ -23,6 +24,10 @@ process.on('warning', (e) => console.warn(e.stack));
     server.listen(env.PORT, env.HOST, () => {
       console.log(`✅ Server running on ${env.HOST}:${env.PORT}`);
       if (process.send) process.send('ready');
+      // Background jobs: one process only, opt-in via CRON_ENABLED (feature expansion A0.5)
+      if (!env.IS_TEST && env.CRON_ENABLED && cluster.isPrimary) {
+        require('./schedular/schedular').start();
+      }
     });
   } catch (err) {
     console.error('❌ MongoDB connection failed:', err);

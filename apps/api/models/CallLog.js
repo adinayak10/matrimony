@@ -12,7 +12,16 @@ const callLogSchema = new mongoose.Schema({
     default: 'ringing',
   },
   startedAt: { type: Date, default: Date.now },
+  // set when the callee accepts; durationSeconds = endedAt - answeredAt
+  answeredAt: { type: Date, default: null },
   endedAt: { type: Date },
 }, { timestamps: true });
+
+// History (both directions, newest first), busy checks, token lookups (feature expansion A5)
+callLogSchema.index({ caller: 1, createdAt: -1 });
+callLogSchema.index({ callee: 1, createdAt: -1 });
+callLogSchema.index({ callee: 1, status: 1, updatedAt: -1 });
+callLogSchema.index({ caller: 1, status: 1, updatedAt: -1 });
+callLogSchema.index({ channelName: 1 });
 
 module.exports = mongoose.model('CallLog', callLogSchema);

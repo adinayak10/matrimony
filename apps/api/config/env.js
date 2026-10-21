@@ -61,6 +61,11 @@ function toInt(value, fallback) {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+function toBoolEnv(value, fallback) {
+  if (value === undefined || value === null || String(value).trim() === '') return fallback;
+  return /^(1|true|yes|on)$/i.test(String(value).trim());
+}
+
 const env = {
   NODE_ENV,
   IS_TEST,
@@ -75,6 +80,12 @@ const env = {
   FIREBASE_SERVICE_ACCOUNT_PATH: (process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '').trim(),
   INTEREST_DAILY_CAP: toInt(process.env.INTEREST_DAILY_CAP, 20),
   SITEMAP_REGEN_SECRET: (process.env.SITEMAP_REGEN_SECRET || '').trim(),
+  // Feature expansion (2026-10). Verification documents live OUTSIDE uploads/
+  // so neither nginx nor the /uploads static fallback can ever serve them.
+  PRIVATE_UPLOADS_DIR: path.resolve((process.env.PRIVATE_UPLOADS_DIR || '').trim() || path.resolve(__dirname, '..', 'private_uploads')),
+  // node-cron jobs (schedular/schedular.js) run only when true, never under test
+  CRON_ENABLED: toBoolEnv(process.env.CRON_ENABLED, false),
+  VERIFICATION_FILE_RETENTION_DAYS: toInt(process.env.VERIFICATION_FILE_RETENTION_DAYS, 30),
   DEFAULT_CORS_ORIGINS,
 };
 

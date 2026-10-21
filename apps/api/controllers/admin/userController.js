@@ -6,13 +6,11 @@ const User = require('../../models/User');
 const UserPhoto = require('../../models/UserPhoto');
 const FriendshipRequest = require('../../models/FriendShipRequest');
 const Message = require('../../models/Message');
-const Notification = require('../../models/Notification');
 const ActivityLog = require('../../models/ActivityLog');
 const Block = require('../../models/Block');
 const admin = require('../../firebase'); // Firebase Admin SDK
-const sendNotification = require('../../util/sendNotification');
-const { sendProfileVerifiedEmail } = require('../../services/emailService');
 const { cascadeDeleteUser } = require('../../services/userCascade');
+const { markVerified, unverify } = require('../../services/verificationService');
 const { record: audit } = require('../../services/auditLog');
 const escapeRegex = require('../../utils/escapeRegex');
 const { GENDER_ENUM, MARITAL_STATUS_ENUM } = require('../../enum/enum');
@@ -86,7 +84,7 @@ exports.getUserById = async (req, res) => {
     if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
 
     const user = await User.findById(id)
-      .select(ADMIN_USER_SELECT)
+      .select(`${ADMIN_USER_SELECT} +block_reason`)
       .populate('qualification profession caste gotra incomeRange interests membershipPlan')
       .populate('location.country location.state location.city')
       .populate('family.basedOut.country family.basedOut.state family.basedOut.city')
@@ -125,7 +123,8 @@ exports.getUserById = async (req, res) => {
  * is_verified / is_block / membershipPlan / role / password / firebase_uid /
  * device_token have their own endpoints or are never settable here.
  */
-const UPDATE_ALLOW = ['full_name', 'email', 'phone', 'gender', 'dob', 'bio', 'maritalStatus', 'height'];
+const UPDATE_ALLOW = ['full_name', 'email', 'phone', 'gender', 'dob', 'bio', 'maritalStatus', 'height', 'profileCreatedBy'];
+const PROFILE_CREATED_BY = ['self', 'parent', 'sibling', 'relative', 'friend'];
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -155,6 +154,10 @@ exports.updateUser = async (req, res) => {
         const d = v ? new Date(v) : null;
         if (d && Number.isNaN(d.getTime())) return res.status(400).json({ status: false, message: 'Invalid dob' });
         $set.dob = d;
+      } else if (key === 'profileCreatedBy') {
+        const pcb = String(v || '').trim().toLowerCase();
+        if (!PROFILE_CREATED_BY.includes(pcb)) return res.status(400).json({ status: false, message: 'Invalid profileCreatedBy' });
+        $set.profileCreatedBy = pcb;
       } else if (key === 'height') {
         if (v === null || v === '') { $set.height = null; continue; }
         const n = Number(v);
@@ -243,29 +246,13 @@ exports.toggleVerifyUser = async (req, res) => {
     const { verify } = req.body || {};
     if (!isId(id)) return res.status(404).json({ status: false, message: 'User not found' });
 
-    const user = await User.findById(id).select('_id full_name email device_token is_verified');
+    const user = await User.findById(id).select('_id is_verified').lean();
     if (!user) return res.status(404).json({ status: false, message: 'User not found' });
 
     const before = { is_verified: user.is_verified };
-    user.is_verified = verify ? 1 : 0;
-    await user.save();
-
-    if (verify) {
-      const body = 'Congratulations! Your profile has been verified by our team.';
-      if (user.device_token) {
-        try {
-          await sendNotification(user.device_token, 'Profile Verified', body, { type: 'profile_verified', userId: user._id.toString() });
-          await Notification.create({ type: 'profile_updated', toUser: user._id, content: body, data: { verified: true, timestamp: new Date() } });
-        } catch (notifError) {
-          console.error('[verify] push failed:', notifError.message);
-        }
-      }
-      if (user.email) {
-        sendProfileVerifiedEmail({ full_name: user.full_name, email: user.email }).catch((e) =>
-          console.error('[verify] email failed:', e.message)
-        );
-      }
-    }
+    // Push + Notification + email live in services/verificationService (shared with the verification queue)
+    const after = verify ? await markVerified(user._id, { reviewerId: req.userId }) : await unverify(user._id);
+    user.is_verified = after ? after.is_verified : (verify ? 1 : 0);
 
     audit(req, verify ? 'user.verify' : 'user.unverify', { type: 'user', id }, { before, after: { is_verified: user.is_verified } });
     res.json({

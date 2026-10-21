@@ -76,6 +76,109 @@ async function emitUnreadRoomCount(io, userId) {
   io.to(socketId).emit('unread_chatroom_count_update', { total: await unreadRoomCount(userId) });
 }
 
+/* ─── call helpers (feature expansion A5) ─────────────────────────────── */
+
+// Tests shorten ringTimeoutMs; production keeps 45 s.
+const callConfig = { ringTimeoutMs: 45 * 1000, busyWindowMs: 2 * 60 * 1000 };
+const ringTimers = new Map(); // callId -> Timeout
+
+// lazy: services/push requires firebase-admin
+function pushService() {
+  return require('./services/push');
+}
+
+function emitTo(userId, event, payload) {
+  if (ioInstance) ioInstance.to(String(userId)).emit(event, payload);
+}
+
+/** Callee already ringing or in a call (as either side) within the busy window. */
+async function isBusy(userId) {
+  const since = new Date(Date.now() - callConfig.busyWindowMs);
+  return !!(await CallLog.exists({
+    $or: [{ caller: userId }, { callee: userId }],
+    status: { $in: ['ringing', 'accepted'] },
+    updatedAt: { $gte: since },
+  }));
+}
+
+function clearRingTimeout(callId) {
+  const key = String(callId);
+  const t = ringTimers.get(key);
+  if (t) clearTimeout(t);
+  ringTimers.delete(key);
+}
+
+function armRingTimeout(callId) {
+  clearRingTimeout(callId);
+  const key = String(callId);
+  const t = setTimeout(() => {
+    ringTimers.delete(key);
+    timeoutCall(key).catch((e) => console.error('[socket] call timeout failed:', e && e.message));
+  }, callConfig.ringTimeoutMs);
+  if (typeof t.unref === 'function') t.unref();
+  ringTimers.set(key, t);
+}
+
+/** Notification 'missed_call' for the callee, plus a push when they are not connected. */
+async function recordMissedCall(call, callerName, { pushToCallee = true } = {}) {
+  try {
+    let name = callerName;
+    if (!name) {
+      const caller = await User.findById(call.caller).select('full_name').lean();
+      name = (caller && caller.full_name) || 'Someone';
+    }
+    const text = `Missed ${call.callType === 'video' ? 'video' : 'voice'} call from ${name}`;
+    await Notification.create({
+      type: 'missed_call',
+      fromUser: call.caller,
+      toUser: call.callee,
+      content: text,
+      data: { callId: String(call._id), roomId: String(call.chatRoom), callType: call.callType },
+    });
+    if (pushToCallee && !onlineUsers.get(String(call.callee))) {
+      await pushService().sendToUser(call.callee, 'Missed call', text, {
+        type: 'missed_call',
+        callId: String(call._id),
+        roomId: String(call.chatRoom),
+        userId: String(call.caller),
+        callType: call.callType,
+      });
+    }
+  } catch (e) {
+    console.error('[socket] missed call record failed:', e && e.message);
+  }
+}
+
+async function timeoutCall(callId) {
+  const call = await CallLog.findOneAndUpdate(
+    { _id: callId, status: 'ringing' },
+    { $set: { status: 'missed', endedAt: new Date() } },
+    { new: true }
+  );
+  if (!call) return;
+  const payload = { callId: call._id };
+  emitTo(call.caller, 'call_timeout', payload);
+  emitTo(call.callee, 'call_timeout', payload);
+  await recordMissedCall(call);
+}
+
+/** A user's last socket went away: their ringing calls end (either side). */
+async function endRingingCallsOf(userId) {
+  const calls = await CallLog.find({ status: 'ringing', $or: [{ caller: userId }, { callee: userId }] });
+  for (const call of calls) {
+    clearRingTimeout(call._id);
+    const byCaller = String(call.caller) === String(userId);
+    const updated = await CallLog.findOneAndUpdate(
+      { _id: call._id, status: 'ringing' },
+      { $set: { status: 'missed', endedAt: new Date() } },
+      { new: true }
+    );
+    if (!updated) continue;
+    emitTo(byCaller ? call.callee : call.caller, 'call_end', { callId: call._id, reason: 'disconnected' });
+    await recordMissedCall(updated);
+  }
+}
+
 module.exports = {
   setupSocket: (io) => {
     // Set up cleanup interval for abandoned ice breaker games
@@ -378,17 +481,25 @@ module.exports = {
       // ─── Voice/video call signalling (Agora) ──────────────────────────────
       // Only between users with an ACCEPTED ChatRoom, never blocked, and every
       // follow-up event requires socket.userId ∈ {caller, callee} (A5.5).
+      // Feature expansion A5: call_ringing to the caller, 45 s ring timeout
+      // (call_timeout to both), busy check, push to an offline callee, and
+      // missed_call notifications. See the helpers below setupSocket.
       on('call_invite', async (data) => {
         const fromUserId = me();
         const { toUserId, roomId, callType } = data || {};
         if (!fromUserId || !isId(toUserId) || !isId(roomId) || String(toUserId) === fromUserId) return;
 
+        const notConnected = { reason: 'not_connected', message: 'Calls are only available between mutually accepted connections' };
         if (await blocks.isBlockedEither(fromUserId, toUserId)) {
-          return io.to(socket.id).emit('call_failed', { reason: 'Calls are only available between mutually accepted connections' });
+          return io.to(socket.id).emit('call_failed', notConnected);
         }
         const room = await ChatRoom.findOne({ _id: roomId, status: 'accepted', participants: { $all: [fromUserId, toUserId] } });
         if (!room) {
-          return io.to(socket.id).emit('call_failed', { reason: 'Calls are only available between mutually accepted connections' });
+          return io.to(socket.id).emit('call_failed', notConnected);
+        }
+
+        if (await isBusy(toUserId)) {
+          return io.to(socket.id).emit('call_failed', { reason: 'busy', message: 'This member is on another call' });
         }
 
         const channelName = `call_${[fromUserId, String(toUserId)].sort().join('_')}_${Date.now()}`;
@@ -401,25 +512,42 @@ module.exports = {
           status: 'ringing',
         });
 
-        const fromUser = await User.findById(fromUserId).select('full_name profile').lean();
-        const calleeSocket = onlineUsers.get(String(toUserId));
+        io.to(socket.id).emit('call_ringing', { callId: call._id, roomId, channelName, callType: call.callType });
 
+        const fromUser = await User.findById(fromUserId).select('full_name profile').lean();
+        const incoming = {
+          callId: call._id,
+          roomId,
+          channelName,
+          callType: call.callType,
+          fromUserId,
+          fromUserName: (fromUser && fromUser.full_name) || 'Someone',
+          fromUserProfile: (fromUser && fromUser.profile) || null,
+        };
+
+        const calleeSocket = onlineUsers.get(String(toUserId));
         if (calleeSocket) {
-          io.to(calleeSocket).emit('call_incoming', {
-            callId: call._id,
-            roomId,
-            channelName,
-            callType: call.callType,
-            fromUserId,
-            fromUserName: (fromUser && fromUser.full_name) || 'Someone',
-            fromUserProfile: (fromUser && fromUser.profile) || null,
-          });
+          io.to(calleeSocket).emit('call_incoming', incoming);
         } else {
-          call.status = 'missed';
-          call.endedAt = new Date();
-          await call.save();
-          io.to(socket.id).emit('call_failed', { reason: 'User is not online right now' });
+          // Offline: a high-priority data push lets the app show a full-screen
+          // incoming call; the call keeps ringing until accept/reject/timeout.
+          const pushed = await pushService().sendToUser(
+            toUserId,
+            `${incoming.fromUserName} is calling`,
+            call.callType === 'video' ? 'Incoming video call' : 'Incoming voice call',
+            { type: 'call', ...incoming, callId: String(call._id), roomId: String(roomId) }
+          );
+          if (!pushed || !pushed.ok) {
+            const missed = await CallLog.findOneAndUpdate(
+              { _id: call._id, status: 'ringing' },
+              { $set: { status: 'missed', endedAt: new Date() } },
+              { new: true }
+            );
+            if (missed) await recordMissedCall(missed, incoming.fromUserName, { pushToCallee: false });
+            return io.to(socket.id).emit('call_failed', { reason: 'offline', callId: call._id, message: 'User is not online right now' });
+          }
         }
+        armRingTimeout(call._id);
       });
 
       const participantCall = async (callId, userId) => {
@@ -429,35 +557,46 @@ module.exports = {
 
       on('call_accept', async (data) => {
         const userId = me();
-        const call = await participantCall(data && data.callId, userId);
-        if (!call || String(call.callee) !== userId || call.status !== 'ringing') return;
-        call.status = 'accepted';
-        await call.save();
-        const callerSocket = onlineUsers.get(String(call.caller));
-        if (callerSocket) io.to(callerSocket).emit('call_accepted', { callId: call._id, channelName: call.channelName });
+        const callId = data && data.callId;
+        if (!userId || !isId(callId)) return;
+        const call = await CallLog.findOneAndUpdate(
+          { _id: callId, callee: userId, status: 'ringing' },
+          { $set: { status: 'accepted', answeredAt: new Date() } },
+          { new: true }
+        );
+        if (!call) return;
+        clearRingTimeout(call._id);
+        io.to(String(call.caller)).emit('call_accepted', { callId: call._id, channelName: call.channelName });
       });
 
       on('call_reject', async (data) => {
         const userId = me();
-        const call = await participantCall(data && data.callId, userId);
-        if (!call || String(call.callee) !== userId || call.status !== 'ringing') return;
-        call.status = 'rejected';
-        call.endedAt = new Date();
-        await call.save();
-        const callerSocket = onlineUsers.get(String(call.caller));
-        if (callerSocket) io.to(callerSocket).emit('call_rejected', { callId: call._id });
+        const callId = data && data.callId;
+        if (!userId || !isId(callId)) return;
+        const call = await CallLog.findOneAndUpdate(
+          { _id: callId, callee: userId, status: 'ringing' },
+          { $set: { status: 'rejected', endedAt: new Date() } },
+          { new: true }
+        );
+        if (!call) return;
+        clearRingTimeout(call._id);
+        io.to(String(call.caller)).emit('call_rejected', { callId: call._id });
       });
 
       on('call_end', async (data) => {
         const userId = me();
         const call = await participantCall(data && data.callId, userId);
         if (!call) return;
-        if (call.status !== 'rejected' && call.status !== 'missed') call.status = 'ended';
-        call.endedAt = new Date();
+        clearRingTimeout(call._id);
+        const wasRinging = call.status === 'ringing';
+        const byCaller = String(call.caller) === userId;
+        if (wasRinging) call.status = byCaller ? 'missed' : 'rejected'; // caller cancelled / callee declined
+        else if (call.status === 'accepted') call.status = 'ended';
+        if (!call.endedAt) call.endedAt = new Date();
         await call.save();
-        const otherUserId = String(call.caller) === userId ? String(call.callee) : String(call.caller);
-        const otherSocket = onlineUsers.get(otherUserId);
-        if (otherSocket) io.to(otherSocket).emit('call_end', { callId: call._id });
+        if (wasRinging && byCaller) await recordMissedCall(call);
+        const otherUserId = byCaller ? String(call.callee) : String(call.caller);
+        io.to(otherUserId).emit('call_end', { callId: call._id });
       });
 
       on('disconnect', async () => {
@@ -469,6 +608,7 @@ module.exports = {
         const lastSeen = new Date();
         await User.updateOne({ _id: userId }, { $set: { isOnline: false, lastSeen } });
         await emitToConnections(io, userId, 'user_offline', { userId, lastSeen });
+        await endRingingCallsOf(userId);
       });
     });
   },
@@ -479,6 +619,8 @@ module.exports = {
   onlineUsers,
   detectSensitiveContentAdvanced,
   acceptedConnectionIds,
+  callConfig,
+  _ringTimers: ringTimers,
 };
 
 /**

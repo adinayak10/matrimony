@@ -14,6 +14,14 @@
  *   Room                      { admin_id }          (was { participants })
  *   SavedNotification         my_user_id | user_id  (was { userId })
  *   CallLog                   caller | callee       (new)
+ *   Verification              user (+ files in PRIVATE_UPLOADS_DIR/verification)
+ *   SavedSearch               user
+ *   SuccessStory              submittedBy (unpublished deleted, published unlinked), partnerUser (unlinked)
+ *   AdminRecommendation       user | target
+ *   PushJob                   targetUser (unlinked)
+ *
+ * ChatIntentLog / SecondChanceQueue entries were dropped (2026-10): nothing
+ * writes those collections and their jobs are no longer scheduled.
  *
  * Files: only paths that resolve INSIDE the uploads dir are unlinked
  * (User.profile, User.background_image, UserPhoto.imageUrl — stored as
@@ -41,12 +49,15 @@ const RecentVisitor = require('../models/RecentVisitor');
 const SearchLog = require('../models/SearchLog');
 const RemainingProfileImageView = require('../models/RemainingProfileImageView');
 const ProfilePicRequest = require('../models/ProfilePicRequest');
-const ChatIntentLog = require('../models/ChatIntentLog');
 const Room = require('../models/Room');
 const RoomUser = require('../models/RoomUser');
-const SecondChanceQueue = require('../models/SecondChanceQueue');
 const Follow = require('../models/Follow');
 const CallLog = require('../models/CallLog');
+const Verification = require('../models/Verification');
+const SavedSearch = require('../models/SavedSearch');
+const SuccessStory = require('../models/SuccessStory');
+const AdminRecommendation = require('../models/AdminRecommendation');
+const PushJob = require('../models/PushJob');
 require('../models/IceBreakerGame'); // registers 'IceBreakerGame'
 
 const DEFAULT_UPLOADS_DIR = path.resolve(__dirname, '..', 'uploads');
@@ -112,12 +123,26 @@ async function cascadeDeleteUser(userId, { unlinkFiles = true, uploadsDir = DEFA
     ['searchLogs', () => SearchLog.deleteMany({ $or: [{ searcher: id }, { target: id }] })],
     ['profileImageViews', () => RemainingProfileImageView.deleteMany({ $or: [{ viewer: id }, { profileOwner: id }] })],
     ['profilePicRequests', () => ProfilePicRequest.deleteMany({ $or: [{ requester: id }, { requestedUser: id }] })],
-    ['chatIntentLogs', () => ChatIntentLog.deleteMany({ $or: [{ userId: id }, { targetUser: id }] })],
-    ['secondChanceQueue', () => SecondChanceQueue.deleteMany({ $or: [{ userId: id }, { profileId: id }] })],
     ['follows', () => Follow.deleteMany({ $or: [{ my_user_id: id }, { user_id: id }] })],
     ['callLogs', () => CallLog.deleteMany({ $or: [{ caller: id }, { callee: id }] })],
     ['iceBreakerGames', () => mongoose.model('IceBreakerGame').deleteMany({ $or: [{ player1: id }, { player2: id }] })],
+    // feature expansion (2026-10); verification files are unlinked below
+    ['verifications', () => Verification.deleteMany({ user: id })],
+    ['savedSearches', () => SavedSearch.deleteMany({ user: id })],
+    // published stories stay public but lose the member link; unpublished ones go (photos unlinked with fileRefs)
+    ['successStoriesUnlinked', () => SuccessStory.updateMany({ submittedBy: id, status: 'published' }, { $set: { submittedBy: null } })],
+    ['successStoriesPartnerUnlinked', () => SuccessStory.updateMany({ partnerUser: id }, { $set: { partnerUser: null } })],
+    ['successStories', () => SuccessStory.deleteMany({ submittedBy: id, status: { $ne: 'published' } })],
+    ['adminRecommendations', () => AdminRecommendation.deleteMany({ $or: [{ user: id }, { target: id }] })],
+    ['pushJobsUnlinked', () => PushJob.updateMany({ targetUser: id }, { $set: { targetUser: null } })],
   ];
+
+  // Photos of the member's unpublished success stories are unlinked with the profile files
+  const storyPhotos = await SuccessStory.find({ submittedBy: id, status: { $ne: 'published' }, photo: { $ne: null } }).select('photo').lean();
+  for (const st of storyPhotos) if (st.photo) fileRefs.push(st.photo);
+
+  // Verification documents live in PRIVATE_UPLOADS_DIR, not uploads/: collect before the rows go
+  const verificationRows = await Verification.find({ user: id }).select('documentFiles selfieFile').lean();
 
   const counts = {};
   if (dryRun) {
@@ -128,7 +153,7 @@ async function cascadeDeleteUser(userId, { unlinkFiles = true, uploadsDir = DEFA
 
   for (const [name, fn] of ops) {
     const r = await fn();
-    counts[name] = r && typeof r.deletedCount === 'number' ? r.deletedCount : 0;
+    counts[name] = r && typeof r.deletedCount === 'number' ? r.deletedCount : (r && typeof r.modifiedCount === 'number' ? r.modifiedCount : 0);
   }
 
   const pulled = await User.updateMany({ blocked: id }, { $pull: { blocked: id } });
@@ -149,6 +174,13 @@ async function cascadeDeleteUser(userId, { unlinkFiles = true, uploadsDir = DEFA
       seen.add(abs);
       if (await unlinkQuiet(abs)) files.unlinked++;
     }
+  }
+
+  if (unlinkFiles && verificationRows.length) {
+    // lazy: verificationService pulls in push/firebase
+    // eslint-disable-next-line global-require
+    const { removeFiles } = require('./verificationService');
+    for (const row of verificationRows) files.unlinked += await removeFiles(row);
   }
 
   return { found: true, counts, files };
@@ -173,11 +205,13 @@ const COUNTERS = {
   searchLogs: (id) => SearchLog.countDocuments({ $or: [{ searcher: id }, { target: id }] }),
   profileImageViews: (id) => RemainingProfileImageView.countDocuments({ $or: [{ viewer: id }, { profileOwner: id }] }),
   profilePicRequests: (id) => ProfilePicRequest.countDocuments({ $or: [{ requester: id }, { requestedUser: id }] }),
-  chatIntentLogs: (id) => ChatIntentLog.countDocuments({ $or: [{ userId: id }, { targetUser: id }] }),
-  secondChanceQueue: (id) => SecondChanceQueue.countDocuments({ $or: [{ userId: id }, { profileId: id }] }),
   follows: (id) => Follow.countDocuments({ $or: [{ my_user_id: id }, { user_id: id }] }),
   callLogs: (id) => CallLog.countDocuments({ $or: [{ caller: id }, { callee: id }] }),
   iceBreakerGames: (id) => mongoose.model('IceBreakerGame').countDocuments({ $or: [{ player1: id }, { player2: id }] }),
+  verifications: (id) => Verification.countDocuments({ user: id }),
+  savedSearches: (id) => SavedSearch.countDocuments({ user: id }),
+  successStories: (id) => SuccessStory.countDocuments({ submittedBy: id, status: { $ne: 'published' } }),
+  adminRecommendations: (id) => AdminRecommendation.countDocuments({ $or: [{ user: id }, { target: id }] }),
 };
 
 async function countFor(name, id) {

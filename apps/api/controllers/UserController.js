@@ -18,6 +18,9 @@
   const { resolveCaller, requireSelfOr403 } = require('../middleware/identity');
   const { PUBLIC_USER_SELECT, serializeProfileFor, serializeMany, resolveRelation, resolveRelations, serializeCard } = require('../services/profileSerializer');
   const { cascadeDeleteUser, resolveUploadPath } = require('../services/userCascade');
+  const { computeProfileCompletion, persistProfileCompletion } = require('../services/profileCompletion');
+  const { computeMatchPercent } = require('../services/matchScore');
+  const profileSearch = require('../services/profileSearch');
   const mq = require('../services/matchQuery');
   const { calculateAge: ageOf } = mq;
   const blocks = require('../services/blocks');
@@ -37,6 +40,89 @@
 
   const fs = require("fs");
   const path = require("path");
+
+  const { RASHIS, NAKSHATRA_LIST } = require('../utils/gunaMilanTable');
+  const PROFILE_CREATED_BY = ['self', 'parent', 'sibling', 'relative', 'friend'];
+  const HOROSCOPE_LIMITS = { birthTime: 20, birthPlace: 120 };
+
+  /**
+   * editProfile additions (feature expansion A1). Every key is optional;
+   * returns { ok, message } on the first bad value, else
+   * { ok:true, set:{...plain fields}, horoscope:{...allowed keys}|null }.
+   * Multipart sends strings, so booleans/arrays/objects may arrive as text.
+   */
+  function validateExtraProfileFields(body) {
+    const b = body || {};
+    const set = {};
+    const fail = (message) => ({ ok: false, message });
+    const present = (v) => v !== undefined && v !== null;
+
+    if (present(b.profileCreatedBy) && b.profileCreatedBy !== '') {
+      const v = String(b.profileCreatedBy).trim().toLowerCase();
+      if (!PROFILE_CREATED_BY.includes(v)) return fail(`profileCreatedBy must be one of: ${PROFILE_CREATED_BY.join(', ')}`);
+      set.profileCreatedBy = v;
+    }
+    if (present(b.horoscopeRequired) && b.horoscopeRequired !== '') {
+      const v = toBool(b.horoscopeRequired);
+      if (v === undefined) return fail('horoscopeRequired must be a boolean');
+      set.horoscopeRequired = v;
+    }
+    if (present(b.manglikStatus) && b.manglikStatus !== '') {
+      if (typeof b.manglikStatus !== 'string' || !SETTINGS_ENUMS.MANGLIK_STATUS_ENUM.includes(b.manglikStatus)) {
+        return fail(`manglikStatus must be one of: ${SETTINGS_ENUMS.MANGLIK_STATUS_ENUM.join(', ')}`);
+      }
+      set.manglikStatus = b.manglikStatus;
+    }
+    if (present(b.bloodGroup)) {
+      const v = String(b.bloodGroup).trim().toUpperCase();
+      if (v && !User.BLOOD_GROUPS.includes(v)) return fail(`bloodGroup must be one of: ${User.BLOOD_GROUPS.join(', ')}`);
+      set.bloodGroup = v;
+    }
+    const tongue = present(b.motherTongue) ? b.motherTongue : b.mother_tongue;
+    if (present(tongue)) {
+      if (typeof tongue !== 'string' || tongue.length > 60) return fail('motherTongue must be a short text');
+      set.motherTongue = tongue.trim();
+    }
+    let langs = present(b.knownLanguages) ? b.knownLanguages : b.known_languages;
+    if (present(langs)) {
+      if (typeof langs === 'string') {
+        const t = langs.trim();
+        if (t.startsWith('[')) {
+          try { langs = JSON.parse(t); } catch (_) { return fail('knownLanguages must be a list'); }
+        } else {
+          langs = t ? t.split(',') : [];
+        }
+      }
+      if (!Array.isArray(langs) || langs.length > 20) return fail('knownLanguages must be a list of up to 20 languages');
+      const clean = [];
+      for (const l of langs) {
+        if (typeof l !== 'string' || l.length > 40) return fail('knownLanguages entries must be short text');
+        const v = l.trim();
+        if (v && !clean.includes(v)) clean.push(v);
+      }
+      set.knownLanguages = clean;
+    }
+
+    let horoscope = null;
+    if (present(b.horoscope) && b.horoscope !== '') {
+      let input = b.horoscope;
+      if (typeof input === 'string') {
+        try { input = JSON.parse(input); } catch (_) { return fail('horoscope must be a JSON object'); }
+      }
+      if (!input || typeof input !== 'object' || Array.isArray(input)) return fail('horoscope must be an object');
+      horoscope = {};
+      for (const key of ['birthTime', 'birthPlace', 'rashi', 'nakshatra']) {
+        if (!present(input[key])) continue;
+        if (typeof input[key] !== 'string') return fail(`horoscope.${key} must be text`);
+        const v = input[key].trim();
+        if (key === 'rashi' && v && !RASHIS.includes(v)) return fail('horoscope.rashi is not a known rashi');
+        if (key === 'nakshatra' && v && !NAKSHATRA_LIST.includes(v)) return fail('horoscope.nakshatra is not a known nakshatra');
+        if (HOROSCOPE_LIMITS[key] && v.length > HOROSCOPE_LIMITS[key]) return fail(`horoscope.${key} is too long`);
+        horoscope[key] = v;
+      }
+    }
+    return { ok: true, set, horoscope };
+  }
 
   // Settings keys a member may change through editProfile, with their validator (A1.4)
   const SETTINGS_RULES = {
@@ -212,6 +298,13 @@ exports.updateContactPrivacy = async (req, res) => {
       }
 
 
+      // Feature expansion profile fields (validated up front so nothing is half-saved)
+      const extra = validateExtraProfileFields(req.body);
+      if (!extra.ok) {
+        return res.status(400).json({ status: false, code: 'INVALID_FIELD', message: extra.message });
+      }
+      Object.assign(user, extra.set);
+
       if (req.body.coordinates && typeof req.body.coordinates === 'object') {
 
 
@@ -283,26 +376,14 @@ exports.updateContactPrivacy = async (req, res) => {
     }
   }
 
-      // Horoscope fields (Guna Milan compatibility inputs) — all optional.
-      // Sent as a JSON string from the multipart form (same pattern as
-      // `settings` below, since multer doesn't parse bracket-notation keys).
-      if (req.body.horoscope) {
-        let horoscopeInput = req.body.horoscope;
-        if (typeof horoscopeInput === 'string') {
-          try {
-            horoscopeInput = JSON.parse(horoscopeInput);
-          } catch (e) {
-            horoscopeInput = null;
-          }
-        }
-        if (horoscopeInput && typeof horoscopeInput === 'object') {
-          user.horoscope = {
-            ...(user.horoscope?.toObject ? user.horoscope.toObject() : (user.horoscope || {})),
-            ...horoscopeInput
-          };
-        }
+      // Horoscope (restricted keys), manglikStatus, horoscopeRequired, profileCreatedBy,
+      // bloodGroup, motherTongue, knownLanguages: validateExtraProfileFields above.
+      if (extra.horoscope) {
+        user.horoscope = {
+          ...(user.horoscope?.toObject ? user.horoscope.toObject() : (user.horoscope || {})),
+          ...extra.horoscope
+        };
       }
-      if (req.body.manglikStatus) user.manglikStatus = req.body.manglikStatus;
 
       // phone / email are login identifiers: changing them needs a verified flow (not here)
 
@@ -603,49 +684,10 @@ exports.updateContactPrivacy = async (req, res) => {
         .populate('preferences.caste')
         .lean(); // So we can modify the object directly
 
-      // --- Profile Completion Logic (from fetchProfile) ---
-      function getValueByPath(obj, path) {
-        return path.split('.').reduce((acc, key) => acc?.[key], obj);
-      }
-      const requiredFields = [
-        { key: 'full_name', label: 'your full name' },
-        { key: 'dob', label: 'your date of birth' },
-        { key: 'gender', label: 'your gender' },
-        { key: 'height', label: 'your height' },
-        { key: 'maritalStatus', label: 'your marital status' },
-        { key: 'location.country', label: 'your country' },
-        { key: 'location.state', label: 'your state' },
-        { key: 'location.city', label: 'your city' },
-        { key: 'profession', label: 'your profession' },
-        { key: 'qualification', label: 'your qualification' },
-        { key: 'profile', label: 'your profile photo' },
-      ];
-      const missingFields = requiredFields.filter(field => {
-        const val = getValueByPath(updatedUser, field.key);
-        if (field.key === 'height') {
-          return typeof val !== 'number' || val <= 0;
-        }
-        if (Array.isArray(val)) {
-          return val.length === 0;
-        }
-        return !val || val === '' || val === 'Not specified';
-      }).map(f => f.label);
-      const completionPercentage = Math.round(
-        ((requiredFields.length - missingFields.length) / requiredFields.length) * 100
-      );
-      const profileSuggestions = [
-        field => `Hey! Just adding ${field} can make your profile stand out more.`,
-        field => `Profiles with ${field} tend to get more attention. Just saying 😉`,
-        field => `Let others know more about you by filling in ${field}.`,
-      ];
-      const profileCompletionSuggestion = missingFields.length > 0
-        ? profileSuggestions[Math.floor(Math.random() * profileSuggestions.length)](missingFields[0])
-        : `Your profile is complete! You're ready to shine 🌟`;
-      updatedUser.profileCompletion = {
-        percentage: completionPercentage,
-        missingFields,
-        suggestion: profileCompletionSuggestion,
-      };
+      // --- Profile Completion (services/profileCompletion, persisted when it changed) ---
+      const storedCompletion = updatedUser.profileCompletion;
+      updatedUser.profileCompletion = computeProfileCompletion(updatedUser);
+      await persistProfileCompletion(updatedUser._id, updatedUser.profileCompletion, storedCompletion || null);
 
       return res.status(200).json({
         status: true,
@@ -886,56 +928,10 @@ exports.fetchProfile = async (req, res) => {
       return path.split('.').reduce((acc, key) => acc?.[key], obj);
     }
 
-    // --- 2. Profile Completion Logic ---
-    const requiredFields = [
-      { key: 'full_name', label: 'your full name' },
-      { key: 'dob', label: 'your date of birth' },
-      { key: 'gender', label: 'your gender' },
-      { key: 'height', label: 'your height' },
-      { key: 'maritalStatus', label: 'your marital status' },
-      { key: 'location.country', label: 'your country' },
-      { key: 'location.state', label: 'your state' },
-      { key: 'location.city', label: 'your city' },
-      { key: 'profession', label: 'your profession' },
-      { key: 'qualification', label: 'your qualification' },
-      { key: 'profile', label: 'your profile photo' },
-    ];
-
-    const missingFields = requiredFields.filter(field => {
-      const val = getValueByPath(profile, field.key);
-      // Handle empty string, empty array, null/undefined, or height check (must be number)
-      if (field.key === 'height') {
-        return typeof val !== 'number' || val <= 0;
-      }
-      if (Array.isArray(val)) {
-        return val.length === 0;
-      }
-      return !val || val === '' || val === 'Not specified';
-    }).map(f => f.label);
-
-    const completionPercentage = Math.round(
-      ((requiredFields.length - missingFields.length) / requiredFields.length) * 100
-    );
-
-    // Dynamic suggestions for profile completion
-    const profileSuggestions = [
-      field => `Hey! Just adding ${field} can make your profile stand out more.`,
-      field => `Profiles with ${field} tend to get more attention. Just saying 😉`,
-      field => `Let others know more about you by filling in ${field}.`,
-    ];
-
-    const profileCompletionSuggestion = missingFields.length > 0
-      ? profileSuggestions[Math.floor(Math.random() * profileSuggestions.length)](missingFields[0])
-      : `Your profile is complete! You're ready to shine 🌟`;
-
-    profile.profileCompletion = {
-      percentage: completionPercentage,
-      missingFields,
-      suggestion: profileCompletionSuggestion,
-    };
-
-
-    console.log('Profile Completion:', profile.profileCompletion);  
+    // --- 2. Profile Completion (services/profileCompletion, persisted when it changed) ---
+    const storedCompletion = profile.profileCompletion;
+    profile.profileCompletion = computeProfileCompletion(profile);
+    persistProfileCompletion(profile._id, profile.profileCompletion, storedCompletion || null).catch(() => {});  
 
     // --- 3. Modular AI-style Suggestions (Future Proof) ---
     const suggestions = {};
@@ -1170,53 +1166,7 @@ profile.chatRoom = roomObj;
 
 
 
-  exports.fetchFriendsList = async (req, res) => {
-    try {
-      const { start = 0, limit = 10 } = req.body;
-      const my_user_id = resolveCaller(req); // token identity (A1.2)
-
-      const user = await User.findById(my_user_id);
-      if (!user) {
-        return res.status(404).json({ status: false, message: "User Not Found" });
-      }
-
-      const blockUserIds = user.block_user_ids;
-
-      const friends = await FriendShipRequest.find({
-        $or: [{ user1: my_user_id }, { user2: my_user_id }],
-        status: 'accepted',
-      })
-        .skip(start)
-        .limit(limit)
-        .populate('user1 user2', 'full_name email is_block');
-
-      const filteredFriends = friends.filter(friend => {
-        const isUser1 = friend.user1._id.toString() === my_user_id;
-        return isUser1 ? !friend.user2.is_block : !friend.user1.is_block;
-      });
-
-      const friendDetails = filteredFriends.map(friend => {
-        const isUser1 = friend.user1._id.toString() === my_user_id;
-        return isUser1 ? friend.user2 : friend.user1;
-      });
-
-      return res.json({
-        status: true,
-        message: "Fetch Friends List",
-        data: friendDetails,
-      });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({
-        status: false,
-        message: "An error occurred",
-      });
-    }
-  };
-
-
-
-
+  // fetchFriendsList (unrouted, read retired user1/user2 fields) was removed; connections are getInterestList {status:'accepted'}.
 
 exports.fetchLiveActivity = async (req, res) => {
   try {
@@ -1476,7 +1426,7 @@ activities.sort((a, b) => b.createdAt - a.createdAt);
       const blocks = await Block.find({ blocker: my_user_id })
         .skip(start)
         .limit(limit)
-        .populate("blocked", "full_name profile");
+        .populate("blocked", "full_name profile is_verified profileCreatedBy");
 
       // Prepare the response (card only, no contact details)
       const responseBlockedUsers = blocks
@@ -1516,7 +1466,7 @@ activities.sort((a, b) => b.createdAt - a.createdAt);
         return res.status(400).json({ status: false, message: "You cannot block yourself" });
       }
 
-      const target = await User.findById(user_id).select('_id full_name profile');
+      const target = await User.findById(user_id).select('_id full_name profile is_verified profileCreatedBy');
       if (!target) {
         return res.status(404).json({ status: false, message: "Block user not found" });
       }
@@ -1554,7 +1504,7 @@ activities.sort((a, b) => b.createdAt - a.createdAt);
         return res.status(404).json({ status: false, message: "User is not blocked" });
       }
 
-      const target = await User.findById(user_id).select('_id full_name profile');
+      const target = await User.findById(user_id).select('_id full_name profile is_verified profileCreatedBy');
       return res.json({
         status: true,
         message: "User unblocked successfully",
@@ -1641,7 +1591,9 @@ async function relationshipFlags(userId, userIds) {
   return { friendMap, shortlistMap, reportSet, picMap, followMap };
 }
 
-function decorateCandidate(viewer, userId, u, flags) {
+// prefsViewer: the viewer's full user (with preferences) for matchPercent;
+// req.user from the token only carries a few fields.
+function decorateCandidate(viewer, userId, u, flags, prefsViewer) {
   const id = String(u._id);
   const friendshipRequest = flags.friendMap[id];
   const isCurrentUserRequester = friendshipRequest && String(friendshipRequest.requester) === userId;
@@ -1661,27 +1613,13 @@ function decorateCandidate(viewer, userId, u, flags) {
     remainingProfileImageView: { remainingViews: 0, restrictionStatus: false },
     followingStatus: flags.followMap[id] || 0
   };
-  return serializeProfileFor(viewer, userProfile, { relation: friendshipRequest?.status || 'none' });
+  const card = serializeProfileFor(viewer, userProfile, { relation: friendshipRequest?.status || 'none' });
+  card.matchPercent = prefsViewer ? computeMatchPercent(prefsViewer, u) : null;
+  return card;
 }
 
-/**
- * Build the Mongo clauses for the app's `filters` object (A6.4): every
- * filter runs in the database, ids are validated, `income` maps to the
- * incomeRange reference the schema really has.
- */
-function filterClauses(filters) {
-  const f = filters && typeof filters === 'object' ? filters : {};
-  const out = [];
-  if (f.age_range) out.push(mq.ageRangeToDobFilter(f.age_range.min, f.age_range.max));
-  if (f.height_range) out.push(mq.heightFilter(f.height_range.min, f.height_range.max));
-  if (f.marital_status) out.push(mq.enumInFilter('maritalStatus', f.marital_status, SETTINGS_ENUMS.MARITAL_STATUS_ENUM));
-  out.push(mq.idInFilter('caste', f.caste));
-  out.push(mq.idInFilter('gotra', f.gotra));
-  out.push(mq.idInFilter('qualification', f.qualification));
-  out.push(mq.idInFilter('profession', f.profession));
-  out.push(mq.idInFilter('incomeRange', f.income || f.incomeRange));
-  return out.filter(Boolean);
-}
+// filterClauses(filters) lives in services/profileSearch (shared with saved searches)
+const { filterClauses } = profileSearch;
 
 function toBoolFlag(v) {
   return v === true || v === 'true' || v === 1 || v === '1';
@@ -1772,7 +1710,7 @@ exports.fetchUsersListWithFilters = async (req, res) => {
             rows = await User.populate(agg ? agg.rows : [], LIST_POPULATE.split(' ').map((path) => ({ path })));
             rows = rows.map((r) => {
                 const doc = { ...r };
-                for (const f of ['password', 'device_token', 'firebase_uid', 'coordinates', 'blocked', 'role', 'login_type', 'device_type', 'personalityMap', 'is_block', 'tokenVersion']) delete doc[f];
+                for (const f of ['password', 'device_token', 'firebase_uid', 'coordinates', 'blocked', 'role', 'login_type', 'device_type', 'personalityMap', 'is_block', 'tokenVersion', 'block_reason']) delete doc[f];
                 return doc;
             });
         } else {
@@ -1791,7 +1729,7 @@ exports.fetchUsersListWithFilters = async (req, res) => {
 
         const userIds = rows.map((u) => String(u._id));
         const flags = await relationshipFlags(userId, userIds);
-        const final = rows.map((u) => decorateCandidate(req.user, userId, u, flags));
+        const final = rows.map((u) => decorateCandidate(req.user, userId, u, flags, currentUser));
 
         return res.json({
             status: true,
@@ -2283,6 +2221,13 @@ exports.sendInterestRequest = async (req, res) => {
         caste: otherUser.caste || null,
         gotra: otherUser.gotra || null,
         settings: otherUser.settings,
+        // feature expansion (Connections tab): additive card fields
+        is_verified: otherUser.is_verified || 0,
+        isOnline: !!otherUser.isOnline,
+        lastSeen: otherUser.lastSeen || null,
+        maritalStatus: otherUser.maritalStatus || null,
+        height: otherUser.height ?? null,
+        profileCreatedBy: otherUser.profileCreatedBy || 'self',
       }, { relation: r.status }),
       status: r.status,
       type: isSender ? 'sent' : 'received',
@@ -3513,7 +3458,7 @@ exports.fetchTrendingProfiles = async (req, res) => {
       const page = Math.max(1, parseInt(req.body.page, 10) || 1);
       const start = (page - 1) * limit;
 
-      const myUser = await User.findById(my_user_id);
+      const myUser = await User.findById(my_user_id).lean();
       if (!myUser) {
         return res.status(404).json({ status: false, message: 'User not found' });
       }
@@ -3527,11 +3472,11 @@ exports.fetchTrendingProfiles = async (req, res) => {
       const blockedIds = await blocks.getBlockedIds(my_user_id);
       const base = mq.buildMatchQuery(myUser, await getSettings(), { blockedIds });
       if (!base) {
-        return res.json({ status: true, message: mq.NO_GENDER_MESSAGE, data: [] });
+        return res.json({ status: true, message: mq.NO_GENDER_MESSAGE, data: [], page, limit, total: 0 });
       }
 
       await User.init(); // 2dsphere index must exist before $geoNear (first call only)
-      const users = await User.aggregate([
+      const [agg] = await User.aggregate([
         {
           $geoNear: {
             near: { type: "Point", coordinates: [lng, lat] },
@@ -3539,18 +3484,20 @@ exports.fetchTrendingProfiles = async (req, res) => {
             spherical: true,
             maxDistance: radiusKm * 1000,
             key: "coordinates",
-            query: mq.mergeQuery(base, { 'coordinates.coordinates': { $ne: [0, 0] } }),
+            // members who hid their location never appear in "nearby"
+            query: mq.mergeQuery(base, { 'coordinates.coordinates': { $ne: [0, 0] } }, { 'settings.showLocation': { $ne: false } }),
           }
         },
-        { $skip: start },
-        { $limit: limit },
         {
           $addFields: {
             distanceKm: { $round: [{ $divide: ["$distanceInMeters", 1000] }, 2] }
           }
         },
-        { $project: { password: 0, device_token: 0, firebase_uid: 0, coordinates: 0, blocked: 0, role: 0, login_type: 0, device_type: 0, personalityMap: 0, is_block: 0, tokenVersion: 0 } }
+        { $project: { password: 0, device_token: 0, firebase_uid: 0, coordinates: 0, blocked: 0, role: 0, login_type: 0, device_type: 0, personalityMap: 0, is_block: 0, tokenVersion: 0, block_reason: 0 } },
+        { $facet: { rows: [{ $skip: start }, { $limit: limit }], total: [{ $count: 'n' }] } },
       ]);
+      const users = (agg && agg.rows) || [];
+      const total = (agg && agg.total[0] && agg.total[0].n) || 0;
 
       // Populate after aggregation
       const populated = await User.populate(users, [
@@ -3565,11 +3512,18 @@ exports.fetchTrendingProfiles = async (req, res) => {
       ]);
 
       const relMap = await resolveRelations(my_user_id, populated.map(u => u._id));
+      const data = serializeMany(req.user, populated, relMap).map((card, i) => ({
+        ...card,
+        matchPercent: computeMatchPercent(myUser, populated[i]),
+      }));
 
       return res.json({
         status: true,
         message: `Users near ${radiusKm} km`,
-        data: serializeMany(req.user, populated, relMap),
+        data,
+        page,
+        limit,
+        total,
       });
     } catch (err) {
       console.error('fetchNearbyMatches error:', err);
@@ -3656,7 +3610,8 @@ exports.fetchTrendingProfiles = async (req, res) => {
         data: sorted.map(match => ({
           ...serializeProfileFor(req.user, match.user, { relation: relMap.get(String(match.user._id)) || 'none' }),
           matchScore: match.score,
-          matchedOn: match.matchedOn
+          matchedOn: match.matchedOn,
+          matchPercent: computeMatchPercent(currentUser, match.user),
         }))
       });
     } catch (err) {
@@ -3672,7 +3627,7 @@ exports.fetchTrendingProfiles = async (req, res) => {
   exports.fetchHighlightedUsers = async (req, res) => {
     try {
       const users = await User.find({ is_highlighted: true, is_block: 0 })
-        .select('full_name gender location membershipPlan profile is_top_user settings')
+        .select('full_name gender location membershipPlan profile settings is_verified profileCreatedBy')
         .populate('location.country')
         .populate('location.state')
         .populate('location.city')
@@ -3700,73 +3655,7 @@ exports.fetchTrendingProfiles = async (req, res) => {
 
 
 
-  // API: Get Most Active Members
-  exports.mostactive = async (req, res) => {
-    try {
-      const limit = parseInt(req.body.limit) || 10;
-      const includeTimeSpent = req.body.includeTimeSpent || false;
-
-      const users = await User.find({ is_block: 0 })
-        .populate("membershipPlan")
-        .lean();
-
-      const userIds = users.map((u) => u._id);
-
-      const [sentRequests, receivedRequests, shortlists, visitors] = await Promise.all([
-        FriendShipRequest.aggregate([
-          { $match: { requester: { $in: userIds } } },
-          { $group: { _id: "$requester", count: { $sum: 1 } } },
-        ]),
-        FriendShipRequest.aggregate([
-          { $match: { recipient: { $in: userIds } } },
-          { $group: { _id: "$recipient", count: { $sum: 1 } } },
-        ]),
-        Shortlist.aggregate([
-          { $match: { userId: { $in: userIds }, status: true } },
-          { $group: { _id: "$userId", count: { $sum: 1 } } },
-        ]),
-  RecentVisitor.aggregate([
-    { $match: { visited: { $in: userIds } } },
-    { $group: { _id: "$visited", count: { $sum: 1 } } },
-  ]),
-
-      ]);
-
-      const scoreMap = {};
-      const boost = (id, score) => {
-        scoreMap[id] = (scoreMap[id] || 0) + score;
-      };
-
-      sentRequests.forEach((r) => boost(r._id.toString(), r.count * 1.5));
-      receivedRequests.forEach((r) => boost(r._id.toString(), r.count * 2));
-      shortlists.forEach((s) => boost(s._id.toString(), s.count * 2.5));
-      visitors.forEach((v) => boost(v._id.toString(), v.count * 1));
-
-      const scored = users.map((u) => {
-        const id = u._id.toString();
-        const activityScore = scoreMap[id] || 0;
-        const timeSpentScore = includeTimeSpent ? (u.totalTimeSpent || 0) * 0.1 : 0;
-
-        return {
-          ...u,
-          activityScore,
-          timeSpentScore,
-          totalScore: activityScore + timeSpentScore,
-        };
-      });
-
-      const sorted = scored.sort((a, b) => b.totalScore - a.totalScore).slice(0, limit);
-
-      return res.json({
-        status: true,
-        message: "Most active members ranked by AI-like score and time spent",
-        data: sorted,
-      });
-    } catch (err) {
-      console.error("Error in getMostActiveMembers:", err);
-      return res.status(500).json({ status: false, message: "Server error" });
-    }
-  };
+  // mostactive (unrouted, loaded every user into memory) was removed.
 
   const Banner = require('../models/Banner');
 
@@ -3825,7 +3714,8 @@ exports.fetchTrendingProfiles = async (req, res) => {
 
       // ⏱️ Activity Timing
       const now = new Date();
-      const lastActive = new Date(user.lastActive || now);
+      // isOnline -> active now; otherwise lastSeen (set on socket disconnect), then updatedAt
+      const lastActive = user.isOnline ? now : new Date(user.lastSeen || user.updatedAt || user.createdAt || now);
       const daysAgo = Math.floor((now - lastActive) / (1000 * 60 * 60 * 24));
       const daysRecentlyActive = daysAgo <= 30 ? 30 - daysAgo : 0;
 
@@ -3836,7 +3726,7 @@ exports.fetchTrendingProfiles = async (req, res) => {
       const timeSpentScore = (user.totalTimeSpent || 0) * 0.015;
 
       // 📄 Profile Richness Boost
-      let profileScore = user.profileStrength || 0;
+      let profileScore = (user.profileCompletion && Number(user.profileCompletion.percentage)) || 0;
       if (user.preferences?.age_range?.min && user.caste && user.gotra && user.bio && user.dob) {
         profileScore += 20;
       }
@@ -4344,71 +4234,28 @@ exports.searchProfiles = async (req, res) => {
     const isVerify = toBoolFlag(body.isVerify);
     const recentlyActive = toBoolFlag(body.recentlyActive);
     const nearby = toBoolFlag(body.nearby);
-    const lat = Number(body.lat);
-    const lng = Number(body.lng);
-    const maxDistanceKm = Math.min(5000, Math.max(1, Number(body.maxDistanceKm) || 50));
 
     if (!userId) return res.status(401).json({ status: false, code: 'AUTH_REQUIRED', message: 'Authentication required' });
 
     const currentUser = await User.findById(userId).lean();
     if (!currentUser) return res.status(404).json({ status: false, message: 'User not found' });
 
-    const { page, limit, skip } = mq.clampPage(body.page, body.limit);
-
-    // Exclude blocked (both ways) and anyone already connected / requested
-    const blockedIds = await blocks.getBlockedIds(userId);
-    const connections = await FriendShipRequest.find({ $or: [{ requester: userId }, { recipient: userId }] })
-      .select('requester recipient')
-      .lean();
-    const excludeIds = connections.map(r => (String(r.requester) === userId ? r.recipient : r.requester));
-
-    const base = mq.buildMatchQuery(currentUser, await getSettings(), { blockedIds, excludeIds });
-    if (!base) {
+    // Core query + paging lives in services/profileSearch (shared with runSavedSearch)
+    const { rows, total, page, limit, noGender } = await profileSearch.runSearch(currentUser, {
+      filters,
+      isVerify,
+      recentlyActive,
+      sortByNewUsers,
+      nearby,
+      lat: body.lat,
+      lng: body.lng,
+      maxDistanceKm: body.maxDistanceKm,
+      page: body.page,
+      limit: body.limit,
+    });
+    if (noGender) {
       return res.json({ status: true, message: mq.NO_GENDER_MESSAGE, data: [], page, limit, total: 0 });
     }
-
-    const clauses = filterClauses(filters);
-    if (isVerify) clauses.push({ is_verified: 1 });
-    if (recentlyActive) clauses.push({ lastSeen: { $gte: new Date(Date.now() - 48 * 3600 * 1000) } });
-    const query = mq.mergeQuery(base, ...clauses);
-
-    const SEARCH_POPULATE = 'location.country location.state location.city caste gotra profession qualification incomeRange family.basedOut.city family.basedOut.state family.basedOut.country';
-
-    let rows;
-    let total;
-    if (nearby && Number.isFinite(lat) && Number.isFinite(lng)) {
-      await User.init(); // 2dsphere index must exist before $geoNear (first call only)
-      const [agg] = await User.aggregate([
-        {
-          $geoNear: {
-            near: { type: 'Point', coordinates: [lng, lat] },
-            distanceField: 'distanceInMeters',
-            spherical: true,
-            maxDistance: maxDistanceKm * 1000,
-            key: 'coordinates',
-            query,
-          },
-        },
-        { $addFields: { distanceKm: { $round: [{ $divide: ['$distanceInMeters', 1000] }, 2] } } },
-        { $project: { password: 0, device_token: 0, firebase_uid: 0, coordinates: 0, blocked: 0, role: 0, login_type: 0, device_type: 0, personalityMap: 0, is_block: 0, tokenVersion: 0 } },
-        { $facet: { rows: [{ $skip: skip }, { $limit: limit }], total: [{ $count: 'n' }] } },
-      ]);
-      total = (agg && agg.total[0] && agg.total[0].n) || 0;
-      rows = await User.populate(agg ? agg.rows : [], SEARCH_POPULATE.split(' ').map((path) => ({ path })));
-    } else {
-      // Stable sort: online/recently active first, then verified, newest (no premium bonus, A6.14)
-      const sort = sortByNewUsers ? { createdAt: -1, _id: -1 } : { isOnline: -1, is_verified: -1, lastSeen: -1, createdAt: -1, _id: -1 };
-      [rows, total] = await Promise.all([
-        User.find(query).select(PUBLIC_USER_SELECT).sort(sort).skip(skip).limit(limit).populate(SEARCH_POPULATE).lean(),
-        User.countDocuments(query),
-      ]);
-    }
-
-    const now = Date.now();
-    const decorated = rows.map(u => {
-      const daysSinceSignup = (now - new Date(u.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-      return { ...u, age: ageOf(u.dob), isJustJoined: daysSinceSignup < 7 };
-    });
 
     // A6.9: one SearchLog row per search (not one per impression, no push)
     SearchLog.create({
@@ -4418,12 +4265,16 @@ exports.searchProfiles = async (req, res) => {
       resultCount: total,
     }).catch(() => {});
 
-    const relMap = await resolveRelations(userId, decorated.map(u => u._id));
+    const relMap = await resolveRelations(userId, rows.map(u => u._id));
+    const data = serializeMany(req.user, rows, relMap).map((card, i) => ({
+      ...card,
+      matchPercent: computeMatchPercent(currentUser, rows[i]),
+    }));
 
     return res.json({
       status: true,
       message: 'Filtered profiles',
-      data: serializeMany(req.user, decorated, relMap),
+      data,
       page,
       limit,
       total,
@@ -4879,3 +4730,20 @@ if (prefs.age_range) {
 
 
   
+  // POST /api/uploadFile (feature expansion A4): one image for chat media.
+  // multer (routes/userRoutes.js) + validateImages already re-encoded it under
+  // uploads/profile_images; the stored-path form matches User.profile.
+  exports.uploadFile = async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file || !file.path) {
+        return res.status(400).json({ status: false, code: 'FILE_REQUIRED', message: 'Attach an image as uploadFile' });
+      }
+      const rel = String(file.path).replace(/\\/g, '/');
+      const url = rel.startsWith('uploads/') ? rel : `uploads/profile_images/${path.basename(rel)}`;
+      return res.json({ status: true, message: 'File uploaded', data: url });
+    } catch (err) {
+      console.error('uploadFile error:', err.message);
+      return res.status(500).json({ status: false, message: 'Internal server error' });
+    }
+  };

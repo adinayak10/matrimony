@@ -53,51 +53,8 @@ iceBreakerGameSchema.index({ createdAt: -1 });
 module.exports = mongoose.model('IceBreakerGame', iceBreakerGameSchema);
 
 
-const iceBreakerQuestionSchema = new mongoose.Schema({
-  question: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  options: {
-    type: [String],
-    required: true,
-    validate: {
-      validator: function(options) {
-        return options.length >= 2 && options.length <= 6;
-      },
-      message: 'Question must have between 2 and 6 options'
-    }
-  },
-  category: {
-    type: String,
-    enum: ['personality', 'lifestyle', 'values', 'interests', 'relationships', 'goals'],
-    required: true
-  },
-  difficulty: {
-    type: String,
-    enum: ['easy', 'medium', 'deep'],
-    default: 'medium'
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  usageCount: {
-    type: Number,
-    default: 0
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-// Index for random question selection
-iceBreakerQuestionSchema.index({ category: 1, isActive: 1 });
-iceBreakerQuestionSchema.index({ difficulty: 1, isActive: 1 });
-
-module.exports = mongoose.model('IceBreakerQuestion', iceBreakerQuestionSchema);
+// The question bank lives in models/IceBreakerQuestion.js (registered there once).
+require('./IceBreakerQuestion');
 
 
 const iceBreakerStatsSchema = new mongoose.Schema({

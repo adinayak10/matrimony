@@ -39,7 +39,7 @@ const PUBLIC_USER_SELECT =
 // Never leave the server for anyone, including self.
 const SECRET_FIELDS = ['password', 'device_token', 'firebase_uid', '__v', 'blocked', 'personalityMap', 'tokenVersion'];
 // Removed for every viewer other than self/admin.
-const PRIVATE_FIELDS = ['role', 'login_type', 'device_type', 'is_block', 'is_push_notifications', 'is_invited_to_room'];
+const PRIVATE_FIELDS = ['role', 'login_type', 'device_type', 'is_block', 'is_push_notifications', 'is_invited_to_room', 'block_reason'];
 // Settings keys another member may see (needed by clients to decide UI).
 const PUBLIC_SETTINGS_KEYS = [
   'showLocation',
@@ -157,7 +157,13 @@ function serializeProfileFor(viewer, doc, { relation } = {}) {
 function serializeCard(doc) {
   const src = toPlain(doc);
   if (!src) return null;
-  return { _id: src._id, full_name: src.full_name, profile: src.profile || null };
+  return {
+    _id: src._id,
+    full_name: src.full_name,
+    profile: src.profile || null,
+    is_verified: src.is_verified || 0,
+    profileCreatedBy: src.profileCreatedBy || 'self',
+  };
 }
 
 function unavailableCard(id) {
