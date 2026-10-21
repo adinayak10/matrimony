@@ -51,9 +51,11 @@ const chatImageUpload = multer({
 let ownPaths = null;
 router.use(function authenticateOwnRoutes(req, res, next) {
   if (!ownPaths) {
-    ownPaths = new Set(router.stack.filter((l) => l.route).map((l) => l.route.path));
+    // Lower-cased: Express matches routes case-insensitively, so /toggleShortList (what
+    // installed apps call) reaches /toggleShortlist and must get the same auth guard.
+    ownPaths = new Set(router.stack.filter((l) => l.route).map((l) => String(l.route.path).toLowerCase()));
   }
-  return ownPaths.has(req.path) ? authenticate(req, res, next) : next();
+  return ownPaths.has(String(req.path).toLowerCase()) ? authenticate(req, res, next) : next();
 });
 
 // Profile management

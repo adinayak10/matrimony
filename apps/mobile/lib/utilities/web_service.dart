@@ -37,7 +37,7 @@ class WebService {
   static const String acceptInterestRequest = "${apiURL}acceptInterestRequest";
   static const String removeConnection = "${apiURL}removeConnection";
 
-  static const String toggleShortList = "${apiURL}toggleShortList";
+  static const String toggleShortList = "${apiURL}toggleShortlist";
   static const String chatUserList = "${apiURL}fetchUserRooms";
   static const String chatRequestList = "${apiURL}fetchPendingRooms";
   static const String fetchMessages = "${apiURL}fetchMessages";
