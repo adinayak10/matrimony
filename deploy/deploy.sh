@@ -83,8 +83,21 @@ if [ -s "$NVM_DIR/nvm.sh" ]; then
   set -u
 fi
 export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
-BM_NODE="$(command -v node || true)"
+# Use the pinned binary itself: the PATH line above puts /usr/bin (Node 18) first,
+# so `command -v node` would pick the system Node and the API cannot boot on it
+# (sanitize-html -> htmlparser2 is ESM; require(esm) needs Node >= 22). 2026-10-21 outage.
+PINNED_NODE="$NVM_DIR/versions/node/v$PINNED/bin/node"
+if [ -x "$PINNED_NODE" ]; then
+  BM_NODE="$PINNED_NODE"
+  export PATH="$(dirname "$PINNED_NODE"):$PATH"
+else
+  BM_NODE="$(command -v node || true)"
+fi
 export BM_NODE
+if [ "$("$BM_NODE" -v 2>/dev/null)" != "v$PINNED" ]; then
+  echo "deploy: $BM_NODE is $("$BM_NODE" -v 2>/dev/null || echo missing), not v$PINNED from .nvmrc; refusing to deploy" >&2
+  exit 78
+fi
 cd "$REPO" || exit 78
 
 # ── Shared files ─────────────────────────────────────────────────────────────
