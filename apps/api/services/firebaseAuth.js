@@ -46,6 +46,10 @@ async function verifyFirebase(req, { provider } = {}) {
   try {
     decoded = await admin.auth().verifyIdToken(raw.trim(), true);
   } catch (err) {
+    // Log why (expired, wrong project/audience, clock skew, credentials not loaded);
+    // Firebase's messages never contain the token itself.
+    // eslint-disable-next-line no-console
+    console.warn('[firebaseAuth] verifyIdToken failed:', (err && err.code) || 'unknown', '-', (err && err.message) || String(err));
     throw new FirebaseAuthError(401, 'INVALID_FIREBASE_TOKEN', 'Invalid Firebase token');
   }
 
