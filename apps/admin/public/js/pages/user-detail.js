@@ -9,6 +9,12 @@
 //   GET    /api/admin/reports?reportedUser=:id (C4.2 filter)
 //   POST   /api/admin/photos/:id/approve | /reject {reason}
 //   POST   /api/assignMembership {user_id, plan_id}
+//   GET    /api/admin/membership-plans            → data [{ _id, name, duration_days, price }]
+//   GET    /api/admin/verifications?userId=:id    (Verification tab; rows filtered to this member here too)
+//          + approve/reject/files via core/verification-actions.js
+//   POST   /api/admin/users/:id/recommend {targetUserId, note?, notifyBoth?} → data { warnings? }; 409 duplicate
+//   GET    /api/admin/users/:id/recommendations   → data [{ _id, targetUser, note, notifyBoth, createdBy, createdAt }]
+//   DELETE /api/admin/recommendations/:id
 // Never renders user.password; the API stops returning it in C4.1.
 import { api, errorMessage } from '../core/api.js';
 import { html, raw, setHtml, el, els, delegate, formValues } from '../core/dom.js';
@@ -17,6 +23,10 @@ import { imageUrl, bindImageFallbacks, IMAGE_FALLBACK } from '../core/imageUrl.j
 import { openModal } from '../core/modal.js';
 import { confirm } from '../core/confirm.js';
 import { toast } from '../core/toast.js';
+import { bindTypeahead } from '../core/typeahead.js';
+import { bindCounters } from '../core/fields.js';
+import { busy } from '../core/ui.js';
+import { verificationBadge, filesMarkup, approveVerification, rejectVerification, purgeVerificationFiles } from '../core/verification-actions.js';
 
 const root = el('[data-user-id]');
 const userId = root ? root.dataset.userId : '';
@@ -25,6 +35,9 @@ const loaded = new Set();
 
 const GENDERS = ['Male', 'Female', 'Not specified'];
 const MARITAL = ['Single', 'Divorced', 'Widowed', 'Never Married'];
+const CREATED_BY = { self: 'Self', parent: 'Parent', sibling: 'Sibling', relative: 'Relative', friend: 'Friend' };
+const createdByLabel = (v) => CREATED_BY[String(v || 'self').toLowerCase()] || titleCase(v);
+const completion = (u) => (u.profileCompletion && u.profileCompletion.percentage != null ? Math.round(Number(u.profileCompletion.percentage) || 0) : null);
 
 const nameOf = (ref) => (ref && typeof ref === 'object' ? (ref.name || ref.title || '') : '') || '—';
 const val = (v) => (v === null || v === undefined || v === '' ? '—' : String(v));
@@ -57,6 +70,8 @@ function renderHead() {
         ${u.is_verified ? html`<span class="badge badge--info">Verified</span>` : html`<span class="badge badge--neutral">Unverified</span>`}
         ${u.is_block ? html`<span class="badge badge--danger" title="${u.block_reason || ''}">Blocked</span>` : html`<span class="badge badge--success">Active</span>`}
         ${u.gender ? html`<span class="badge badge--neutral">${u.gender}</span>` : ''}
+        ${completion(u) != null ? html`<span class="badge badge--${completion(u) >= 70 ? 'success' : 'warning'}" title="Profile completion">${completion(u)}% complete</span>` : ''}
+        ${u.profileCreatedBy && String(u.profileCreatedBy).toLowerCase() !== 'self' ? html`<span class="badge badge--neutral" title="Who manages this profile">Managed by ${createdByLabel(u.profileCreatedBy).toLowerCase()}</span>` : ''}
         ${u.membershipPlan && u.membershipPlan.name ? html`<span class="badge badge--warning">${u.membershipPlan.name}</span>` : ''}
       </div>
     </div>`);
@@ -125,6 +140,7 @@ function renderProfile() {
     ])}
     ${section('Account', [
       ['User id', html`<span class="mono">${u._id}</span>`], ['Role', val(u.role)], ['Login platform', val(u.last_login_platform)],
+      ['Profile created by', createdByLabel(u.profileCreatedBy)], ['Verified on', u.verifiedAt ? fmtDateTime(u.verifiedAt) : '—'],
       ['Profile completion', u.profileCompletion ? `${fmtNumber(u.profileCompletion.percentage, '0')}%` : '—'],
       ['Push notifications', u.is_push_notifications ? 'On' : 'Off'], ['Block reason', val(u.block_reason)],
       ['Interests sent / received', `${fmtNumber(u.stats && u.stats.sentRequests, '0')} / ${fmtNumber(u.stats && u.stats.receivedRequests, '0')}`],
@@ -269,12 +285,27 @@ function renderMembership() {
 async function assignPlan() {
   const m = openModal({
     title: 'Assign membership plan',
-    body: html`<div class="form-group"><label class="form-label" for="plan-id">Plan id</label><input class="form-control" id="plan-id" type="text" pattern="[a-f0-9]{24}" placeholder="24-character plan id" autocomplete="off"><p class="form-help">Plans are managed in the database (MembershipPlan). Paste the plan's id; the API validates it.</p></div>`,
-    footer: html`<button type="button" class="btn btn--secondary" data-cancel>Cancel</button><button type="button" class="btn btn--primary" data-ok>Assign</button>`,
+    body: html`<div class="skeleton skeleton--row"></div>`,
+    footer: html`<button type="button" class="btn btn--secondary" data-cancel>Cancel</button><button type="button" class="btn btn--primary" data-ok disabled>Assign</button>`,
     size: 'sm',
   });
   m.footer.querySelector('[data-cancel]').addEventListener('click', () => m.close());
-  m.footer.querySelector('[data-ok]').addEventListener('click', async () => {
+  const okBtn = m.footer.querySelector('[data-ok]');
+  try {
+    const { data } = await api('/admin/membership-plans');
+    const plans = Array.isArray(data) ? data : [];
+    const currentId = user.membershipPlan && typeof user.membershipPlan === 'object' ? String(user.membershipPlan._id) : String(user.membershipPlan || '');
+    if (!plans.length) {
+      m.setBody(html`<div class="empty empty--tight"><div class="empty__title">No plans exist</div><div class="empty__hint">There is nothing to assign. The product is free for everyone.</div></div>`);
+      return;
+    }
+    m.setBody(html`<div class="form-group"><label class="form-label" for="plan-id">Plan</label><select class="form-select" id="plan-id"><option value="">Choose a plan</option>${plans.map((p) => html`<option value="${p._id}" ${String(p._id) === currentId ? 'selected' : ''}>${p.name || 'Unnamed plan'}${p.duration_days ? ` (${p.duration_days} days)` : ''}${p.is_active === false || p.isActive === false ? ' (inactive)' : ''}</option>`)}</select><p class="form-help">Plans change nothing for other members.</p></div>`);
+    okBtn.disabled = false;
+  } catch (err) {
+    m.setBody(html`<div class="alert alert--error" role="alert">${errorMessage(err, 'Could not load the plans.')}</div>`);
+    return;
+  }
+  okBtn.addEventListener('click', async () => {
     const input = m.body.querySelector('#plan-id');
     const planId = input.value.trim();
     if (!/^[a-f0-9]{24}$/i.test(planId)) { input.classList.add('is-invalid'); input.focus(); return; }
@@ -289,6 +320,157 @@ async function assignPlan() {
       toast.error(errorMessage(err, 'Could not assign the plan.'));
     }
   });
+}
+
+// ---- Verification tab -----------------------------------------------------
+let verifications = [];
+const refId = (v) => String((v && typeof v === 'object' ? v._id : v) || '');
+
+async function loadVerification() {
+  const host = panel('verification');
+  setHtml(host, html`<div class="skeleton skeleton--row"></div><div class="skeleton skeleton--block"></div>`);
+  try {
+    const resp = await api('/admin/verifications', { query: { userId, limit: 20 } });
+    verifications = (Array.isArray(resp.data) ? resp.data : [])
+      .filter((v) => refId(v.user) === String(userId))
+      .sort((a, b) => new Date(b.submittedAt || b.createdAt || 0) - new Date(a.submittedAt || a.createdAt || 0));
+    renderVerification();
+  } catch (err) {
+    setHtml(host, html`<div class="alert alert--error" role="alert"><span>${errorMessage(err, 'Could not load verification requests.')}</span><button type="button" class="btn btn--secondary btn--sm" data-retry="verification">Retry</button></div>`);
+  }
+}
+
+function renderVerification() {
+  const host = panel('verification');
+  const latest = verifications[0];
+  if (!latest) {
+    setHtml(host, html`<div class="empty"><div class="empty__title">No verification request</div><div class="empty__hint">${user && user.is_verified ? 'This member was verified directly by an admin.' : 'The member has not submitted a document and selfie yet. The Verify button above still works for a manual check.'}</div></div>`);
+    return;
+  }
+  const older = verifications.slice(1);
+  setHtml(host, html`
+    <dl class="key-value">
+      <dt>Latest request</dt><dd>${verificationBadge(latest.status)} submitted ${fmtDateTime(latest.submittedAt || latest.createdAt)}</dd>
+      <dt>Name on document</dt><dd>${latest.fullName || '—'}</dd>
+      <dt>Document type</dt><dd>${latest.documentType ? titleCase(latest.documentType) : '—'}</dd>
+      ${latest.reviewedAt ? html`<dt>Reviewed</dt><dd>${fmtDateTime(latest.reviewedAt)}</dd>` : ''}
+      ${latest.reason ? html`<dt>Reason</dt><dd class="pre-wrap">${latest.reason}</dd>` : ''}
+    </dl>
+    ${filesMarkup(latest)}
+    <div class="btn-group mt-3">
+      ${latest.status === 'pending' ? html`<button type="button" class="btn btn--primary btn--sm" data-verif-action="approve">Approve</button><button type="button" class="btn btn--danger btn--sm" data-verif-action="reject">Reject</button>` : ''}
+      ${latest.status !== 'pending' && !latest.filesPurgedAt ? html`<button type="button" class="btn btn--ghost btn--sm" data-verif-action="purge">Delete files now</button>` : ''}
+      <a class="btn btn--secondary btn--sm" href="/verifications">Open the verification queue</a>
+    </div>
+    ${older.length ? html`<div class="table-wrap mt-3"><table class="table table--compact"><caption class="sr-only">Earlier verification requests</caption>
+      <thead><tr><th scope="col">Submitted</th><th scope="col">Document</th><th scope="col">Status</th><th scope="col">Reason</th></tr></thead>
+      <tbody>${older.map((v) => html`<tr><td class="nowrap">${fmtDate(v.submittedAt || v.createdAt)}</td><td>${v.documentType ? titleCase(v.documentType) : '—'}</td><td>${verificationBadge(v.status)}</td><td>${truncate(v.reason || '—', 120)}</td></tr>`)}</tbody></table></div>` : ''}`);
+  bindImageFallbacks(host);
+}
+
+async function verificationAction(action) {
+  const latest = verifications[0];
+  if (!latest) return;
+  const fn = action === 'approve' ? approveVerification : action === 'reject' ? rejectVerification : purgeVerificationFiles;
+  if (await fn({ ...latest, user: latest.user && typeof latest.user === 'object' ? latest.user : { full_name: user && user.full_name } })) {
+    // loadUser() refreshes every opened tab, this one included.
+    loaded.add('verification');
+    await loadUser();
+  }
+}
+
+// ---- Recommend a match tab --------------------------------------------------
+let recoTarget = null;
+const recoForm = el('#recommend-form');
+const recoSend = recoForm ? el('[data-reco-send]', recoForm) : null;
+const recoHistory = el('[data-reco-history]');
+
+function warningsMarkup(list) {
+  const items = (Array.isArray(list) ? list : []).map((w) => (typeof w === 'string' ? w : (w && (w.message || w.code)) || '')).filter(Boolean);
+  if (!items.length) return '';
+  return html`<div class="alert alert--warning mt-3" role="status"><span>Sent, with warnings:<ul class="reco-warnings">${items.map((w) => html`<li>${w}</li>`)}</ul></span></div>`;
+}
+
+function initRecommend() {
+  if (!recoForm) return;
+  bindCounters(recoForm);
+  bindTypeahead({
+    input: el('#reco-target'),
+    list: el('[data-reco-list]'),
+    search: async (q) => ((await api('/admin/users', { query: { search: q, limit: 10 } })).data || []).filter((u) => String(u._id) !== String(userId)),
+    label: (u) => `${u.full_name || 'Member'} · ${u.gender || 'gender not set'}${u.email ? ` · ${u.email}` : ''}${u.is_block ? ' · blocked' : ''}`,
+    onPick: (u) => {
+      recoTarget = u;
+      el('#reco-target').value = u.full_name || u.email || '';
+      el('[data-reco-picked]').textContent = `Recommending ${u.full_name || 'this member'}${u.gender ? ` (${u.gender})` : ''}.`;
+      recoSend.disabled = false;
+    },
+    emptyText: 'No member matches',
+  });
+  el('#reco-target').addEventListener('input', () => {
+    if (recoTarget && el('#reco-target').value.trim() !== (recoTarget.full_name || recoTarget.email || '')) {
+      recoTarget = null;
+      recoSend.disabled = true;
+      el('[data-reco-picked]').textContent = 'No member picked.';
+    }
+  });
+  recoForm.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    busy(recoSend, async () => {
+      if (!recoTarget) { toast.warning('Pick the member to recommend first.'); return; }
+      const f = recoForm.elements;
+      const body = { targetUserId: recoTarget._id, note: f.note.value.trim() || undefined, notifyBoth: f.notifyBoth.checked };
+      const warnEl = el('[data-reco-warnings]', recoForm);
+      setHtml(warnEl, '');
+      try {
+        const resp = await api(`/admin/users/${userId}/recommend`, { method: 'POST', body });
+        const warnings = (resp.data && resp.data.warnings) || resp.warnings || [];
+        toast.success('Recommendation sent');
+        setHtml(warnEl, warningsMarkup(warnings));
+        recoTarget = null;
+        recoForm.reset();
+        recoSend.disabled = true;
+        el('[data-reco-picked]').textContent = 'No member picked.';
+        loadRecommendations();
+      } catch (err) {
+        toast.error(err && err.status === 409 ? 'This member was already recommended to them.' : errorMessage(err, 'Could not send the recommendation.'));
+      }
+    });
+  });
+}
+
+async function loadRecommendations() {
+  if (!recoHistory) return;
+  setHtml(recoHistory, html`<div class="card__body"><div class="skeleton skeleton--row"></div></div>`);
+  try {
+    const { data } = await api(`/admin/users/${userId}/recommendations`);
+    const rows = Array.isArray(data) ? data : [];
+    if (!rows.length) { setHtml(recoHistory, html`<div class="empty empty--tight"><div class="empty__title">No recommendations sent to this member yet</div></div>`); return; }
+    setHtml(recoHistory, html`<div class="table-wrap"><table class="table"><caption class="sr-only">Matches recommended to this member</caption>
+      <thead><tr><th scope="col">Recommended member</th><th scope="col">Note</th><th scope="col">Sent by</th><th scope="col">When</th><th scope="col" class="table__actions">Actions</th></tr></thead>
+      <tbody>${rows.map((r) => {
+    const t = r.targetUser || r.target || r.recommendedUser || {};
+    const by = r.createdBy || r.admin || {};
+    return html`<tr>
+        <td>${t._id ? html`<a href="/users/${t._id}">${t.full_name || 'Member'}</a>` : 'Deleted member'}</td>
+        <td><span class="cell-wrap">${truncate(r.note || '—', 120)}</span></td>
+        <td>${by.full_name || by.email || '—'}</td>
+        <td class="nowrap">${fmtDateTime(r.createdAt)}</td>
+        <td class="table__actions"><button type="button" class="btn btn--danger btn--sm" data-reco-delete="${r._id}">Delete</button></td></tr>`;
+  })}</tbody></table></div>`);
+  } catch (err) {
+    setHtml(recoHistory, html`<div class="alert alert--error" role="alert"><span>${errorMessage(err, 'Could not load recommendations.')}</span><button type="button" class="btn btn--secondary btn--sm" data-retry="recommend">Retry</button></div>`);
+  }
+}
+
+async function deleteRecommendation(id) {
+  const ok = await confirm({ title: 'Delete this recommendation?', message: 'It disappears from the member\'s recommendations. A notification already delivered is not recalled.', confirmText: 'Delete', danger: true });
+  if (!ok) return;
+  try {
+    await api(`/admin/recommendations/${id}`, { method: 'DELETE' });
+    toast.success('Recommendation deleted');
+    loadRecommendations();
+  } catch (err) { toast.error(errorMessage(err, 'Could not delete the recommendation.')); }
 }
 
 // ---- Actions --------------------------------------------------------------
@@ -306,6 +488,7 @@ function openEdit() {
         <div class="form-group"><label class="form-label" for="eu-dob">Date of birth</label><input class="form-control" id="eu-dob" name="dob" type="date" value="${toDateInput(u.dob)}"></div>
         <div class="form-group"><label class="form-label" for="eu-marital">Marital status</label><select class="form-select" id="eu-marital" name="maritalStatus"><option value="">—</option>${MARITAL.map((s) => html`<option value="${s}" ${u.maritalStatus === s ? 'selected' : ''}>${s}</option>`)}</select></div>
         <div class="form-group"><label class="form-label" for="eu-height">Height (cm)</label><input class="form-control" id="eu-height" name="height" type="number" min="30" max="250" value="${u.height || ''}"></div>
+        <div class="form-group"><label class="form-label" for="eu-created-by">Profile created by</label><select class="form-select" id="eu-created-by" name="profileCreatedBy">${Object.entries(CREATED_BY).map(([v, l]) => html`<option value="${v}" ${String(u.profileCreatedBy || 'self').toLowerCase() === v ? 'selected' : ''}>${l}</option>`)}</select></div>
       </div>
       <div class="form-group"><label class="form-label" for="eu-bio">Bio</label><textarea class="form-control" id="eu-bio" name="bio" maxlength="1000">${u.bio || ''}</textarea></div>
     </form>`,
@@ -322,6 +505,7 @@ function openEdit() {
       maritalStatus: v.maritalStatus || null,
       dob: v.dob || null,
       height: v.height === '' ? null : Number(v.height),
+      profileCreatedBy: v.profileCreatedBy || 'self',
     };
     if (v.email.trim()) body.email = v.email.trim().toLowerCase();
     if (v.phone.trim()) body.phone = v.phone.trim();
@@ -433,7 +617,7 @@ async function deleteUser() {
 }
 
 // ---- Tabs -----------------------------------------------------------------
-const LOADERS = { activity: loadActivity, blocks: loadBlocks, reports: loadReports };
+const LOADERS = { activity: loadActivity, blocks: loadBlocks, reports: loadReports, verification: loadVerification, recommend: loadRecommendations };
 
 function showTab(key, { focus = false } = {}) {
   els('[data-tab]').forEach((t) => {
@@ -478,7 +662,7 @@ async function loadUser() {
     renderPhotos();
     renderMembership();
     // refresh the lists that depend on the user if already opened
-    ['activity', 'blocks', 'reports'].forEach((k) => { if (loaded.has(k)) LOADERS[k](); });
+    ['activity', 'blocks', 'reports', 'verification'].forEach((k) => { if (loaded.has(k)) LOADERS[k](); });
   } catch (err) {
     const host = panel('profile');
     const notFound = err && err.status === 404;
@@ -499,6 +683,9 @@ if (root) {
   });
   delegate(root, 'click', '[data-photo-action]', (ev, btn) => moderatePhoto(btn.dataset.photoAction, btn.dataset.id));
   delegate(root, 'click', '[data-assign-plan]', () => assignPlan());
+  delegate(root, 'click', '[data-verif-action]', (ev, btn) => verificationAction(btn.dataset.verifAction));
+  delegate(root, 'click', '[data-reco-delete]', (ev, btn) => deleteRecommendation(btn.dataset.recoDelete));
+  initRecommend();
   delegate(root, 'click', '[data-retry]', (ev, btn) => {
     const k = btn.dataset.retry;
     if (k === 'user') loadUser(); else if (LOADERS[k]) LOADERS[k]();

@@ -20,7 +20,10 @@ const item = (key, label, icon, extra = {}) => ({
 const NAV = [
   {
     group: 'Overview',
-    items: [item('dashboard', 'Dashboard', 'dashboard')],
+    items: [
+      item('dashboard', 'Dashboard', 'dashboard'),
+      item('analytics', 'Analytics', 'bar-chart'),
+    ],
   },
   {
     group: 'Members',
@@ -28,6 +31,7 @@ const NAV = [
       item('users', 'Users', 'users'),
       item('reports', 'Reports', 'flag'),
       item('photo-moderation', 'Photo moderation', 'image'),
+      item('verifications', 'Verifications', 'shield-check'),
     ],
   },
   {
@@ -44,6 +48,9 @@ const NAV = [
       item('blogs', 'Blogs', 'file-text'),
       item('banners', 'Banners', 'layout'),
       item('regional-pages', 'Regional pages', 'map'),
+      item('success-stories', 'Success stories', 'heart'),
+      item('announcements', 'Announcements', 'megaphone'),
+      item('faqs', 'FAQs', 'help-circle'),
       item('master-data', 'Master data', 'database'),
     ],
   },
@@ -53,6 +60,7 @@ const NAV = [
       item('settings', 'Settings', 'settings'),
       item('apk-manager', 'APK manager', 'smartphone'),
       item('broadcast-email', 'Broadcast email', 'send'),
+      item('push-notifications', 'Push notifications', 'bell-ring'),
       item('audit-log', 'Audit log', 'history'),
     ],
   },

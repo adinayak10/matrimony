@@ -1,0 +1,117 @@
+<div class="page-push">
+  <div class="grid grid--2-1">
+    <section class="card" aria-labelledby="push-compose-title">
+      <div class="card__header"><h2 class="card__title" id="push-compose-title">Compose</h2></div>
+      <form id="push-form" novalidate autocomplete="off">
+        <div class="card__body">
+          <div class="form-group">
+            <label class="form-label" for="push-title">Title <span class="text-danger" aria-hidden="true">*</span><span class="form-count" data-count-for="push-title" aria-hidden="true"></span></label>
+            <input class="form-control" type="text" id="push-title" name="title" maxlength="60" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="push-body">Message <span class="text-danger" aria-hidden="true">*</span><span class="form-count" data-count-for="push-body" aria-hidden="true"></span></label>
+            <textarea class="form-control" id="push-body" name="body" rows="4" maxlength="180" required aria-describedby="push-body-help"></textarea>
+            <p class="form-help" id="push-body-help">Plain text. Phones cut long messages, so put the point first.</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="push-link-type">When tapped, open</label>
+              <select class="form-select" id="push-link-type" name="linkType">
+                <option value="none" selected>The app (no link)</option>
+                <option value="announcement">An announcement</option>
+                <option value="profile">A member profile</option>
+                <option value="blog">A blog post</option>
+                <option value="url">A web address</option>
+              </select>
+            </div>
+            <div class="form-group" data-link-value hidden>
+              <label class="form-label" for="push-link-value" data-link-label>Link target</label>
+              <input class="form-control" type="text" id="push-link-value" name="linkValue" maxlength="500" aria-describedby="push-link-help">
+              <p class="form-help" id="push-link-help" data-link-help></p>
+            </div>
+          </div>
+
+          <fieldset class="fieldset">
+            <legend class="fieldset__legend">Send a test first</legend>
+            <div class="form-group typeahead">
+              <label class="form-label" for="push-test-user">Member to receive the test</label>
+              <input class="form-control" type="search" id="push-test-user" placeholder="Search by name, email or phone" aria-describedby="push-test-help">
+              <ul class="typeahead__list" data-test-list hidden></ul>
+              <p class="form-help" id="push-test-help" data-test-picked>No member picked. Pick your own account to see the notification on your phone.</p>
+            </div>
+            <button type="button" class="btn btn--secondary" data-action="send-test" disabled>Send test push</button>
+          </fieldset>
+        </div>
+        <div class="form-actions">
+          <span class="muted" data-send-note>Count the audience before sending.</span>
+          <button type="submit" class="btn btn--danger" data-send disabled>Send push</button>
+        </div>
+      </form>
+    </section>
+
+    <div>
+      <section class="card" aria-labelledby="push-audience-title">
+        <div class="card__header"><h2 class="card__title" id="push-audience-title">Audience</h2></div>
+        <form class="card__body" id="push-audience" novalidate autocomplete="off">
+          <fieldset class="fieldset">
+            <legend class="fieldset__legend">Send to</legend>
+            <div class="radio-row">
+              <label for="push-mode-topic"><input type="radio" id="push-mode-topic" name="mode" value="topic" checked> Everyone with the app</label>
+              <label for="push-mode-filters"><input type="radio" id="push-mode-filters" name="mode" value="filters"> Members matching filters</label>
+            </div>
+          </fieldset>
+          <div class="form-group">
+            <label class="form-label" for="push-platform">Platform</label>
+            <select class="form-select" id="push-platform" name="platform">
+              <option value="all" selected>Android and iOS</option><option value="android">Android only</option><option value="ios">iOS only</option>
+            </select>
+          </div>
+          <div data-filters-only hidden>
+            <div class="form-group">
+              <label class="form-label" for="push-gender">Gender</label>
+              <select class="form-select" id="push-gender" name="gender">
+                <option value="">Any gender</option><option value="Male">Male</option><option value="Female">Female</option><option value="Not specified">Not specified</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="push-state">State</label>
+              <select class="form-select" id="push-state" name="state"><option value="">Any state</option></select>
+            </div>
+            <div class="form-group typeahead">
+              <label class="form-label" for="push-city">City</label>
+              <input class="form-control" type="search" id="push-city" placeholder="Pick a state, then search" disabled aria-describedby="push-city-help">
+              <ul class="typeahead__list" data-city-list hidden></ul>
+              <p class="form-help" id="push-city-help" data-city-picked>Any city.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="push-verified">Verification</label>
+              <select class="form-select" id="push-verified" name="verified">
+                <option value="">Verified and unverified</option><option value="1">Verified only</option><option value="0">Unverified only</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="push-last-seen">Last seen</label>
+              <select class="form-select" id="push-last-seen" name="lastSeenDays">
+                <option value="">Any time</option><option value="1">In the last day</option><option value="7">In the last 7 days</option><option value="30">In the last 30 days</option><option value="90">In the last 90 days</option>
+              </select>
+            </div>
+          </div>
+          <div class="word-counter word-counter--static mb-0" role="status" data-preview>
+            <span class="word-counter__value" data-preview-count>&ndash;</span>
+            <span class="word-counter__hint" data-preview-hint>Counting recipients…</span>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+  <section class="card" aria-labelledby="push-jobs-title">
+    <div class="card__header">
+      <h2 class="card__title" id="push-jobs-title">Recent pushes</h2>
+      <button type="button" class="btn btn--secondary btn--sm" data-action="reload-jobs">Refresh</button>
+    </div>
+    <div class="card__body card__body--flush">
+      <div id="push-jobs-table" data-table-mount></div>
+    </div>
+  </section>
+</div>

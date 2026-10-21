@@ -1,0 +1,25 @@
+<section class="stats-grid stats-grid--4" aria-label="Verification counts">
+  <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('clock') %></div><div><div class="stat__value" data-stat="pending">&ndash;</div><div class="stat__label">Pending review</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('shield-check') %></div><div><div class="stat__value" data-stat="approved">&ndash;</div><div class="stat__label">Approved</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--danger"><%- icon('x-circle') %></div><div><div class="stat__value" data-stat="rejected">&ndash;</div><div class="stat__label">Rejected</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('check-circle') %></div><div><div class="stat__value" data-stat="total">&ndash;</div><div class="stat__label">All requests</div></div></div>
+</section>
+
+<section class="card">
+  <div class="card__header card__header--stack">
+    <p class="page-head__text">Members submit an ID document and a selfie from the app or the website. Approving gives them the verified badge; rejecting tells them why so they can try again. Files are private and are deleted after the retention period.</p>
+    <%- include('../partials/table-toolbar', {
+      id: 'verification-filters',
+      search: { name: 'search', placeholder: 'Search by name or email' },
+      filters: [
+        { name: 'status', label: 'Status', value: 'pending', options: [
+          { value: 'pending', label: 'Pending' }, { value: 'approved', label: 'Approved' }, { value: 'rejected', label: 'Rejected' }, { value: 'all', label: 'All' }
+        ] },
+        { name: 'documentType', label: 'Document type', options: [ { value: '', label: 'Any document' } ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="verifications-table" data-table-mount></div>
+  </div>
+</section>

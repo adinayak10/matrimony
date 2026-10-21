@@ -1,0 +1,90 @@
+<%
+var demoTables = [
+  ['cities', 'Top cities', 'City'], ['states', 'Top states', 'State'], ['castes', 'Castes', 'Caste'],
+  ['gotras', 'Top gotras', 'Gotra'], ['ageBuckets', 'Age groups', 'Age'], ['gender', 'Gender', 'Gender']
+];
+var metrics = [
+  ['signups', 'Signups'], ['interests', 'Interests sent'], ['accepted', 'Interests accepted'],
+  ['shortlists', 'Shortlists'], ['visitors', 'Profile visits'], ['messages', 'Messages']
+];
+%>
+<div class="page-analytics">
+  <section class="card">
+    <div class="card__header card__header--stack">
+      <p class="page-head__text">Real counts from the database and the activity log; nothing here is estimated. A figure with too little data says so instead of drawing an empty chart.</p>
+      <%- include('../partials/table-toolbar', {
+        id: 'analytics-filters',
+        search: false,
+        clear: false,
+        filters: [
+          { name: 'days', label: 'Period', value: '30', options: [
+            { value: '7', label: 'Last 7 days' }, { value: '30', label: 'Last 30 days' }, { value: '90', label: 'Last 90 days' }
+          ] }
+        ]
+      }) %>
+    </div>
+  </section>
+
+  <section class="stats-grid stats-grid--4" aria-label="Active members">
+    <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('activity') %></div><div><div class="stat__value" data-stat="onlineNow">&ndash;</div><div class="stat__label">Online now</div></div></div>
+    <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('users') %></div><div><div class="stat__value" data-stat="dau">&ndash;</div><div class="stat__label">Active today (DAU)</div></div></div>
+    <div class="stat"><div class="stat__icon stat__icon--info"><%- icon('users') %></div><div><div class="stat__value" data-stat="wau">&ndash;</div><div class="stat__label">Active in 7 days (WAU)</div></div></div>
+    <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('users') %></div><div><div class="stat__value" data-stat="mau">&ndash;</div><div class="stat__label">Active in 30 days (MAU)</div></div></div>
+  </section>
+  <p class="form-help" data-active-note hidden></p>
+
+  <div class="grid grid--2">
+    <section class="card" aria-labelledby="an-funnel-title">
+      <div class="card__header"><h2 class="card__title" id="an-funnel-title">Member funnel</h2></div>
+      <div class="card__body">
+        <p class="form-help">Members who joined in the period and how far they got.</p>
+        <div class="bars" data-bars="funnel" data-chart="funnel"></div>
+        <div class="table-wrap mt-3" data-funnel-table hidden><table class="table table--compact"><caption class="sr-only">Funnel step conversion</caption><thead><tr><th scope="col">Step</th><th scope="col" class="num">Members</th><th scope="col" class="num">Of previous step</th><th scope="col" class="num">Of signups</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="an-activity-title">
+      <div class="card__header"><h2 class="card__title" id="an-activity-title">Daily activity</h2></div>
+      <div class="card__body">
+        <div class="chart-toolbar">
+          <div class="filters__item">
+            <label class="form-label form-label--sm" for="an-metric">Metric</label>
+            <select class="form-select" id="an-metric" data-chart-metric>
+              <% metrics.forEach(function (m, i) { %><option value="<%= m[0] %>"<%= i === 0 ? ' selected' : '' %>><%= m[1] %></option><% }); %>
+            </select>
+          </div>
+        </div>
+        <figure class="chart" data-chart="activity" aria-label="Daily activity for the selected metric">
+          <div class="chart__plot" data-chart-plot></div>
+          <p class="empty empty--inline" data-chart-empty hidden>Not enough data yet.</p>
+        </figure>
+        <details class="chart__table">
+          <summary>Show as table</summary>
+          <div class="table-wrap"><table class="table table--compact" data-activity-table><caption class="sr-only">Daily activity, all metrics</caption>
+            <thead><tr><th scope="col">Day</th><% metrics.forEach(function (m) { %><th scope="col" class="num"><%= m[1] %></th><% }); %></tr></thead><tbody></tbody></table></div>
+        </details>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid grid--2">
+    <section class="card" aria-labelledby="an-membership-title">
+      <div class="card__header"><h2 class="card__title" id="an-membership-title">Members by plan</h2></div>
+      <div class="card__body"><div class="bars" data-bars="membership" data-chart="membership"></div></div>
+    </section>
+    <section class="card" aria-labelledby="an-login-title">
+      <div class="card__header"><h2 class="card__title" id="an-login-title">Sign-in method</h2></div>
+      <div class="card__body"><div class="bars" data-bars="loginTypes" data-chart="loginTypes"></div></div>
+    </section>
+  </div>
+
+  <h2 class="info-section__title mt-3">Demographics</h2>
+  <div class="grid grid--2" data-demographics>
+    <% demoTables.forEach(function (t) { %>
+      <section class="card" aria-labelledby="an-demo-<%= t[0] %>">
+        <div class="card__header"><h3 class="card__title" id="an-demo-<%= t[0] %>"><%= t[1] %></h3></div>
+        <div class="card__body card__body--flush" data-demo="<%= t[0] %>" data-demo-label="<%= t[2] %>"><div class="card__body"><div class="skeleton skeleton--row"></div></div></div>
+      </section>
+    <% }); %>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<section class="card">
+  <div class="card__header card__header--stack">
+    <p class="page-head__text">Stories couples submit from the app or the website. Nothing is public until it is published; featured stories are shown first on the website. Only publish what the couple sent: never write or embellish a story for them.</p>
+    <%- include('../partials/table-toolbar', {
+      id: 'story-filters',
+      search: { name: 'search', placeholder: 'Search names or city' },
+      filters: [
+        { name: 'status', label: 'Status', value: 'pending', options: [
+          { value: 'pending', label: 'Pending' }, { value: 'approved', label: 'Approved' }, { value: 'published', label: 'Published' }, { value: 'rejected', label: 'Rejected' }, { value: 'all', label: 'All' }
+        ] },
+        { name: 'featured', label: 'Featured', options: [
+          { value: '', label: 'Featured or not' }, { value: '1', label: 'Featured only' }, { value: '0', label: 'Not featured' }
+        ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="stories-table" data-table-mount></div>
+  </div>
+</section>

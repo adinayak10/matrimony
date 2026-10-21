@@ -23,6 +23,8 @@
     <button class="tab" role="tab" type="button" id="tab-activity" aria-selected="false" aria-controls="panel-activity" data-tab="activity" tabindex="-1">Activity</button>
     <button class="tab" role="tab" type="button" id="tab-blocks" aria-selected="false" aria-controls="panel-blocks" data-tab="blocks" tabindex="-1">Blocks</button>
     <button class="tab" role="tab" type="button" id="tab-reports" aria-selected="false" aria-controls="panel-reports" data-tab="reports" tabindex="-1">Reports</button>
+    <button class="tab" role="tab" type="button" id="tab-verification" aria-selected="false" aria-controls="panel-verification" data-tab="verification" tabindex="-1">Verification</button>
+    <button class="tab" role="tab" type="button" id="tab-recommend" aria-selected="false" aria-controls="panel-recommend" data-tab="recommend" tabindex="-1">Recommend a match</button>
     <button class="tab" role="tab" type="button" id="tab-membership" aria-selected="false" aria-controls="panel-membership" data-tab="membership" tabindex="-1">Membership</button>
   </div>
 
@@ -40,6 +42,32 @@
   </section>
   <section class="card tab-panel" id="panel-reports" role="tabpanel" aria-labelledby="tab-reports" data-panel="reports" hidden>
     <div class="card__body card__body--flush" data-panel-body></div>
+  </section>
+  <section class="card tab-panel" id="panel-verification" role="tabpanel" aria-labelledby="tab-verification" data-panel="verification" hidden>
+    <div class="card__body" data-panel-body></div>
+  </section>
+  <section class="card tab-panel" id="panel-recommend" role="tabpanel" aria-labelledby="tab-recommend" data-panel="recommend" hidden>
+    <div class="card__body">
+      <form id="recommend-form" novalidate autocomplete="off">
+        <p class="form-help">Suggest another member to this person as a match. They get a notification; with "Notify both" the other member is told too. Warnings (same gender, gotra rules) are shown after sending but do not block it.</p>
+        <div class="form-group typeahead">
+          <label class="form-label" for="reco-target">Member to recommend <span class="text-danger" aria-hidden="true">*</span></label>
+          <input class="form-control" type="search" id="reco-target" placeholder="Search by name, email or phone" aria-describedby="reco-target-help">
+          <ul class="typeahead__list" data-reco-list hidden></ul>
+          <p class="form-help" id="reco-target-help" data-reco-picked>No member picked.</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reco-note">Note (optional, shown to the member)<span class="form-count" data-count-for="reco-note" aria-hidden="true"></span></label>
+          <textarea class="form-control" id="reco-note" name="note" rows="3" maxlength="500"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-check" for="reco-notify-both"><input type="checkbox" id="reco-notify-both" name="notifyBoth"><span>Notify both members</span></label>
+        </div>
+        <div data-reco-warnings></div>
+        <button type="submit" class="btn btn--primary" data-reco-send disabled>Send recommendation</button>
+      </form>
+    </div>
+    <div class="card__body card__body--flush" data-reco-history></div>
   </section>
   <section class="card tab-panel" id="panel-membership" role="tabpanel" aria-labelledby="tab-membership" data-panel="membership" hidden>
     <div class="card__body" data-panel-body></div>

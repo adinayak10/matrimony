@@ -1,0 +1,25 @@
+<section class="card">
+  <div class="card__header card__header--stack">
+    <div class="page-head mb-0">
+      <p class="page-head__text">Platform announcements appear in the app's notification screen (Platform tab) and on the website's notifications page. A draft is invisible until it is published; publishing can also send a push notification to app users.</p>
+      <div class="card__actions">
+        <button type="button" class="btn btn--primary" data-action="create">New announcement</button>
+      </div>
+    </div>
+    <%- include('../partials/table-toolbar', {
+      id: 'announcement-filters',
+      search: { name: 'search', placeholder: 'Search titles' },
+      filters: [
+        { name: 'status', label: 'Status', options: [
+          { value: '', label: 'Any status' }, { value: 'draft', label: 'Draft' }, { value: 'published', label: 'Published' }, { value: 'archived', label: 'Archived' }
+        ] },
+        { name: 'type', label: 'Type', options: [
+          { value: '', label: 'Any type' }, { value: 'announcement', label: 'Announcement' }, { value: 'update', label: 'Update' }, { value: 'maintenance', label: 'Maintenance' }, { value: 'event', label: 'Event' }
+        ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="announcements-table" data-table-mount></div>
+  </div>
+</section>

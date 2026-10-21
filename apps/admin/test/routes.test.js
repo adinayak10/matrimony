@@ -65,6 +65,30 @@ test('proxy allowlist admits admin paths and rejects the user API', () => {
   assert.equal(proxy.isAllowed('/api/admin//users'), false);
 });
 
+test('proxy allowlist admits every feature-expansion admin endpoint (all under /api/admin/)', () => {
+  const ID = '64f000000000000000000000';
+  for (const p of [
+    '/api/admin/verifications', '/api/admin/verifications/stats', `/api/admin/verifications/${ID}`,
+    `/api/admin/verifications/${ID}/files/selfie`, `/api/admin/verifications/${ID}/files/document-0`, `/api/admin/verifications/${ID}/files/document-1`,
+    `/api/admin/verifications/${ID}/approve`, `/api/admin/verifications/${ID}/reject`, `/api/admin/verifications/${ID}/files`,
+    '/api/admin/success-stories', `/api/admin/success-stories/${ID}`, `/api/admin/success-stories/${ID}/status`, `/api/admin/success-stories/${ID}/featured`,
+    '/api/admin/announcements', `/api/admin/announcements/${ID}`, `/api/admin/announcements/${ID}/publish`, `/api/admin/announcements/${ID}/archive`,
+    '/api/admin/faq-categories', `/api/admin/faq-categories/${ID}`, '/api/admin/faqs', `/api/admin/faqs/${ID}`, '/api/admin/faqs/reorder',
+    '/api/admin/push/broadcast', '/api/admin/push/preview', '/api/admin/push/filtered', '/api/admin/push/user', '/api/admin/push/jobs',
+    '/api/admin/icebreaker/questions', `/api/admin/icebreaker/questions/${ID}`, `/api/admin/icebreaker/questions/${ID}/toggle`,
+    '/api/admin/icebreaker/questions/seed-defaults', '/api/admin/icebreaker/stats',
+    '/api/admin/analytics/funnel', '/api/admin/analytics/activity', '/api/admin/analytics/demographics', '/api/admin/analytics/active',
+    `/api/admin/users/${ID}/recommend`, `/api/admin/users/${ID}/recommendations`, '/api/admin/recommendations', `/api/admin/recommendations/${ID}`,
+    '/api/admin/membership-plans', '/api/admin/dashboard/stats',
+  ]) {
+    assert.ok(proxy.isAllowed(p), `${p} is not allowed through the proxy`);
+  }
+  // The member-side endpoints of the same features stay unreachable from the admin host.
+  for (const p of ['/api/profileVerification', '/api/fetchVerificationStatus', '/api/submitSuccessStory', '/api/fetchPlatformNotification', '/api/fetchFAQs', '/api/pushNotificationToSingleUser', '/api/fetchRecommendations']) {
+    assert.equal(proxy.isAllowed(p), false, `${p} must not be proxied`);
+  }
+});
+
 test('legacy map covers every old page', () => {
   for (const name of ['dashboard', 'users', 'reports', 'photo-moderation', 'contact-enquiries', 'community-feedback', 'beta-testers', 'banners', 'regional-pages', 'settings', 'apk-manager', 'broadcast-email', 'constants', 'community-data', 'city-pages', 'state-pages', 'login', 'index']) {
     assert.ok(legacy.PAGE_MAP[name], `${name} missing from PAGE_MAP`);
@@ -276,11 +300,12 @@ test('admin server routes', async (t) => {
     assert.match(regional, /city pages are indexed at 300 or more unique words/);
 
     const master = await get('/master-data');
-    for (const key of ['castes', 'gotras', 'clans', 'surname-titles', 'professions', 'qualifications', 'income-ranges', 'interests', 'report-reasons', 'about-options']) {
+    for (const key of ['castes', 'gotras', 'clans', 'surname-titles', 'professions', 'qualifications', 'income-ranges', 'interests', 'report-reasons', 'about-options', 'icebreaker-questions']) {
       assert.match(master, new RegExp(`data-tab="${key}"`), `master-data tab ${key}`);
       assert.match(master, new RegExp(`data-md-mount="${key}"`), `master-data panel ${key}`);
     }
     assert.match(master, /data-action="ai-suggest"/);
+    assert.match(master, /data-action="seed-icebreaker"/);
 
     const settings = await get('/settings');
     assert.match(settings, /Matching and security/);
@@ -306,6 +331,72 @@ test('admin server routes', async (t) => {
 
     const photos = await get('/photo-moderation');
     assert.match(photos, /<option value="pending" selected>/, 'photo queue defaults to pending (integrator #20)');
+
+    // ---- Feature expansion (Track B) ----
+    const verifications = await get('/verifications');
+    assert.match(verifications, /<option value="pending" selected>/, 'verification queue defaults to pending');
+    for (const name of ['search', 'status', 'documentType']) assert.match(verifications, new RegExp(`name="${name}"`), `verification filter ${name}`);
+    for (const k of ['pending', 'approved', 'rejected', 'total']) assert.match(verifications, new RegExp(`data-stat="${k}"`), `verification tile ${k}`);
+    assert.match(verifications, /id="verifications-table"/);
+
+    const stories = await get('/success-stories');
+    assert.match(stories, /<option value="pending" selected>/, 'story moderation defaults to pending');
+    for (const name of ['status', 'featured']) assert.match(stories, new RegExp(`name="${name}"`), `story filter ${name}`);
+
+    const announcements = await get('/announcements');
+    assert.match(announcements, /data-action="create"/);
+    for (const name of ['status', 'type']) assert.match(announcements, new RegExp(`name="${name}"`), `announcement filter ${name}`);
+
+    const faqPage = await get('/faqs');
+    assert.match(faqPage, /data-action="add-faq"/);
+    assert.match(faqPage, /data-action="add-category"/);
+    assert.match(faqPage, /id="faq-groups"/);
+
+    const push = await get('/push-notifications');
+    for (const name of ['title', 'body', 'linkType', 'linkValue', 'mode', 'platform', 'gender', 'state', 'verified', 'lastSeenDays']) {
+      assert.match(push, new RegExp(`name="${name}"`), `push field ${name}`);
+    }
+    assert.match(push, /name="title"[^>]*maxlength="60"/, 'push title is capped at 60');
+    assert.match(push, /name="body"[^>]*maxlength="180"/, 'push body is capped at 180');
+    assert.match(push, /value="topic" checked/, 'push defaults to the topic mode');
+    assert.match(push, /<option value="none" selected>/);
+    assert.match(push, /data-action="send-test"/);
+    assert.match(push, /data-action="reload-jobs"/);
+
+    const analytics = await get('/analytics');
+    assert.match(analytics, /<option value="30" selected>/, 'analytics defaults to 30 days');
+    for (const chart of ['funnel', 'activity', 'membership', 'loginTypes']) assert.match(analytics, new RegExp(`data-chart="${chart}"`), `analytics chart ${chart}`);
+    for (const k of ['onlineNow', 'dau', 'wau', 'mau']) assert.match(analytics, new RegExp(`data-stat="${k}"`), `analytics tile ${k}`);
+    for (const k of ['cities', 'states', 'castes', 'gotras', 'ageBuckets', 'gender']) assert.match(analytics, new RegExp(`data-demo="${k}"`), `analytics demographics ${k}`);
+    assert.match(analytics, /Show as table/);
+
+    const dashboard = await get('/dashboard');
+    assert.match(dashboard, /href="\/analytics"/, 'dashboard links to analytics');
+  });
+
+  await t.test('user detail: new tabs render, every control is labelled, ids are unique', async () => {
+    meImpl = async () => ({ ok: true, admin: ADMIN });
+    const res = await request(app).get('/users/64f000000000000000000000').set('Cookie', 'admin_session=good');
+    assert.equal(res.status, 200);
+    const html = res.text;
+    for (const tab of ['profile', 'photos', 'activity', 'blocks', 'reports', 'verification', 'recommend', 'membership']) {
+      assert.match(html, new RegExp(`data-tab="${tab}"`), `user tab ${tab}`);
+      assert.match(html, new RegExp(`data-panel="${tab}"`), `user panel ${tab}`);
+    }
+    assert.match(html, /id="recommend-form"/);
+    assert.match(html, /name="notifyBoth"/);
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    assert.equal(new Set(ids).size, ids.length, 'duplicate id on /users/:id');
+    const labelled = new Set([...html.matchAll(/<label\b[^>]*\sfor="([^"]+)"/g)].map((m) => m[1]));
+    for (const m of html.matchAll(/<(input|select|textarea)\b([^>]*)>/g)) {
+      const id = (m[2].match(/\sid="([^"]+)"/) || [])[1];
+      assert.ok((id && labelled.has(id)) || /aria-label="/.test(m[2]), `/users/:id: unlabelled <${m[1]}${m[2].slice(0, 60)}>`);
+    }
+    for (const m of html.matchAll(/aria-(?:controls|labelledby|describedby)="([^"]+)"/g)) {
+      for (const ref of m[1].split(/\s+/)) assert.ok(ids.includes(ref), `/users/:id: aria reference to missing id "${ref}"`);
+    }
+    for (const tag of html.match(/<button\b[^>]*>/g) || []) assert.match(tag, /\stype="(button|submit)"/, `/users/:id: button without type ${tag}`);
+    assert.doesNotMatch(html, INLINE_STYLE);
   });
 
   await t.test('a valid cookie renders a migrated page with the layout', async () => {

@@ -4,11 +4,12 @@
 //   GET /api/admin/dashboard/user-growth?days=30 → data [{ _id:'YYYY-MM-DD', count }]
 //   GET /api/admin/dashboard/engagement     → data { activeMessagers, activeRequesters, averageMessagesPerUser, totalActiveMessagers }
 //   GET /api/admin/dashboard/recent-users?limit=10
-// Charts are inline SVG built here (no vendor script): one series, one hue,
-// grid recessive, direct label on the peak only, hover tooltip, table view.
+// Charts come from core/charts.js (inline SVG, no vendor script): one series,
+// one hue, grid recessive, direct label on the peak only, hover tooltip, table view.
 import { api, errorMessage } from '../core/api.js';
-import { html, raw, setHtml, el, delegate } from '../core/dom.js';
+import { html, setHtml, el } from '../core/dom.js';
 import { fmtDate, fmtNumber, timeAgo } from '../core/format.js';
+import { lastNDays, renderBars, barChart } from '../core/charts.js';
 import { imageUrl, bindImageFallbacks } from '../core/imageUrl.js';
 import { createTable } from '../core/table.js';
 import { toast } from '../core/toast.js';
@@ -53,94 +54,6 @@ async function loadStats() {
   }
 }
 
-function renderBars(mount, rows) {
-  if (!mount) return;
-  const max = Math.max(1, ...rows.map((r) => Number(r.value) || 0));
-  setHtml(mount, html`${rows.map((r) => {
-    const v = Number(r.value) || 0;
-    const pct = Math.round((v / max) * 100);
-    return html`<div class="bar-row">
-      <span class="bar-row__label">${r.label}</span>
-      <div class="bar-row__track" role="img" aria-label="${r.label}: ${fmtNumber(v, '0')}"><div class="bar-row__fill ${r.cls || ''}" data-style-width="${pct}%"></div></div>
-      <span class="bar-row__value">${fmtNumber(v, '0')}</span>
-    </div>`;
-  })}`);
-}
-
-// ---- Signups chart -------------------------------------------------------
-function lastNDays(n) {
-  const out = [];
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  for (let i = n - 1; i >= 0; i -= 1) {
-    const x = new Date(d);
-    x.setDate(d.getDate() - i);
-    const pad = (v) => String(v).padStart(2, '0');
-    out.push(`${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`);
-  }
-  return out;
-}
-
-function renderGrowthChart(fig, series) {
-  const plot = fig.querySelector('[data-chart-plot]');
-  const empty = fig.querySelector('[data-chart-empty]');
-  const tableBody = fig.parentElement.querySelector('[data-chart-table] tbody');
-  const total = series.reduce((s, p) => s + p.count, 0);
-  if (!total) { empty.hidden = false; setHtml(plot, ''); return; }
-  empty.hidden = true;
-
-  const W = 640; const H = 220; const padL = 36; const padR = 8; const padT = 16; const padB = 28;
-  const innerW = W - padL - padR; const innerH = H - padT - padB;
-  const max = Math.max(1, ...series.map((p) => p.count));
-  const niceMax = max <= 5 ? 5 : Math.ceil(max / 5) * 5;
-  const n = series.length;
-  const slot = innerW / n;
-  const barW = Math.max(3, slot - 2); // 2px surface gap between bars
-  const y = (v) => padT + innerH - (v / niceMax) * innerH;
-  const peak = series.reduce((best, p, i) => (p.count > series[best].count ? i : best), 0);
-  const gridVals = [niceMax, niceMax / 2];
-
-  const bars = series.map((p, i) => {
-    const x = padL + i * slot + (slot - barW) / 2;
-    const h = innerH - (y(p.count) - padT);
-    const r = Math.min(4, barW / 2, h);
-    // rounded top, square base anchored on the baseline
-    const path = h <= 0 ? '' : `M${x},${padT + innerH} v${-(h - r)} a${r},${r} 0 0 1 ${r},${-r} h${barW - 2 * r} a${r},${r} 0 0 1 ${r},${r} v${h - r} z`;
-    return html`<g class="bar-group" data-i="${i}">
-      ${path ? html`<path class="bar" d="${path}"><title>${fmtDate(p.day)}: ${p.count} signup${p.count === 1 ? '' : 's'}</title></path>` : ''}
-      <rect class="bar--hit" x="${padL + i * slot}" y="${padT}" width="${slot}" height="${innerH}" data-i="${i}"></rect>
-    </g>`;
-  });
-
-  const labelsX = series.map((p, i) => ((i % 7 === n % 7) ? html`<text class="axis-label" x="${padL + i * slot + slot / 2}" y="${H - 8}" text-anchor="middle">${p.day.slice(5).replace('-', '/')}</text>` : ''));
-
-  setHtml(plot, html`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Signups per day for the last ${DAYS} days; ${total} in total">
-    ${gridVals.map((v) => html`<line class="grid-line" x1="${padL}" x2="${W - padR}" y1="${y(v)}" y2="${y(v)}"></line><text class="axis-label" x="${padL - 6}" y="${y(v) + 4}" text-anchor="end">${v}</text>`)}
-    <line class="baseline" x1="${padL}" x2="${W - padR}" y1="${padT + innerH}" y2="${padT + innerH}"></line>
-    ${bars}
-    <text class="value-label" x="${padL + peak * slot + slot / 2}" y="${y(series[peak].count) - 5}" text-anchor="middle">${series[peak].count}</text>
-    ${labelsX}
-  </svg><div class="chart__tip" data-tip hidden></div>`);
-
-  const tip = plot.querySelector('[data-tip]');
-  const svg = plot.querySelector('svg');
-  const showTip = (i, ev) => {
-    const p = series[i];
-    if (!p) return;
-    tip.textContent = `${fmtDate(p.day)} · ${p.count} signup${p.count === 1 ? '' : 's'}`;
-    tip.hidden = false;
-    const rect = plot.getBoundingClientRect();
-    tip.style.left = `${ev.clientX - rect.left}px`;
-    tip.style.top = `${ev.clientY - rect.top - 8}px`;
-  };
-  delegate(svg, 'mousemove', '[data-i]', (ev, elm) => showTip(Number(elm.dataset.i), ev));
-  svg.addEventListener('mouseleave', () => { tip.hidden = true; });
-
-  if (tableBody) {
-    setHtml(tableBody, html`${series.filter((p) => p.count > 0).map((p) => html`<tr><td>${fmtDate(p.day)}</td><td class="num">${p.count}</td></tr>`)}`);
-  }
-}
-
 async function loadGrowth() {
   const fig = el('[data-chart="growth"]');
   if (!fig) return;
@@ -148,7 +61,7 @@ async function loadGrowth() {
     const { data } = await api('/admin/dashboard/user-growth', { query: { days: DAYS } });
     const byDay = new Map((data || []).map((r) => [String(r._id), Number(r.count) || 0]));
     const series = lastNDays(DAYS).map((day) => ({ day, count: byDay.get(day) || 0 }));
-    renderGrowthChart(fig, series);
+    barChart(fig, series, { noun: 'signup', ariaLabel: `Signups per day for the last ${DAYS} days; ${series.reduce((t, p) => t + p.count, 0)} in total` });
   } catch (err) {
     const empty = fig.querySelector('[data-chart-empty]');
     empty.textContent = errorMessage(err, 'Failed to load signup data.');
