@@ -89,10 +89,12 @@ class PreferenceFitWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int matchedCount = fitList
+    // Every member is Banjara, so the caste row says nothing; it is left out (and not counted).
+    final rows = fitList.where((item) => item.label != 'Caste').toList();
+    int matchedCount = rows
         .where((item) => item.isFit == true)
         .length;
-    int totalPreferences = fitList.length;
+    int totalPreferences = rows.length;
 
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 16),
@@ -138,7 +140,7 @@ class PreferenceFitWidget extends StatelessWidget {
           const SizedBox(height: 20),
           SizedBox(height: 20),
           const SizedBox(height: 12),
-          ...fitList.map(_fitRow).toList(),
+          ...rows.map(_fitRow).toList(),
           if (commonList.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text("What You Both Have in Common", style: MyTextStyle.gilroyBold(size: 18, color: cDarkText)),

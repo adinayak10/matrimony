@@ -5,6 +5,7 @@ import 'package:banjaramatch/localization/features/app_strings.dart';
 import 'package:banjaramatch/models/model_interest_user_list.dart';
 
 import '../common/controller/cupertino_controller.dart';
+import 'chats_screen/socketservice.dart';
 
 /// Interests tab: 0 received, 1 sent, 2 connections (accepted, both directions).
 class InterestUserScreenController extends CupertinoController {
@@ -116,7 +117,8 @@ class InterestUserScreenController extends CupertinoController {
     );
   }
 
-  void acceptInterest(String userId) async {
+  /// [onAccepted] runs after the API confirms (the "Accept & Chat" button opens the chat).
+  void acceptInterest(String userId, {VoidCallback? onAccepted}) async {
     isLoading.value = true;
     update();
 
@@ -130,6 +132,9 @@ class InterestUserScreenController extends CupertinoController {
       isLoading.value = false;
       update();
       fetchConnections();
+      // The server only pushes badge counts on send/cancel; refresh after accept.
+      SocketService.shared.requestAllBadgeCounts();
+      onAccepted?.call();
     });
   }
 
@@ -172,6 +177,7 @@ class InterestUserScreenController extends CupertinoController {
 
       isLoading.value = false;
       update();
+      SocketService.shared.requestAllBadgeCounts();
     });
   }
 

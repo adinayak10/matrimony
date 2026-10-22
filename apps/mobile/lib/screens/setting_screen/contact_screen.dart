@@ -117,6 +117,7 @@ class _ContactScreenState extends State<ContactScreen> {
       appBar: featureAppBar(AppKeys.contactTitle.tr),
       body: GetBuilder<ContactController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           return ListView(
             padding: const EdgeInsets.only(top: 8, bottom: 32),

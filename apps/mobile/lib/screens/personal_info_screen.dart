@@ -104,8 +104,7 @@ class PersonalInfoScreen extends StatelessWidget {
                         /// Who manages this profile
                         controller.buildCreatedByDropdown(),
 
-                        /// Caste & Gotra Dropdowns
-                        controller.buildCasteDropdown(),
+                        /// Gotra (caste is always Banjara)
                         controller.buildGotraDropdown(),
                         const SizedBox(height: 20),
                       ],

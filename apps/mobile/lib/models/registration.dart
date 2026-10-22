@@ -183,11 +183,11 @@ class User {
     updatedAt = json['updated_at'] ?? json['updatedAt'];
     followingStatus = json['followingStatus'];
 
-    if (json['interests'] != null) {
-      interest = [];
-      json['interests'].forEach((v) {
-        interest?.add(Interest.fromJson(v));
-      });
+    if (json['interests'] is List) {
+      // populated objects on profile endpoints, bare ids on some list endpoints (searchProfiles)
+      interest = [
+        for (final v in json['interests']) v is Map ? Interest.fromJson(v) : Interest(id: '$v'),
+      ];
     }
 
     name = json['name'];
@@ -217,6 +217,7 @@ class User {
     isShortListed = json['isShortListed'];
 
     isFriend = json['isFriend'];
+    unavailable = json['unavailable'] == true;
 
     gender = json['gender'];
     isRequestSent = json['isRequestSent'];
@@ -239,18 +240,26 @@ class User {
     location = json['location'] != null ? new Location.fromJson(json['location']) : null;
 
     preferences = json['preferences'] != null ? new Preferences.fromJson(json['preferences']) : null;
-    caste = json['caste'] != null ? new CasteGotra.fromJson(json['caste']) : null;
-    gotra = json['gotra'] != null ? new CasteGotra.fromJson(json['gotra']) : null;
-    
+    // These refs are populated on most endpoints but arrive as bare ids on some
+    // (e.g. fetchNearbyMatches); accept both so one row never breaks a list.
+    final casteJson = json['caste'], gotraJson = json['gotra'];
+    caste = casteJson is Map<String, dynamic> ? CasteGotra.fromJson(casteJson) : (casteJson is String ? CasteGotra(sId: casteJson) : null);
+    gotra = gotraJson is Map<String, dynamic> ? CasteGotra.fromJson(gotraJson) : (gotraJson is String ? CasteGotra(sId: gotraJson) : null);
+
     // Parse email field
     email = json['email'];
 
-    profession = json['profession'] != null ? new CommonItem.fromJson(json['profession']) : null;
-
-    qualification = json['qualification'] != null ? new CommonItem.fromJson(json['qualification']) : null;
+    final professionJson = json['profession'], qualificationJson = json['qualification'];
+    profession = professionJson is Map<String, dynamic>
+        ? CommonItem.fromJson(professionJson)
+        : (professionJson is String ? CommonItem(sId: professionJson) : null);
+    qualification = qualificationJson is Map<String, dynamic>
+        ? CommonItem.fromJson(qualificationJson)
+        : (qualificationJson is String ? CommonItem(sId: qualificationJson) : null);
 
     religionId = json['religionId'];
-    incomeRange = json['incomeRange'] != null ? new IncomeRange.fromJson(json['incomeRange']) : null;
+    final incomeJson = json['incomeRange'];
+    incomeRange = incomeJson is Map ? IncomeRange.fromJson(incomeJson) : (incomeJson is String ? IncomeRange(id: incomeJson) : null);
 
     maritalStatus = json['maritalStatus'];
 
@@ -330,6 +339,9 @@ class User {
   IncomeRange? incomeRange;
   ProfileCompletion? profileCompletion;
   bool? isFriend;
+
+  /// Set by the API on placeholder cards for removed/banned members.
+  bool? unavailable;
   String? email;
   bool? isRequestSent;
   bool? isRequestReceived;
@@ -473,6 +485,7 @@ class User {
     map['lastVisitedAt'] = lastVisitedAt;
 
     map['isFriend'] = isFriend;
+    map['unavailable'] = unavailable;
     map['isRequestSent'] = isRequestSent;
     map['isRequestReceived'] = isRequestReceived;
     map['isRejected'] = isRejected;
@@ -733,9 +746,12 @@ class Location {
   Location({this.city, this.country, this.state});
 
   Location.fromJson(dynamic json) {
-    city = json['city'] != null ? new LocationData.fromJson(json['city']) : null;
-    country = json['country'] != null ? new LocationData.fromJson(json['country']) : null;
-    state = json['state'] != null ? new LocationData.fromJson(json['state']) : null;
+    // Populated objects on most endpoints; bare ids where the API does not populate (e.g. family.basedOut).
+    LocationData? place(dynamic v) =>
+        v is Map<String, dynamic> ? LocationData.fromJson(v) : (v is String ? LocationData(sId: v) : null);
+    city = place(json['city']);
+    country = place(json['country']);
+    state = place(json['state']);
   }
 
   Map<String, dynamic> toJson() {
@@ -830,29 +846,28 @@ class Preferences {
       this.general});
 
   Preferences.fromJson(Map<String, dynamic> json) {
-    if (json['caste'] != null) {
-      caste = <CasteGotra>[];
-      json['caste'].forEach((v) {
-        caste!.add(new CasteGotra.fromJson(v));
-      });
+    // List endpoints may return these as bare ids (not populated); accept both shapes,
+    // otherwise one such profile makes the whole list fail to parse.
+    if (json['caste'] is List) {
+      caste = [
+        for (final v in json['caste']) v is Map<String, dynamic> ? CasteGotra.fromJson(v) : CasteGotra(sId: '$v'),
+      ];
     }
-    if (json['gotra'] != null) {
-      gotra = <CasteGotra>[];
-      json['gotra'].forEach((v) {
-        gotra!.add(new CasteGotra.fromJson(v));
-      });
+    if (json['gotra'] is List) {
+      gotra = [
+        for (final v in json['gotra']) v is Map<String, dynamic> ? CasteGotra.fromJson(v) : CasteGotra(sId: '$v'),
+      ];
     }
-    if (json['profession'] != null) {
-      profession = <CommonItem>[];
-      json['profession'].forEach((v) {
-        profession!.add(new CommonItem.fromJson(v));
-      });
+    if (json['profession'] is List) {
+      profession = [
+        for (final v in json['profession']) v is Map<String, dynamic> ? CommonItem.fromJson(v) : CommonItem(sId: '$v'),
+      ];
     }
-    if (json['qualification'] != null) {
-      qualification = <CommonItem>[];
-      json['qualification'].forEach((v) {
-        qualification!.add(new CommonItem.fromJson(v));
-      });
+    if (json['qualification'] is List) {
+      qualification = [
+        for (final v in json['qualification'])
+          v is Map<String, dynamic> ? CommonItem.fromJson(v) : CommonItem(sId: '$v'),
+      ];
     }
 
     subCasteId = json['subCasteId'];

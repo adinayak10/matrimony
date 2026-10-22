@@ -24,7 +24,10 @@ import 'package:banjaramatch/utilities/params.dart';
 class ProfileController extends BlockUserController {
   ScrollController scrollController = ScrollController();
   User? user;
-  final String userID;
+
+  /// The global instance (main.dart) is created before the session is read and
+  /// gets the "0" placeholder; it is resolved again in [onReady].
+  String userID;
   Color? profileColor;
 
   bool get isSelf => userID == SessionManager.shared.getUserID();
@@ -70,14 +73,19 @@ class ProfileController extends BlockUserController {
   @override
   void onReady() {
     super.onReady();
-    user = User(id: userID);
-    getProfile();
     scrollController.addListener(() {
       currentExtent = maxExtent - scrollController.offset;
       if (currentExtent < 0) currentExtent = 0.0;
       if (currentExtent > maxExtent) currentExtent = maxExtent;
       update([scrollID]);
     });
+    if (userID.isEmpty || userID == "0") userID = SessionManager.shared.getUserID();
+    // Still no signed-in user: nothing to load (the calls would only be rejected).
+    if (userID == "0") return;
+    user = User(id: userID);
+    getProfile();
+    // "Her/His partner preference" comparison: once, and only on someone else's profile.
+    if (!isSelf) fetchFitCompareApi();
     fetchMarriageIntent();
     fetchOnlinePatternUsers();
     fetchMatchMomentumUsers();

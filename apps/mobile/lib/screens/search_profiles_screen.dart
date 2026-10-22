@@ -558,39 +558,24 @@ class SearchUserScreen extends StatelessWidget {
                           _buildEnhancedMultiSelect(
                             context: context,
                             controller: controller,
-                            title: 'Caste',
-                            icon: Icons.groups_outlined,
-                            selectedCount: controller.selectedCastes.length,
-                            onTap: () => _showCasteGotraBottomSheet(
-                              context: context,
-                              controller: controller,
-                              title: 'Caste',
-                              getItems: () => controller.allCastes,
-                              selectedItems: controller.selectedCastes,
-                              fetch: controller.filterCaste,
-                              onSelectionChanged: (selected) {
-                                controller.selectedCastes = selected;
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          _buildEnhancedMultiSelect(
-                            context: context,
-                            controller: controller,
                             title: 'Gotra',
                             icon: Icons.family_restroom,
                             selectedCount: controller.selectedGotras.length,
-                            onTap: () => _showCasteGotraBottomSheet(
-                              context: context,
-                              controller: controller,
-                              title: 'Gotra',
-                              getItems: () => controller.allGotras,
-                              selectedItems: controller.selectedGotras,
-                              fetch: controller.filterGotra,
-                              onSelectionChanged: (selected) {
-                                controller.selectedGotras = selected;
-                              },
-                            ),
+                            onTap: () {
+                              controller.filterGotra(''); // start each sheet with the full list
+                              _showCasteGotraBottomSheet(
+                                context: context,
+                                controller: controller,
+                                title: 'Gotra',
+                                // filtered by the sheet's search box (fetch -> filterGotra)
+                                getItems: () => controller.filteredGotras,
+                                selectedItems: controller.selectedGotras,
+                                fetch: controller.filterGotra,
+                                onSelectionChanged: (selected) {
+                                  controller.selectedGotras = selected;
+                                },
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -1439,7 +1424,7 @@ class SearchUserScreen extends StatelessWidget {
                                               color: selected ? Colors.purple.shade50 : Colors.transparent,
                                               borderRadius: BorderRadius.circular(8),
                                             ),
-                                            child: CheckboxListTile(
+                                            child: Material(type: MaterialType.transparency, child: CheckboxListTile(
                                               value: selected,
                                               title: Text(
                                                 item.name ?? '',
@@ -1453,7 +1438,7 @@ class SearchUserScreen extends StatelessWidget {
                                               },
                                               activeColor: Colors.purple.shade400,
                                               contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                            ),
+                                            )),
                                           );
                                         },
                                       ),
@@ -1698,7 +1683,7 @@ void _showCasteGotraBottomSheet({
                                             color: selected ? Colors.purple.shade50 : Colors.transparent,
                                             borderRadius: BorderRadius.circular(8),
                                           ),
-                                          child: CheckboxListTile(
+                                          child: Material(type: MaterialType.transparency, child: CheckboxListTile(
                                             value: selected,
                                             title: Text(
                                               item.name ?? '',
@@ -1712,7 +1697,7 @@ void _showCasteGotraBottomSheet({
                                             },
                                             activeColor: Colors.purple.shade400,
                                             contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-                                          ),
+                                          )),
                                         );
                                       },
                                     ),

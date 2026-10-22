@@ -14,6 +14,15 @@ class _SplashScreenViewState extends State<SplashScreenView> {
   late VideoPlayerController _videoController;
   late SplashController _splashController;
 
+  /// The video listener keeps firing after the end; leave the splash only once.
+  bool _proceeded = false;
+
+  void _proceed() {
+    if (_proceeded || !mounted) return;
+    _proceeded = true;
+    _splashController.fetchSettings();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -52,11 +61,9 @@ class _SplashScreenViewState extends State<SplashScreenView> {
 
         // Listen for video completion and navigate to next screen
         _videoController.addListener(() {
-          if (_videoController.value.position >= _videoController.value.duration && 
+          if (_videoController.value.position >= _videoController.value.duration &&
               _videoController.value.duration.inMilliseconds > 0) {
-            if (mounted) {
-              _splashController.fetchSettings();
-            }
+            _proceed();
           }
         });
       }
@@ -64,11 +71,7 @@ class _SplashScreenViewState extends State<SplashScreenView> {
       debugPrint('Error initializing video: $e');
       // If video fails, proceed to next screen after a short delay
       if (mounted) {
-        Future.delayed(const Duration(seconds: 2), () {
-          if (mounted) {
-            _splashController.fetchSettings();
-          }
-        });
+        Future.delayed(const Duration(seconds: 2), _proceed);
       }
     }
   }

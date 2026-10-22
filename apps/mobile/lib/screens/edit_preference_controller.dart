@@ -25,8 +25,8 @@ class EditPreferenceController extends ProfileController {
   String selectedMaritalStatus = '';
   final maritalStatusOptions = ['Single', 'Divorced', 'Widowed'];
 
-  List<CasteGotra> allCastes = [], allGotras = [], filteredCastes = [], filteredGotras = [];
-  List<CasteGotra> selectedCastes = [], selectedGotras = [];
+  List<CasteGotra> allGotras = [], filteredGotras = [];
+  List<CasteGotra> selectedGotras = [];
 
   List<CommonItem> educationSuggestions = [], professionSuggestions = [];
   List<CommonItem> selectedQualification = [], selectedProfession = [];
@@ -80,13 +80,10 @@ class EditPreferenceController extends ProfileController {
       income.text = prefs?.income?.toString() ?? '';
       prefersSmoking = prefs!.smoke ?? "";
       prefersDrinking = prefs!.drink ?? "";
-      selectedCastes = prefs?.caste ?? [];
       selectedGotras = prefs?.gotra ?? [];
       selectedQualification = prefs?.qualification ?? [];
       selectedProfession = prefs?.profession ?? [];
     }
-
-    print("Castes (from session if old): $selectedCastes");
   }
 
   @override
@@ -95,7 +92,7 @@ class EditPreferenceController extends ProfileController {
     if (isNewUser) getProfile();
     fetchEducation('');
     fetchProfession('');
-    fetchCastesX();
+    fetchGotras();
     super.onReady();
   }
 
@@ -121,7 +118,6 @@ class EditPreferenceController extends ProfileController {
       income.text = prefs?.income?.toString() ?? '';
       prefersSmoking = prefs?.smoke ?? "";
       prefersDrinking = prefs?.drink ?? "";
-      selectedCastes = prefs?.caste ?? [];
       selectedGotras = prefs?.gotra ?? [];
       selectedQualification = prefs?.qualification ?? [];
       selectedProfession = prefs?.profession ?? [];
@@ -144,7 +140,6 @@ class EditPreferenceController extends ProfileController {
           "max": HeightConverter.imperialToCm(heightOptions[maxHeightIndex.round()]),
         },
         "income": income.text,
-        "caste": selectedCastes.map((e) => e.sId).toList(),
         "gotra": selectedGotras.map((e) => e.sId).toList(),
         "qualification": selectedQualification.map((e) => e.sId).toList(),
         "profession": selectedProfession.map((e) => e.sId).toList(),
@@ -163,20 +158,6 @@ class EditPreferenceController extends ProfileController {
         update();
         Get.back();
       },
-    );
-  }
-
-  void fetchCastesX() {
-    UserService.shared.fetchCasteList(
-      completion: (list) {
-        allCastes = list;
-        filteredCastes = List.from(list);
-
-        final selectedIds = selectedCastes.map((e) => e.sId).toSet();
-        selectedCastes = allCastes.where((e) => selectedIds.contains(e.sId)).toList();
-        update();
-      },
-      page: 1,
     );
   }
 
@@ -214,25 +195,9 @@ class EditPreferenceController extends ProfileController {
     );
   }
 
-  void filterCaste(String query) {
-    filteredCastes =
-        allCastes.where((caste) => caste.name?.toLowerCase().contains(query.toLowerCase()) ?? false).toList();
-    update();
-  }
-
   void filterGotra(String query) {
     filteredGotras =
         allGotras.where((gotra) => gotra.name?.toLowerCase().contains(query.toLowerCase()) ?? false).toList();
-    update();
-  }
-
-  void toggleCasteSelection(CasteGotra caste) {
-    final exists = selectedCastes.any((e) => e.sId == caste.sId);
-    if (exists) {
-      selectedCastes.removeWhere((e) => e.sId == caste.sId);
-    } else {
-      selectedCastes.add(caste);
-    }
     update();
   }
 

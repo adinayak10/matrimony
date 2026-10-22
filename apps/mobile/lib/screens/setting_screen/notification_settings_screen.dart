@@ -47,6 +47,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       appBar: featureAppBar(AppKeys.notifSettingsTitle.tr),
       body: GetBuilder<UserSettingsController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           final master = c.allowNotifications;
           final masterBusy = c.saving.contains('allowNotifications');

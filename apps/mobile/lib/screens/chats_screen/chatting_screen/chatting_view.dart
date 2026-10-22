@@ -18,6 +18,7 @@ import 'package:banjaramatch/screens/chats_screen/chatting_screen/image_video_ch
 import 'package:banjaramatch/screens/extra_views/back_button.dart';
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
 import 'package:banjaramatch/utilities/const.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class ChattingView extends StatelessWidget {
   final User? user;
@@ -271,16 +272,21 @@ class ChattingView extends StatelessWidget {
                         VerifyIcon(user: controller.user)
                       ],
                     ),
-                    Row(
-                      children: [
-                        Text(
-                          "${controller.chatRoom?.isOnline == true ? "Online" : "last ago"}",
-                          style: MyTextStyle.gilroyLight(size: 15, color: cGreen),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    )
+                    Builder(builder: (_) {
+                      final online = controller.user?.isOnline ?? controller.chatRoom?.isOnline ?? false;
+                      final lastSeen =
+                          DateTime.tryParse(controller.user?.lastSeen ?? controller.chatRoom?.lastSeen ?? '');
+                      final status = online
+                          ? "Online"
+                          : (lastSeen != null ? "Last seen ${timeago.format(lastSeen.toLocal())}" : "");
+                      if (status.isEmpty) return const SizedBox.shrink();
+                      return Text(
+                        status,
+                        style: MyTextStyle.gilroyLight(size: 15, color: online ? cGreen : cLightIcon),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }),
                   ],
                 ),
               ),

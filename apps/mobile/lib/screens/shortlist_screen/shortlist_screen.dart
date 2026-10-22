@@ -39,6 +39,7 @@ class _ShortlistScreenState extends State<ShortlistScreen> {
       appBar: featureAppBar(AppKeys.shortlistTitle.tr),
       body: GetBuilder<ShortlistController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           return Column(
             children: [

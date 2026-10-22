@@ -1,0 +1,141 @@
+{
+  "_comment": "CMS content for /banjara-matrimony-ahmedabad. Apply with apps/api/tools/applyCityPageContent.js (dry-run first). Only the fields listed here are replaced; slug, city, state, stats and banners are never touched.",
+  "slug": "banjara-matrimony-ahmedabad",
+  "fields": {
+    "metaTitle": "Banjara Matrimony in Ahmedabad | Vanjara Brides & Grooms",
+    "metaDescription": "Free Banjara and Vanjara matrimony in Ahmedabad, Gujarat. Meet verified, gotra-aware brides and grooms from Maninagar to Bopal and chat once interest is mutual.",
+    "metaKeywords": [
+      "banjara matrimony ahmedabad",
+      "vanjara matrimony ahmedabad",
+      "banjara brides ahmedabad",
+      "banjara grooms ahmedabad",
+      "vanjara marriage gujarat",
+      "lambani matrimony gujarat",
+      "gor banjara matrimony ahmedabad",
+      "free matrimony ahmedabad"
+    ],
+
+    "heroSection": {
+      "title": "Banjara Matrimony in Ahmedabad",
+      "subtitle": "Meet Banjara and Vanjara brides and grooms from across Ahmedabad and Gujarat. Verified profiles, gotra-aware matching and private chat, 100% free.",
+      "tagline": "Ahmedabad's free Vanjara and Banjara matrimony",
+      "highlights": ["100% free to join and chat", "Gotra-aware matching", "Blue-tick verified profiles", "Parents can manage profiles"]
+    },
+
+    "introSection": {
+      "heading": "Welcome to Banjara Matrimony in Ahmedabad",
+      "content": "<p>Gujarat's largest city and commercial capital, Ahmedabad is home to a well-established Banjara and Vanjara community with roots in trade and transport, and a growing presence in the city's manufacturing, textile and services economy. As the state's economic centre, Ahmedabad draws Vanjara families from Mehsana, Banaskantha, Sabarkantha and the rest of Gujarat for education and work.</p><p>BanjaraMatch brings these families together in one place. Whether you live in the old walled city, in the industrial east around Naroda and Vatva, or in the newer western suburbs along SG Highway, you can find a partner who shares your language, customs and values without paying a rupee.</p>",
+      "features": [
+        "Profiles from Ahmedabad, Gandhinagar and the rest of Gujarat",
+        "Same-gotra profiles are never suggested",
+        "Search by age, height, education, profession and city"
+      ]
+    },
+
+    "aboutSection": {
+      "heading": "About the Banjara (Vanjara) Community in Ahmedabad",
+      "content": "<p>In Gujarat the community is most often called <strong>Vanjara</strong>, while families elsewhere in India say Banjara, Lambani, Lambadi or Gor. They are one people: historically the caravan traders who carried grain and salt across India, today doctors, engineers, teachers, government employees, transporters and business owners. Read more in our <a href=\"/banjara-community-history\">history of the Banjara community</a>.</p><p>Ahmedabad's Vanjara families range from long-established trading and transport households to a newer generation in corporate, IT and professional roles. Across all of them, the gotra still matters when a marriage is arranged: families avoid alliances within the same gotra and often check the mother's gotra too. Our <a href=\"/banjara-gotra-list\">Banjara gotra list</a> explains the clans and how they are grouped.</p><p>BanjaraMatch connects Ahmedabad's Banjara and Vanjara families with verified, gotra-aware profiles locally and across <a href=\"/banjara-matrimony-gujarat\">Gujarat</a>, completely free.</p>",
+      "culturalNote": "Many Ahmedabad families speak Gujarati and Hindi day to day and Gor Boli (the Banjara language) at home and at family functions.",
+      "modernContext": "Younger members increasingly study and work in Ahmedabad and Gandhinagar, so most families now look for a partner who is both rooted in the community and settled in a career."
+    },
+
+    "whyChooseSection": {
+      "heading": "Why Ahmedabad families choose BanjaraMatch",
+      "points": [
+        { "icon": "fa-inr", "title": "100% free", "description": "Registration, browsing, sending interests and chatting are free. There are no hidden charges.", "order": 1 },
+        { "icon": "fa-sitemap", "title": "Gotra-aware matching", "description": "Profiles from your own gotra are never suggested, and you can choose the gotras you prefer for your partner.", "order": 2 },
+        { "icon": "fa-check-circle", "title": "Verified profiles", "description": "Members can verify with a government ID and a selfie. Verified profiles show a blue tick.", "order": 3 },
+        { "icon": "fa-lock", "title": "Privacy you control", "description": "Choose who can see your photos and contact details: everyone, only your connections, or nobody.", "order": 4 },
+        { "icon": "fa-users", "title": "Made for families", "description": "Parents, siblings or relatives can create and manage a profile on behalf of a son or daughter.", "order": 5 },
+        { "icon": "fa-star", "title": "Kundli matching", "description": "Check Guna Milan compatibility with a connection when your family wants a horoscope match.", "order": 6 }
+      ]
+    },
+
+    "howItWorksSection": {
+      "heading": "Find your match in Ahmedabad in four steps",
+      "steps": [
+        { "stepNumber": 1, "icon": "fa-user-plus", "title": "Create a free profile", "description": "Add basic details, your gotra, education, work and a few photos. It takes about five minutes.", "order": 1 },
+        { "stepNumber": 2, "icon": "fa-search", "title": "Search Ahmedabad and nearby", "description": "Filter by age, height, education, profession and city, or browse today's suggested matches.", "order": 2 },
+        { "stepNumber": 3, "icon": "fa-heart", "title": "Send an interest", "description": "Show interest in profiles you like. Chat opens only when the other person accepts.", "order": 3 },
+        { "stepNumber": 4, "icon": "fa-comments", "title": "Talk and involve your family", "description": "Chat, call and share details with your families before you plan a meeting.", "order": 4 }
+      ]
+    },
+
+    "localitiesSection": {
+      "heading": "Matches from every part of Ahmedabad",
+      "subheading": "From the walled city to the new western suburbs",
+      "introduction": "Ahmedabad is spread across both banks of the Sabarmati, and members live in every part of it. Search by city to see matches across Ahmedabad, or widen your search to Gandhinagar and nearby districts. Commuting is easy thanks to the BRTS, the Ahmedabad Metro and the main railway station at Kalupur, so a match in another part of the city is never too far for a family visit."
+    },
+
+    "popularLocalities": [
+      { "name": "East Ahmedabad", "description": "Maninagar, Isanpur, Vatva and Narol: established residential areas near the Vatva industrial estate.", "connectivity": "Maninagar railway station and BRTS" },
+      { "name": "North-East Ahmedabad", "description": "Naroda, Odhav, Nikol, Bapunagar and Vastral: busy residential and industrial neighbourhoods.", "connectivity": "Ahmedabad Metro and BRTS corridors" },
+      { "name": "Old City", "description": "The walled city around Kalupur and Dariyapur, at the heart of the UNESCO World Heritage City.", "connectivity": "Ahmedabad Junction (Kalupur) railway station" },
+      { "name": "West Ahmedabad", "description": "Satellite, Vastrapur, Bodakdev and Prahlad Nagar: residential areas close to offices on SG Highway.", "connectivity": "SG Highway and the Metro's east-west line" },
+      { "name": "New West", "description": "Bopal, Gota, Chandkheda, Motera and Sabarmati: fast-growing suburbs popular with young professionals.", "connectivity": "SG Highway and the road to Gandhinagar" },
+      { "name": "Gandhinagar", "description": "The state capital, about 25 km away, home to many government and education jobs.", "connectivity": "Metro link and the Ahmedabad-Gandhinagar highway" }
+    ],
+
+    "nearbyCitiesSection": {
+      "heading": "Banjara matrimony in other Gujarat cities",
+      "description": "Families in Ahmedabad often look across Gujarat. Vadodara is about 110 km away and Surat about 265 km."
+    },
+
+    "communityInsightsSection": {
+      "heading": "Banjara culture and traditions in Ahmedabad",
+      "showInsights": true
+    },
+    "communityInsights": {
+      "description": "Banjara and Vanjara families in Ahmedabad keep many of the community's traditions alive while living a modern city life.",
+      "languagesSpoken": ["Gujarati", "Hindi", "Gor Boli (Banjara language)", "English"],
+      "culturalEvents": ["Teej", "Sevalal Maharaj Jayanti", "Holi", "Navratri", "Diwali"],
+      "religiousPractices": "Many families honour Sant Sevalal Maharaj and celebrate Teej, when unmarried girls grow wheat sprouts in small baskets and pray for a good husband."
+    },
+
+    "customContentBlocks": [
+      {
+        "blockType": "text",
+        "title": "A Banjara wedding, Ahmedabad style",
+        "order": 1,
+        "content": "<p>Banjara weddings are colourful, musical and very much a family affair. Elders usually begin by comparing gotras, and once the families agree, the celebrations bring together relatives from across Gujarat and beyond.</p><ul><li><strong>Traditional dress:</strong> brides often wear the embroidered <em>phetiya</em> (skirt) and <em>kanchali</em> (blouse) with mirror work, silver jewellery and an odhni, alongside a modern sari or lehenga.</li><li><strong>Songs and dance:</strong> the women of the family sing traditional wedding songs in Gor Boli, and dancing continues late into the night.</li><li><strong>Family first:</strong> both families meet and talk at length before anything is fixed, which is why we let parents and siblings take part from the very first step.</li></ul><p>Planning ahead? Create a shareable <a href=\"/biodata-builder\">marriage biodata</a> in a few minutes.</p>"
+      },
+      {
+        "blockType": "text",
+        "title": "Meeting a match safely in Ahmedabad",
+        "order": 2,
+        "content": "<ul><li>Chat on BanjaraMatch first and keep personal phone numbers private until you trust the person.</li><li>Prefer verified profiles with the blue tick, and ask your family to join early conversations.</li><li>For a first meeting choose a busy public place such as the Sabarmati Riverfront, Kankaria Lake or a mall on SG Highway, and tell someone at home where you are going.</li><li>Never send money to anyone you met online. Report or block any profile that asks for it.</li></ul><p>Read more tips in our <a href=\"/faq\">FAQ</a> or <a href=\"/contact\">contact us</a> if something does not feel right.</p>"
+      },
+      {
+        "blockType": "text",
+        "title": "Families abroad and NRIs from Ahmedabad",
+        "order": 3,
+        "content": "<p>Many Ahmedabad Vanjara families have children studying or working in the USA, Canada, the UK, Australia and the Gulf. NRIs can register from anywhere, set Ahmedabad or Gujarat as their family's home town and search for matches both in India and abroad. The <a href=\"/banjara-matrimony-app\">BanjaraMatch app</a> makes it easy to stay in touch across time zones.</p>"
+      }
+    ],
+
+    "faqSection": {
+      "heading": "Banjara Matrimony in Ahmedabad: frequently asked questions",
+      "showFaq": true,
+      "faqs": [
+        { "order": 1, "question": "Is the community called Banjara or Vanjara in Ahmedabad?", "answer": "Vanjara is the more common local name in Gujarat, closely related to Banjara, Lambani and Gor elsewhere in India. BanjaraMatch profiles reflect all of these names." },
+        { "order": 2, "question": "Is BanjaraMatch free in Ahmedabad?", "answer": "Yes, 100% free. There are no hidden charges for registration, browsing, sending interests or chat." },
+        { "order": 3, "question": "How does BanjaraMatch handle gotra when suggesting matches?", "answer": "Profiles from your own gotra are never suggested, following the Banjara custom of marrying outside one's gotra. You can also choose preferred gotras for your partner in your partner preferences." },
+        { "order": 4, "question": "Can I see matches only from Ahmedabad or Gujarat?", "answer": "Yes. Use the search filters to look for members in Ahmedabad, or widen the search to Gandhinagar, Vadodara, Surat and the rest of Gujarat. The app's Nearby search shows members within a distance you choose." },
+        { "order": 5, "question": "Are the profiles verified?", "answer": "Members can verify their profile by submitting a government ID and a selfie. Our team reviews each request, and approved profiles show a blue verified tick." },
+        { "order": 6, "question": "Can parents create a profile for their son or daughter?", "answer": "Yes. When you register you can say who manages the profile: the member, a parent, a sibling, a relative or a friend. It is shown on the profile so other families know who they are talking to." },
+        { "order": 7, "question": "Who can see my phone number and photos?", "answer": "You decide. In privacy settings you can show your photos and contact details to everyone, only to your accepted connections, or to nobody." },
+        { "order": 8, "question": "When can I chat with someone I like?", "answer": "Send an interest first. Chat and calls open once the other member accepts, so you only hear from people you have agreed to talk to." },
+        { "order": 9, "question": "Can NRI families from Ahmedabad register?", "answer": "Yes. NRIs can register from any country, keep Ahmedabad or Gujarat as their home town, and search for matches in India and abroad." },
+        { "order": 10, "question": "Is there a BanjaraMatch mobile app?", "answer": "Yes. The Android app lets you search, chat and get match alerts on your phone. See the BanjaraMatch app page for details." }
+      ]
+    },
+
+    "ctaSection": {
+      "heading": "Ready to meet your match in Ahmedabad?",
+      "subheading": "Create your free profile today and start meeting Banjara and Vanjara families from across Gujarat.",
+      "primaryButtonText": "Register free",
+      "secondaryButtonText": "Browse profiles",
+      "benefits": ["Free forever", "Gotra-aware suggestions", "Verified profiles", "Private chat"]
+    }
+  }
+}

@@ -105,6 +105,7 @@ class SocketService {
 
   /// 📩 Request all badge counts (notifications, match, unread chat)
   void requestAllBadgeCounts() {
+    if (!_hasSocket) return; // not connected yet (startCommonListening asks once connected)
     final userId = SessionManager.shared.getUserID();
     socket.emit('get_notification_count', userId);
     socket.emit('get_match_request_count', userId);

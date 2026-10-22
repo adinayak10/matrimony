@@ -51,6 +51,7 @@ class _VisitorsScreenState extends State<VisitorsScreen> {
       appBar: featureAppBar(AppKeys.visitorsTitle.tr),
       body: GetBuilder<VisitorsController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           return Column(
             children: [

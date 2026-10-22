@@ -179,8 +179,15 @@ class ChattingController extends BlockUserController {
   }
 
   void fetchInitialData() async {
-    UserService.shared.fetchProfile(chatRoom!.userId!, (user) {
+    // Rooms from fetchOrGenerateRoom carry only participants: fall back to the other one.
+    final otherId = chatRoom?.userId ??
+        chatRoom?.participants?.firstWhere((p) => p != myUser?.id, orElse: () => '');
+    if (otherId == null || otherId.isEmpty) return;
+    chatRoom?.userId ??= otherId;
+    UserService.shared.fetchProfile(otherId, (user) {
       this.user = user;
+      chatRoom?.fullName ??= user.fullName;
+      chatRoom?.profile ??= user.profile;
       fetchMessages();
       update();
     });

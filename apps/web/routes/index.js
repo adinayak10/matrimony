@@ -8,6 +8,7 @@ const { SwrCache } = require('../utils/swrCache');
 const blogCategories = require('../config/blogCategories');
 const { pageMeta } = require('../config/pageMeta');
 const { robotsFor, uniqueCmsWords } = require('../utils/regionalIndexing');
+const cityPageTemplates = require('../config/cityPageTemplates');
 const site = require('../config/site');
 const { faqPageJsonLd } = require('../utils/jsonLd');
 const { RETURN_TO_COOKIE } = require('./auth');
@@ -1017,7 +1018,10 @@ router.get('/:slug', optionalUser, async (req, res, next) => {
     if (!page || page.isPublished === false) return next(); // Pass to 404 handler
     const pageType = cityPage ? 'city' : 'state';
 
-    res.render(pageType === 'state' ? 'pages/regional-page-state' : 'pages/regional-page-city', {
+    const view = pageType === 'state'
+      ? 'pages/regional-page-state'
+      : (cityPageTemplates[slug] || 'pages/regional-page-city');
+    res.render(view, {
       title: page.metaTitle,
       meta: regionalMeta(page, pageType, slug),
       page,

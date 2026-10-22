@@ -339,7 +339,9 @@ import 'package:get/get.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
 import 'package:banjaramatch/localization/features/app_strings.dart';
 import 'package:banjaramatch/models/model_interest_user_list.dart';
+import 'package:banjaramatch/models/registration.dart' show User;
 import 'package:banjaramatch/screens/member_card.dart';
+import 'package:banjaramatch/screens/personal_info_controller.dart' show HeightConverter;
 import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
 import 'package:banjaramatch/utilities/const.dart';
 
@@ -464,38 +466,17 @@ class InterestCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
 
-                      // Age, height, location
-                      Row(
-                        children: [
-                          Icon(Icons.cake_outlined, size: 14, color: Colors.grey[500]),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${calculateAge(user.dob)} yrs",
-                            style: MyTextStyle.gilroyMedium(size: 12, color: Colors.grey[600]),
-                          ),
-                          Text(
-                            " • ${user.height ?? ''} • ",
-                            style: MyTextStyle.gilroyRegular(size: 12, color: Colors.grey[500]),
-                          ),
-                          Icon(Icons.location_on_outlined, size: 14, color: Colors.grey[500]),
-                          Expanded(
-                            child: Text(
-                              user.location?.city?.name ?? '',
-                              style: MyTextStyle.gilroyMedium(size: 12, color: Colors.grey[600]),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
+                      // Age, height, location (only the parts that are set)
+                      if (user.unavailable != true) _buildBasicsRow(user),
                       const SizedBox(height: 6),
 
                       // Quick info tags
-                      Row(
-                        children: [
-                          _buildInfoTag(user.profession?.name ?? "Professional", Colors.blue),
-                        ],
-                      ),
+                      if (user.unavailable != true)
+                        Row(
+                          children: [
+                            _buildInfoTag(user.profession?.name ?? "Professional", Colors.blue),
+                          ],
+                        ),
                     ],
                   ),
                 ),
@@ -513,14 +494,82 @@ class InterestCard extends StatelessWidget {
               ),
             ),
             padding: const EdgeInsets.all(14),
-            child: isConnection
-                ? _buildConnectionWidget(userInterest)
-                : userInterest.type == "received"
-                    ? _buildReceivedInterestWidget(userInterest)
-                    : _buildSentInterestWidget(userInterest),
+            child: user.unavailable == true
+                ? _buildUnavailableWidget()
+                : isConnection
+                    ? _buildConnectionWidget(userInterest)
+                    : userInterest.type == "received"
+                        ? _buildReceivedInterestWidget(userInterest)
+                        : _buildSentInterestWidget(userInterest),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBasicsRow(User user) {
+    final age = calculateAge(user.dob);
+    final height = HeightConverter().cmToImperialString(user.height);
+    final city = user.location?.city?.name ?? '';
+    final style = MyTextStyle.gilroyMedium(size: 12, color: Colors.grey[600]);
+    return Row(
+      children: [
+        Icon(Icons.cake_outlined, size: 14, color: Colors.grey[500]),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            [if (age != null) "$age yrs", if (height != null) height].join(" • "),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (city.isNotEmpty) ...[
+          const SizedBox(width: 6),
+          Icon(Icons.location_on_outlined, size: 14, color: Colors.grey[500]),
+          Expanded(
+            child: Text(city, style: style, maxLines: 1, overflow: TextOverflow.ellipsis),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// The member was removed or banned: no profile, no accept/chat; the request
+  /// can still be cleared with whichever action this tab offers.
+  Widget _buildUnavailableWidget() {
+    final VoidCallback? clear = isConnection
+        ? onRemove
+        : userInterest.type == "received"
+            ? onReject
+            : onCancel;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.person_off_outlined, size: 18, color: Colors.grey[600]),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                "This member's profile is no longer available.",
+                style: MyTextStyle.gilroyMedium(size: 12, color: Colors.grey[700]),
+              ),
+            ),
+          ],
+        ),
+        if (clear != null) ...[
+          const SizedBox(height: 12),
+          _buildActionButton(
+            text: "Remove",
+            onTap: clear,
+            backgroundColor: Colors.white,
+            textColor: Colors.grey[700]!,
+            borderColor: Colors.grey[300]!,
+            icon: Icons.close,
+          ),
+        ],
+      ],
     );
   }
 

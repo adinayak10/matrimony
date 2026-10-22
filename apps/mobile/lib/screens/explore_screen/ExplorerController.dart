@@ -67,7 +67,7 @@ class ExploreController extends BaseController {
       _fetchTrendingProfilesAsync(),
       _fetchDailyMatchesAsync(),
       _fetchActivityCountsAsync(),
-    ].map((f) => f.timeout(const Duration(seconds: 20), onTimeout: () {})));
+    ].map((f) => f.then<void>((_) {}).timeout(const Duration(seconds: 20), onTimeout: () {})));
     
     await Future.delayed(Duration(milliseconds: 300)); // Smooth transition
     isLoading.value = false;

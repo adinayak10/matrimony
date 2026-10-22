@@ -41,6 +41,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
       appBar: featureAppBar(AppKeys.verifyTitle.tr),
       body: GetBuilder<VerificationController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           if (c.isFetching && c.status == null) {
             return const Center(child: CircularProgressIndicator(color: cPrimary));

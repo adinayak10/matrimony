@@ -42,14 +42,13 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(ProfileController(userId), tag: userId);
-    controller.fetchFitCompareApi();
     final bool isMyProfile = controller.userID == SessionManager.shared.getUserID();
     Functions.changStatusBar(StatusBarStyle.white);
 
     return GetBuilder<ProfileController>(
       tag: userId,
       builder: (controller) {
-        if (controller.isLoading.value) {
+        if (controller.isLoading.value || controller.user == null) {
           return Scaffold(
             body: Center(
               child: Column(
@@ -198,24 +197,26 @@ class ProfileScreen extends StatelessWidget {
           ],
           const SizedBox(height: 8),
 
-          // Age, location, height
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Flexible(
-                child: _buildQuickInfo(Icons.cake, "${calculateAge(controller.user?.dob)} yrs"),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: _buildQuickInfo(Icons.location_on, '${controller?.user?.location?.city?.name}'),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child:
-                    _buildQuickInfo(Icons.height, '${HeightConverter().cmToImperialString(controller?.user?.height)}'),
-              ),
-            ],
-          ),
+          // Age, location, height (each shown only when set)
+          Builder(builder: (_) {
+            final age = calculateAge(controller.user?.dob);
+            final city = controller.user?.location?.city?.name;
+            final height = HeightConverter().cmToImperialString(controller.user?.height);
+            final chips = <Widget>[
+              if (age != null) _buildQuickInfo(Icons.cake, "$age yrs"),
+              if (city != null && city.isNotEmpty) _buildQuickInfo(Icons.location_on, city),
+              if (height != null) _buildQuickInfo(Icons.height, height),
+            ];
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (var i = 0; i < chips.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 8),
+                  Flexible(child: chips[i]),
+                ],
+              ],
+            );
+          }),
 
           // Bio (if exists)
           const SizedBox(height: 16),
@@ -1074,6 +1075,9 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  static String _article(String word) =>
+      word.isNotEmpty && 'aeiou'.contains(word[0].toLowerCase()) ? 'an' : 'a';
+
   Widget _buildFamilyIntro(dynamic user) {
     final type = user?.family?.familyType;
     final status = user?.family?.familyStatus;
@@ -1106,19 +1110,20 @@ class ProfileScreen extends StatelessWidget {
         text: TextSpan(
           style: MyTextStyle.gilroyRegular(size: 14, color: cDarkText),
           children: [
-            TextSpan(text: "We're "),
+            // "We're a Middle Class, Extended family." / "We're an Extended family."
+            TextSpan(text: "We're ${_article('${status ?? type ?? ''}')} "),
             if (status != null)
               TextSpan(
-                text: "a $status family",
+                text: "$status",
                 style: MyTextStyle.gilroyBold(size: 14, color: cPrimary),
               ),
-            if (type != null && status != null) TextSpan(text: " living in a "),
+            if (type != null && status != null) TextSpan(text: ", "),
             if (type != null)
               TextSpan(
-                text: "$type setup",
+                text: "$type",
                 style: MyTextStyle.gilroyBold(size: 14, color: cPrimary),
               ),
-            TextSpan(text: "."),
+            TextSpan(text: " family."),
           ],
         ),
       ),

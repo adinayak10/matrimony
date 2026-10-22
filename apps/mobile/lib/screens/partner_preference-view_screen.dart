@@ -779,6 +779,7 @@ import '../../utilities/const.dart';
 import 'common_widget.dart';
 import 'edit_preference_controller.dart';
 import 'extra_views/top_bar.dart';
+import 'personal_info_controller.dart' show HeightConverter;
 
 class PartnerPreferenceViewScreen extends StatefulWidget {
   const PartnerPreferenceViewScreen({super.key});
@@ -988,7 +989,8 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                     ),
                     _buildModernRowItem(
                       'Height Range',
-                      '${preferences.heightRange?.min ?? '-'} - ${preferences.heightRange?.max ?? '-'}',
+                      '${HeightConverter().cmToImperialString(preferences.heightRange?.min) ?? '-'} - '
+                          '${HeightConverter().cmToImperialString(preferences.heightRange?.max) ?? '-'}',
                       Icons.height_rounded,
                     ),
                     _buildModernRowItem(
@@ -1029,16 +1031,9 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                   icon: Icons.language_rounded,
                   iconColor: Colors.orange,
                   title: 'Culture & Background',
-                  subtitle: 'Caste & community preferences',
-                  onEdit: () => _showCasteEditSheet(context, controller),
+                  subtitle: 'Gotra preferences',
+                  onEdit: () => _showGotraEditSheet(context, controller),
                   children: [
-                    _buildModernRowItem(
-                      'Caste',
-                      (preferences.caste?.isNotEmpty ?? false)
-                          ? preferences.caste!.map((e) => e.name ?? '').join(', ')
-                          : 'Any',
-                      Icons.group_outlined,
-                    ),
                     _buildModernRowItem(
                       'Gotra',
                       (preferences.gotra?.isNotEmpty ?? false)
@@ -1742,7 +1737,7 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
     );
   }
 
-  static void _showCasteEditSheet(BuildContext context, EditPreferenceController controller) {
+  static void _showGotraEditSheet(BuildContext context, EditPreferenceController controller) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -1803,12 +1798,12 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Cultural Preferences',
+                              'Gotra Preferences',
                               style: MyTextStyle.gilroyBold(size: 22, color: cDarkText),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Community and cultural background',
+                              'Gotras you would like your partner to be from',
                               style: MyTextStyle.gilroyRegular(color: cLightText, size: 14),
                             ),
                           ],
@@ -1819,7 +1814,7 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                 ),
 
                 // Selected chips section
-                if (controller.selectedCastes.isNotEmpty)
+                if (controller.selectedGotras.isNotEmpty)
                   Container(
                     width: double.infinity,
                     margin: const EdgeInsets.fromLTRB(24, 16, 24, 0),
@@ -1833,14 +1828,14 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Selected (${controller.selectedCastes.length})',
+                          'Selected (${controller.selectedGotras.length})',
                           style: MyTextStyle.gilroySemiBold(color: Colors.orange, size: 14),
                         ),
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
-                          children: controller.selectedCastes.map((caste) {
+                          children: controller.selectedGotras.map((gotra) {
                             return Container(
                               decoration: BoxDecoration(
                                 color: Colors.orange,
@@ -1857,14 +1852,14 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                                 color: Colors.transparent,
                                 child: InkWell(
                                   borderRadius: BorderRadius.circular(25),
-                                  onTap: () => controller.toggleCasteSelection(caste),
+                                  onTap: () => controller.toggleGotraSelection(gotra),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          caste.name ?? '',
+                                          gotra.name ?? '',
                                           style: MyTextStyle.gilroySemiBold(
                                             color: Colors.white,
                                             size: 12,
@@ -1898,9 +1893,9 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                       border: Border.all(color: Colors.grey[200]!),
                     ),
                     child: TextField(
-                      onChanged: controller.filterCaste,
+                      onChanged: controller.filterGotra,
                       decoration: InputDecoration(
-                        hintText: 'Search community...',
+                        hintText: 'Search gotra...',
                         hintStyle: MyTextStyle.gilroyRegular(color: cLightText),
                         prefixIcon: Container(
                           margin: const EdgeInsets.all(8),
@@ -1925,7 +1920,7 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                       color: Colors.grey[50],
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                     ),
-                    child: controller.filteredCastes.isEmpty
+                    child: controller.filteredGotras.isEmpty
                         ? Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -1937,7 +1932,7 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
-                                  'No communities found',
+                                  'No gotras found',
                                   style: MyTextStyle.gilroySemiBold(
                                     color: Colors.grey[600]!,
                                     size: 16,
@@ -1957,10 +1952,10 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                         : ListView.builder(
                             controller: scrollController,
                             padding: const EdgeInsets.symmetric(vertical: 8),
-                            itemCount: controller.filteredCastes.length,
+                            itemCount: controller.filteredGotras.length,
                             itemBuilder: (context, index) {
-                              final caste = controller.filteredCastes[index];
-                              final isSelected = controller.selectedCastes.any((e) => e.sId == caste.sId);
+                              final gotra = controller.filteredGotras[index];
+                              final isSelected = controller.selectedGotras.any((e) => e.sId == gotra.sId);
 
                               return Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -1971,7 +1966,7 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                                     color: isSelected ? Colors.orange.withOpacity(0.3) : Colors.grey[200]!,
                                   ),
                                 ),
-                                child: CheckboxListTile(
+                                child: Material(type: MaterialType.transparency, child: CheckboxListTile(
                                   value: isSelected,
                                   activeColor: Colors.orange,
                                   checkboxShape: RoundedRectangleBorder(
@@ -1979,14 +1974,14 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                                   ),
                                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                                   title: Text(
-                                    caste.name ?? '',
+                                    gotra.name ?? '',
                                     style: MyTextStyle.gilroyMedium(
                                       color: isSelected ? Colors.orange : cDarkText,
                                       size: 14,
                                     ),
                                   ),
-                                  onChanged: (_) => controller.toggleCasteSelection(caste),
-                                ),
+                                  onChanged: (_) => controller.toggleGotraSelection(gotra),
+                                )),
                               );
                             },
                           ),
@@ -2024,7 +2019,7 @@ class _PartnerPreferenceViewScreenState extends State<PartnerPreferenceViewScree
                               const Icon(Icons.save_outlined, color: Colors.white),
                               const SizedBox(width: 8),
                               Text(
-                                'Save Cultural Preferences',
+                                'Save Gotra Preferences',
                                 style: MyTextStyle.gilroyBold(size: 16, color: Colors.white),
                               ),
                             ],
@@ -2303,7 +2298,7 @@ Widget multiSelectChooserField({
                                             color: selected ? cPrimary.withOpacity(0.3) : Colors.grey[200]!,
                                           ),
                                         ),
-                                        child: CheckboxListTile(
+                                        child: Material(type: MaterialType.transparency, child: CheckboxListTile(
                                           value: selected,
                                           activeColor: cPrimary,
                                           checkboxShape: RoundedRectangleBorder(
@@ -2321,7 +2316,7 @@ Widget multiSelectChooserField({
                                             ),
                                           ),
                                           onChanged: (value) => toggle(item, value ?? false),
-                                        ),
+                                        )),
                                       );
                                     },
                                   ),

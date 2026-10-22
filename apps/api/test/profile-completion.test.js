@@ -65,6 +65,8 @@ function defineSuite() {
     assert.equal(self.status, 200);
     const expected = self.body.data.profileCompletion.percentage;
     assert.notEqual(expected, 3);
+    // fire-and-forget persist (UserController fetchProfile): give it a moment
+    for (let i = 0; i < 20 && (await User.findById(u._id).lean()).profileCompletion.percentage === 3; i++) await new Promise((r) => setTimeout(r, 25));
     assert.equal((await User.findById(u._id).lean()).profileCompletion.percentage, expected);
 
     await User.updateOne({ _id: u._id }, { $set: { 'profileCompletion.percentage': 3 } });

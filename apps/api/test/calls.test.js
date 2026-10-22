@@ -109,6 +109,16 @@ function defineSuite() {
     assert.equal(inc.fromUserName, 'Caller Person');
     assert.equal(String(inc.fromUserId), String(a._id));
 
+    // Accept first: the ring timeout is only 400 ms here, and the token checks
+    // below can take longer than that under parallel test load.
+    const accepted = once(sa, 'call_accepted');
+    sb.emit('call_accept', { callId: inc.callId });
+    const acc = await accepted;
+    assert.equal(acc.channelName, r.channelName);
+    let row = await CallLog.findById(r.callId).lean();
+    assert.equal(row.status, 'accepted');
+    assert.ok(row.answeredAt);
+
     // token by channelName only (both sides), never for a stranger
     const tokenRes = await api().post('/api/calls/token').set(factory.bearer(factory.tokenFor(b))).send({ channelName: r.channelName });
     assert.equal(tokenRes.status, 200, JSON.stringify(tokenRes.body));
@@ -117,14 +127,6 @@ function defineSuite() {
     const stranger = await factory.makeUser();
     assert.equal((await api().post('/api/calls/token').set(factory.bearer(factory.tokenFor(stranger))).send({ channelName: r.channelName })).status, 403);
     assert.equal((await api().post('/api/calls/token').set(factory.bearer(factory.tokenFor(a))).send({})).status, 400);
-
-    const accepted = once(sa, 'call_accepted');
-    sb.emit('call_accept', { callId: inc.callId });
-    const acc = await accepted;
-    assert.equal(acc.channelName, r.channelName);
-    let row = await CallLog.findById(r.callId).lean();
-    assert.equal(row.status, 'accepted');
-    assert.ok(row.answeredAt);
 
     // accepted call is not timed out
     await never(sb, 'call_timeout', 600);
@@ -147,7 +149,9 @@ function defineSuite() {
     assert.equal(String(ta.callId), String(callId));
     assert.equal(String(tb.callId), String(callId));
     assert.equal((await CallLog.findById(callId).lean()).status, 'missed');
-    const note = await Notification.findOne({ type: 'missed_call', toUser: b._id }).lean();
+    // call_timeout is emitted before the notification write finishes: poll briefly.
+    let note;
+    for (let i = 0; i < 40 && !(note = await Notification.findOne({ type: 'missed_call', toUser: b._id }).lean()); i++) await sleep(25);
     assert.ok(note);
     assert.equal(note.data.callId, String(callId));
     assert.equal(String(note.fromUser), String(a._id));

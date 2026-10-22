@@ -72,6 +72,7 @@ class _DailyMatchesScreenState extends State<DailyMatchesScreen> {
       appBar: featureAppBar(AppKeys.dailyMatchesTitle.tr),
       body: GetBuilder<DailyMatchesController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           return PagedUserListBody(
             controller: c,
@@ -90,7 +91,8 @@ class _DailyMatchesScreenState extends State<DailyMatchesScreen> {
             itemBuilder: (context, user) => ProfileTileRow(
               user: user,
               chips: (user.matchedOn ?? const <String>[])
-                  .where((reason) => reason.trim().isNotEmpty)
+                  // every member is Banjara, so "caste match" says nothing
+                  .where((reason) => reason.trim().isNotEmpty && reason.trim().toLowerCase() != 'caste match')
                   .take(3)
                   .map(DailyMatchesScreen.reasonChip)
                   .toList(),

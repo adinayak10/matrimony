@@ -64,17 +64,22 @@ class NearbyController extends PagedUserListController {
         return;
       }
 
-      Position? position;
-      try {
-        position = await Geolocator.getCurrentPosition(
-          locationSettings: const LocationSettings(
-            accuracy: LocationAccuracy.medium,
-            timeLimit: Duration(seconds: 20),
-          ),
-        );
-      } catch (e) {
-        print('Nearby: current position failed: $e');
-        position = await Geolocator.getLastKnownPosition();
+      // A recent last-known fix is good enough for a km-radius list and avoids
+      // waiting for a fresh GPS fix (which can take the full time limit indoors).
+      Position? position = await Geolocator.getLastKnownPosition();
+      final isRecent = position != null && DateTime.now().difference(position.timestamp) < const Duration(minutes: 15);
+      if (!isRecent) {
+        try {
+          position = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.medium,
+              timeLimit: Duration(seconds: 10),
+            ),
+          );
+        } catch (e) {
+          print('Nearby: current position failed: $e');
+          // keep the older last-known position, if any
+        }
       }
       if (position == null) {
         state = NearbyState.locationFailed;
@@ -165,6 +170,7 @@ class _NearbyScreenState extends State<NearbyScreen> {
       appBar: featureAppBar(AppKeys.nearbyTitle.tr),
       body: GetBuilder<NearbyController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           return Column(
             children: [

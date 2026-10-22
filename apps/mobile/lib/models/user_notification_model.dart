@@ -81,13 +81,15 @@ class FromUser {
   String? sId;
   String? profile;
   String? fullName;
+  int? isVerified;
 
-  FromUser({this.sId, this.profile, this.fullName});
+  FromUser({this.sId, this.profile, this.fullName, this.isVerified});
 
   FromUser.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     profile = json['profile'];
     fullName = json['full_name'];
+    isVerified = json['is_verified'];
   }
 
   Map<String, dynamic> toJson() {
@@ -95,6 +97,7 @@ class FromUser {
     data['_id'] = this.sId;
     data['profile'] = this.profile;
     data['full_name'] = this.fullName;
+    data['is_verified'] = this.isVerified;
     return data;
   }
 }

@@ -24,6 +24,7 @@
   const mq = require('../services/matchQuery');
   const { calculateAge: ageOf } = mq;
   const blocks = require('../services/blocks');
+  const { visibleNotificationQuery, countUnreadNotifications } = require('../services/notificationVisibility');
   const { getSettings } = require('../services/settingsCache');
   const env = require('../config/env');
   const { effectiveVisibility, unavailableCard } = require('../services/profileSerializer');
@@ -1207,12 +1208,13 @@ exports.fetchLiveActivity = async (req, res) => {
     // ❤️ New matches received
     const newMatches = await FriendShipRequest.find({
       recipient: my_user_id,
+      requester: { $nin: blockedIds }, // blocks both ways (services/blocks.js)
       status: 'accepted',
     })
       .populate({
         path: 'requester',
         select: 'full_name profile gender',
-        match: { gender: oppositeGender },
+        match: { gender: oppositeGender, is_block: 0 }, // banned -> null, dropped below
       })
       .limit(5)
       .sort({ updatedAt: -1 });
@@ -1225,12 +1227,13 @@ exports.fetchLiveActivity = async (req, res) => {
     // 👀 Profiles viewed you
     const profileViews = await RecentVisitor.find({
       visited: my_user_id,
+      visitor: { $nin: blockedIds },
       lastVisitedAt: { $gte: last24h },
     })
       .populate({
         path: 'visitor',
         select: 'full_name profile gender',
-        match: { gender: oppositeGender },
+        match: { gender: oppositeGender, is_block: 0 },
       })
       .limit(5)
       .sort({ lastVisitedAt: -1 });
@@ -1243,12 +1246,13 @@ exports.fetchLiveActivity = async (req, res) => {
     // 💬 New messages
     const newMessages = await Message.find({
       receiver: my_user_id,
+      sender: { $nin: blockedIds },
       createdAt: { $gte: last24h },
     })
       .populate({
         path: 'sender',
         select: 'full_name profile gender',
-        match: { gender: oppositeGender },
+        match: { gender: oppositeGender, is_block: 0 },
       })
       .limit(5)
       .sort({ createdAt: -1 });
@@ -2066,10 +2070,7 @@ exports.sendInterestRequest = async (req, res) => {
     });
 
     // ✅ Emit notifications
-    const totalUnread = await Notification.countDocuments({
-      toUser: user_id,
-      isRead: false,
-    });
+    const totalUnread = await countUnreadNotifications(user_id);
 
     const socketId = onlineUsers.get(user_id?.toString());
     if (socketId) {
@@ -2352,10 +2353,7 @@ exports.sendInterestRequest = async (req, res) => {
 
 
       // ✅ Emit updated notification count via socket
-  const totalUnread = await Notification.countDocuments({
-    toUser: user_id,
-    isRead: false,
-  });
+  const totalUnread = await countUnreadNotifications(user_id);
 
   const socketId = onlineUsers.get(user_id?.toString());
   if (socketId) {
@@ -2745,7 +2743,9 @@ exports.sendInterestRequest = async (req, res) => {
             ? {
                 id: lastMessage._id,
                 content: lastMessage.content,
-                type: lastMessage.type,
+                // Message stores the kind as msgType (TEXT/IMAGE/...); `type` kept for older readers
+                type: lastMessage.msgType || 'TEXT',
+                msgType: lastMessage.msgType || 'TEXT',
                 status: lastMessage.status,
                 timestamp: lastMessage.createdAt,
                 sender: lastMessage.sender
@@ -2847,7 +2847,9 @@ result.sort((a, b) => {
             ? {
                 id: lastMessage._id,
                 content: lastMessage.content,
-                type: lastMessage.type,
+                // Message stores the kind as msgType (TEXT/IMAGE/...); `type` kept for older readers
+                type: lastMessage.msgType || 'TEXT',
+                msgType: lastMessage.msgType || 'TEXT',
                 status: lastMessage.status,
                 timestamp: lastMessage.createdAt,
                 sender: lastMessage.sender
@@ -3013,14 +3015,18 @@ result.sort((a, b) => {
         });
       }
 
-      const notifications = await Notification.find({ toUser: my_user_id })
+      // hide rows from banned / deleted / blocked (either way) senders; the
+      // unread badge (countUnreadNotifications) uses the same filter
+      const visible = await visibleNotificationQuery(my_user_id);
+
+      const notifications = await Notification.find(visible)
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(parseInt(limit))
-        .populate('fromUser', 'full_name profile')
+        .populate('fromUser', 'full_name profile is_verified')
         .lean();
 
-      const total = await Notification.countDocuments({ toUser: my_user_id });
+      const total = await Notification.countDocuments(visible);
 
       return res.json({
         status: true,
@@ -3064,8 +3070,11 @@ result.sort((a, b) => {
 
     try {
       let result = [];
+      let total = 0;
       let iViewedRaw = [];
       let theyViewedRaw = [];
+      // blocks both ways are hidden like every other list (services/blocks.js)
+      const blockedIds = await blocks.getBlockedIds(my_user_id);
 
       // Populate config
   const populateUser = {
@@ -3085,13 +3094,13 @@ result.sort((a, b) => {
 
       // Fetch visitors
       if (type === 'i_viewed' || type === 'mutual') {
-        iViewedRaw = await RecentVisitor.find({ visitor: my_user_id })
+        iViewedRaw = await RecentVisitor.find({ visitor: my_user_id, visited: { $nin: blockedIds } })
           .sort({ lastVisitedAt: -1 })
           .populate({ path: 'visited', model: 'User', ...populateUser });
       }
 
       if (type === 'they_viewed_me' || type === 'mutual') {
-        theyViewedRaw = await RecentVisitor.find({ visited: my_user_id })
+        theyViewedRaw = await RecentVisitor.find({ visited: my_user_id, visitor: { $nin: blockedIds } })
           .sort({ lastVisitedAt: -1 })
           .populate({ path: 'visitor', model: 'User', ...populateUser });
       }
@@ -3124,19 +3133,19 @@ result.sort((a, b) => {
 
 
       if (type === 'i_viewed') {
-        const paginated = iViewedRaw
-          .filter(item => item.visited && item.visited.is_block !== 1 && item.visited._id.toString() !== my_user_id)
-          .slice(skip, skip + parsedLimit);
+        const rows = iViewedRaw
+          .filter(item => item.visited && item.visited.is_block !== 1 && item.visited._id.toString() !== my_user_id);
+        total = rows.length;
 
-        result = paginated.map(item => extractUserData(item.visited, item));
+        result = rows.slice(skip, skip + parsedLimit).map(item => extractUserData(item.visited, item));
       }
 
       if (type === 'they_viewed_me') {
-        const paginated = theyViewedRaw
-          .filter(item => item.visitor && item.visitor.is_block !== 1 && item.visitor._id.toString() !== my_user_id)
-          .slice(skip, skip + parsedLimit);
+        const rows = theyViewedRaw
+          .filter(item => item.visitor && item.visitor.is_block !== 1 && item.visitor._id.toString() !== my_user_id);
+        total = rows.length;
 
-        result = paginated.map(item => extractUserData(item.visitor, item));
+        result = rows.slice(skip, skip + parsedLimit).map(item => extractUserData(item.visitor, item));
       }
 
       if (type === 'mutual') {
@@ -3151,6 +3160,7 @@ result.sort((a, b) => {
         });
 
         mutualUsers.sort((a, b) => new Date(b.lastVisitedAt) - new Date(a.lastVisitedAt));
+        total = mutualUsers.length;
         result = mutualUsers.slice(skip, skip + parsedLimit);
       }
 
@@ -3164,7 +3174,7 @@ result.sort((a, b) => {
         type,
         page: parseInt(page),
         limit: parsedLimit,
-        total: result.length,
+        total, // all matching rows, not just this page
         data: result,
       });
 
@@ -3626,7 +3636,18 @@ exports.fetchTrendingProfiles = async (req, res) => {
   // GET /api/users/highlighted
   exports.fetchHighlightedUsers = async (req, res) => {
     try {
-      const users = await User.find({ is_highlighted: true, is_block: 0 })
+      // A6.1 visibility rules like every other discovery list: opposite
+      // gender, blocks both ways, is_block:0, gotra exogamy
+      const my_user_id = resolveCaller(req); // token identity (A1.2)
+      const viewer = await User.findById(my_user_id).select('gender gotra family.motherGotra').lean();
+      if (!viewer) return res.status(404).json({ status: false, message: 'User not found' });
+      const blockedIds = await blocks.getBlockedIds(my_user_id);
+      const base = mq.buildMatchQuery(viewer, await getSettings(), { blockedIds });
+      if (!base) {
+        return res.json({ status: true, message: mq.NO_GENDER_MESSAGE, data: [] });
+      }
+
+      const users = await User.find({ ...base, is_highlighted: true })
         .select('full_name gender location membershipPlan profile settings is_verified profileCreatedBy')
         .populate('location.country')
         .populate('location.state')
@@ -4170,10 +4191,7 @@ exports.uploadUserPhotos = async (req, res) => {
 
 
           // ✅ Emit updated notification count via socket
-  const totalUnread = await Notification.countDocuments({
-    toUser: my_user_id,
-    isRead: false,
-  });
+  const totalUnread = await countUnreadNotifications(my_user_id);
 
   const socketId = onlineUsers.get(my_user_id?.toString());
   if (socketId) {
@@ -4479,14 +4497,32 @@ exports.searchProfiles = async (req, res) => {
       const results = [];
       const commons = [];
 
-      const formatBool = (v) => v === true ? 'Yes' : v === false ? 'No' : '-';
       const formatVal = (v, suffix = '') => (v !== undefined && v !== null) ? `${v}${suffix}` : '-';
       const formatArrNames = (arr) => Array.isArray(arr) ? arr.map(x => x?.name || x).join(', ') : '-';
 
+      // No preference (unset, empty list, '' or 'Any') accepts everyone.
+      const noPref = (v) =>
+        v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0) ||
+        (typeof v === 'string' && v.trim().toLowerCase() === 'any');
+      const ANY = 'Any';
+
       const checkArrayMatch = (viewerVal, prefArr) => {
+        if (noPref(prefArr)) return true;
         return Array.isArray(prefArr) && viewerVal
           ? prefArr.some(p => (p._id?.toString() || p) === (viewerVal._id?.toString() || viewerVal))
           : false;
+      };
+      const arrPref = (prefArr) => (noPref(prefArr) ? ANY : formatArrNames(prefArr));
+      const valueMatch = (viewerVal, prefVal) => noPref(prefVal) || viewerVal === prefVal;
+      const valuePref = (prefVal, fmt = (v) => v) => (noPref(prefVal) ? ANY : fmt(prefVal));
+      // cm -> 5'4" (heights are stored in cm)
+      const ftIn = (cm) => {
+        const n = Number(cm);
+        if (!Number.isFinite(n) || n <= 0) return '-';
+        let feet = Math.floor(n / 2.54 / 12);
+        let inches = Math.round((n / 2.54) % 12);
+        if (inches === 12) { feet += 1; inches = 0; }
+        return `${feet}'${inches}"`;
       };
 
       const addResult = (label, match, viewerVal, prefVal) => {
@@ -4513,38 +4549,39 @@ if (prefs.age_range) {
       if (prefs.height_range && viewer.height)
         addResult('Height',
           viewer.height >= prefs.height_range.min && viewer.height <= prefs.height_range.max,
-          viewer.height,
-          `${prefs.height_range.min} to ${prefs.height_range.max}`
+          ftIn(viewer.height),
+          `${ftIn(prefs.height_range.min)} to ${ftIn(prefs.height_range.max)}`
         );
 
       addResult('Caste',
         checkArrayMatch(viewer.caste, prefs.caste),
         viewer.caste?.name,
-        formatArrNames(prefs.caste)
+        arrPref(prefs.caste)
       );
 
       addResult('Gotra',
         checkArrayMatch(viewer.gotra, prefs.gotra),
         viewer.gotra?.name,
-        formatArrNames(prefs.gotra)
+        arrPref(prefs.gotra)
       );
 
       addResult('Qualification',
         checkArrayMatch(viewer.qualification, prefs.qualification),
         viewer.qualification?.name,
-        formatArrNames(prefs.qualification)
+        arrPref(prefs.qualification)
       );
 
       addResult('Profession',
         checkArrayMatch(viewer.profession, prefs.profession),
         viewer.profession?.name,
-        formatArrNames(prefs.profession)
+        arrPref(prefs.profession)
       );
 
       addResult('Income',
-        viewer.incomeRange && (viewer.incomeRange._id?.toString() === prefs.incomeRange?._id?.toString()),
+        noPref(prefs.incomeRange) ||
+          Boolean(viewer.incomeRange && viewer.incomeRange._id?.toString() === prefs.incomeRange?._id?.toString()),
         viewer.incomeRange?.name,
-        prefs.incomeRange?.name
+        valuePref(prefs.incomeRange, (v) => v?.name || ANY)
       );
 
       // addResult('Marital Status',
@@ -4559,28 +4596,33 @@ if (prefs.age_range) {
       //   formatBool(prefs.children)
       // );
 
+      // The member's languages are motherTongue + knownLanguages (there is no `language` field).
+      const viewerLanguages = [viewer.motherTongue, ...(viewer.knownLanguages || [])]
+        .filter(Boolean)
+        .map((l) => String(l).trim().toLowerCase());
       addResult('Language',
-        viewer.language === prefs.language,
-        viewer.language,
-        prefs.language
+        noPref(prefs.language) || viewerLanguages.includes(String(prefs.language).trim().toLowerCase()),
+        viewer.motherTongue,
+        valuePref(prefs.language)
       );
 
+      // Lifestyle fields are `smoke` / `drink` on both the member and the preferences.
       addResult('Smoking',
-        viewer.smoking === prefs.smoking,
-        formatBool(viewer.smoking),
-        formatBool(prefs.smoking)
+        valueMatch(viewer.smoke, prefs.smoke),
+        viewer.smoke,
+        valuePref(prefs.smoke)
       );
 
       addResult('Drinking',
-        viewer.drinking === prefs.drinking,
-        formatBool(viewer.drinking),
-        formatBool(prefs.drinking)
+        valueMatch(viewer.drink, prefs.drink),
+        viewer.drink,
+        valuePref(prefs.drink)
       );
 
       addResult('Diet',
-        viewer.diet === prefs.diet,
+        valueMatch(viewer.diet, prefs.diet),
         viewer.diet,
-        prefs.diet
+        valuePref(prefs.diet)
       );
 
       // addResult('Body Type',

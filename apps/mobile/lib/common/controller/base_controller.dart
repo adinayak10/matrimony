@@ -37,6 +37,7 @@ class BaseController extends GetxController {
     
     // Use standard showDialog instead of Get.dialog for better control
     if (Get.context != null) {
+      var closeScheduled = false;
       showDialog(
         context: Get.context!,
         barrierDismissible: false,
@@ -44,6 +45,15 @@ class BaseController extends GetxController {
         builder: (BuildContext context) {
           _dialogContext = context; // Store the context
           print('📝 Dialog context stored');
+          // stopLoading() can run before this builder (fast responses); it found no
+          // context to pop, so the dialog closes itself once it is on screen.
+          if (!_isDialogShowing && !closeScheduled) {
+            closeScheduled = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) Navigator.of(context).pop();
+              if (identical(_dialogContext, context)) _dialogContext = null;
+            });
+          }
           return WillPopScope(
             onWillPop: () async => false,
             child: Center(

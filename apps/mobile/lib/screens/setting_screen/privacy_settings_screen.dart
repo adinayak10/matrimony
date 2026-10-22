@@ -31,6 +31,7 @@ class _PrivacySettingsScreenState extends State<PrivacySettingsScreen> {
       appBar: featureAppBar(AppKeys.privacyTitle.tr),
       body: GetBuilder<UserSettingsController>(
         tag: _tag,
+        init: controller,
         builder: (c) {
           return ListView(
             padding: const EdgeInsets.only(top: 8, bottom: 32),

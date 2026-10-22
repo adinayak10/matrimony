@@ -124,7 +124,7 @@ class HoroscopeScreen extends StatelessWidget {
                     ),
                     SectionCard(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: SwitchListTile(
+                      child: Material(type: MaterialType.transparency, child: SwitchListTile(
                         value: controller.horoscopeRequired,
                         activeColor: cPrimary,
                         onChanged: controller.setHoroscopeRequired,
@@ -132,7 +132,7 @@ class HoroscopeScreen extends StatelessWidget {
                             style: MyTextStyle.gilroySemiBold(size: 14, color: cDarkText)),
                         subtitle: Text(MatchKeys.horoscopeRequiredHint.tr,
                             style: MyTextStyle.gilroyRegular(size: 12, color: cLightText)),
-                      ),
+                      )),
                     ),
                   ],
                 ),

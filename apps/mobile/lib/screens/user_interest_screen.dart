@@ -168,7 +168,7 @@ class InterestUserScreen extends StatelessWidget {
               userInterest: row,
               onReject: () => controller.declineInterest(userId),
               onCancel: () => controller.cencelInterest(userId),
-              onAccept: () => controller.acceptInterest(userId),
+              onAccept: () => controller.acceptInterest(userId, onAccepted: () => _chat(row.user)),
               onSendRequest: () => controller.sendInterest(userId),
               onMessage: () => _chat(row.user),
               onCall: () => _call(row.user),

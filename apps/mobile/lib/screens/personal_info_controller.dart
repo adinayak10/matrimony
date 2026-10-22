@@ -1,4 +1,3 @@
-import 'dart:convert'; // Still needed for jsonEncode if you keep the print statements
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart'; // Import GetX
@@ -96,9 +95,8 @@ class PersonalInfoController extends BaseController {
             (selectedGender.isEmpty || selectedGender == "Not specified" || dob == null || selectedHeight.isEmpty);
         print("//////////////////");
         print(isNewUser);
-        if (user.caste != null) {
-          selectedCaste = castes.firstWhereOrNull((c) => c.sId == user.caste!.sId);
-        }
+        // BanjaraMatch is Banjara-only: the caste is not asked, it defaults to Banjara.
+        selectedCaste = castes.firstWhereOrNull((c) => c.sId == user.caste?.sId) ?? _banjaraCaste();
 
         if (selectedCaste?.sId != null) {
           await fetchGotrasAsync(selectedCaste!.sId!);
@@ -157,13 +155,8 @@ class PersonalInfoController extends BaseController {
     update();
   }
 
-  void onCasteSelected(CasteGotra caste) {
-    selectedCaste = caste;
-    selectedGotra = null;
-    gotraController.clear();
-    update();
-    fetchGotrasAsync(caste.sId ?? '');
-  }
+  CasteGotra? _banjaraCaste() =>
+      castes.firstWhereOrNull((c) => (c.name ?? '').trim().toLowerCase() == 'banjara') ?? castes.firstOrNull;
 
   void onGotraSelected(CasteGotra gotra) {
     selectedGotra = gotra;
@@ -315,24 +308,6 @@ extension PersonalInfoDropdowns on PersonalInfoController {
         ),
         const SizedBox(height: 14),
       ],
-    );
-  }
-
-  Widget buildCasteDropdown() {
-    // These print statements are for debugging and can be removed in production
-    print(selectedCaste);
-    print(jsonEncode(selectedCaste));
-    print("........................");
-    print(castes);
-    print(jsonEncode(castes));
-
-    return _buildDropdown<CasteGotra>(
-      label: 'Caste',
-      value: selectedCaste,
-      items: castes,
-      onChanged: (val) {
-        if (val != null) onCasteSelected(val);
-      },
     );
   }
 

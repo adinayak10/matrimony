@@ -13,6 +13,9 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'test';
 process.env.API_INTERNAL_URL = process.env.API_INTERNAL_URL || 'http://127.0.0.1:65530';
 process.env.API_PUBLIC_URL = process.env.API_PUBLIC_URL || 'https://api.example.test';
 process.env.SESSION_TTL_HOURS = process.env.SESSION_TTL_HOURS || '8';
+// Pinned (not ||=): the CSP assertions below expect this origin, and a local
+// apps/admin/.env must not change it.
+process.env.WEB_PUBLIC_URL = 'https://www.banjaramatch.com';
 
 const fs = require('node:fs');
 const request = require('supertest');

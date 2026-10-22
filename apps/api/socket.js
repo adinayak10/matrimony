@@ -18,6 +18,7 @@ const mongoose = require('mongoose');
 const { verifyUserToken, tokenFromHandshake } = require('./services/verifyUserToken');
 const { getSettings } = require('./services/settingsCache');
 const blocks = require('./services/blocks');
+const { countUnreadNotifications } = require('./services/notificationVisibility');
 const { effectiveVisibility } = require('./services/profileSerializer');
 const { ALLOW_MESSAGES_ENUM } = require('./enum/enum');
 
@@ -241,7 +242,7 @@ module.exports = {
 
         await User.updateOne({ _id: userId }, { $set: { isOnline: true, lastSeen: null } });
 
-        const totalUnread = await Notification.countDocuments({ toUser: userId, isRead: false });
+        const totalUnread = await countUnreadNotifications(userId);
         io.to(socket.id).emit('notification_count', { total: totalUnread });
 
         await ActivityLog.create({ userId, timestamp: new Date() });
@@ -272,7 +273,7 @@ module.exports = {
           userId = socket.userId;
           if (onlineUsers.get(userId) === socket.id) {
             // already bound at connect: just refresh the badge for old clients
-            const totalUnread = await Notification.countDocuments({ toUser: userId, isRead: false });
+            const totalUnread = await countUnreadNotifications(userId);
             io.to(socket.id).emit('notification_count', { total: totalUnread });
             return;
           }
@@ -445,7 +446,7 @@ module.exports = {
       on('get_notification_count', async () => {
         const userId = me();
         if (!userId) return;
-        const total = await Notification.countDocuments({ toUser: userId, isRead: false });
+        const total = await countUnreadNotifications(userId);
         io.to(socket.id).emit('notification_count', { total });
       });
 

@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%
+  // Same data as pages/regional-page-city (GET /api/city-pages/:slug); this file only changes the layout.
+  // Rich fields (intro/about/custom blocks) are sanitized by the API when the CMS saves them.
+  // The CMS sanitizer stores "&" as "&amp;" even in plain-text fields; decode those
+  // before the escaped output tag escapes them again. Rich `content` fields stay HTML.
+  const RICH = new Set(['content']);
+  const decode = (s) => String(s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#0?39;/g, "'").replace(/&amp;/g, '&');
+  const plain = (v, key) => {
+    if (typeof v === 'string') return RICH.has(key) ? v : decode(v);
+    if (Array.isArray(v)) return v.map((x) => plain(x, key));
+    if (v && typeof v === 'object' && !v._bsontype) { const o = {}; for (const k of Object.keys(v)) o[k] = plain(v[k], k); return o; }
+    return v;
+  };
+  const cityName = page.city && typeof page.city === 'object' ? page.city.name : (page.city || 'Ahmedabad');
+  const stateName = page.state && typeof page.state === 'object' ? page.state.name : (page.state || 'Gujarat');
+  const stateSlug = 'banjara-matrimony-' + String(stateName).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  const hero = plain(page.heroSection || {});
+  const intro = plain(page.introSection || {});
+  const about = plain(page.aboutSection || {});
+  const why = plain(page.whyChooseSection || {});
+  const how = plain(page.howItWorksSection || {});
+  const loc = plain(page.localitiesSection || {});
+  const insightsSection = plain(page.communityInsightsSection || {});
+  const insights = plain(page.communityInsights || {});
+  const nearbySection = plain(page.nearbyCitiesSection || {});
+  const faqSection = plain(page.faqSection || {});
+  const cta = plain(page.ctaSection || {});
+  const stats = page.stats || {};
+  const heroTitle = hero.title || `Banjara Matrimony in ${cityName}`;
+  const titleParts = heroTitle.split(cityName);
+  const whyPoints = (why.points || []).filter((p) => p && p.title).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const steps = (how.steps || []).filter((s) => s && s.title).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const localities = plain(page.popularLocalities || []).filter((l) => l && l.name);
+  const blocks = plain(page.customContentBlocks || []).filter((b) => b && b.content).sort((a, b) => (a.order || 0) - (b.order || 0));
+  const faqs = ((page.faqs && page.faqs.length ? plain(page.faqs) : faqSection.faqs) || []).filter((f) => f && f.question && f.answer)
+    .sort((a, b) => (a.order || 0) - (b.order || 0));
+  const languages = (insights.languagesSpoken || []).filter(Boolean);
+  const events = (insights.culturalEvents || []).filter(Boolean);
+  const sameState = (page.sameStateCities || []).filter((c) => c && c.slug && c.slug !== page.slug);
+  // Live numbers only once they are meaningful; "1 member" reads worse than no box.
+  const showStats = (stats.totalMembers || 0) >= 50;
+  const profilesUrl = '/all-profiles?city=' + encodeURIComponent(cityName);
+  const iconOf = (name, fallback) => /^fa-[a-z0-9-]+$/.test(String(name || '')) ? name : fallback;
+  const toc = [
+    ['about', `About the community`],
+    ['why', `Why BanjaraMatch`],
+    ['how', `How it works`],
+    ['areas', `Areas of ${cityName}`],
+    ['culture', `Culture & traditions`],
+    ['faq', `FAQs`],
+  ];
+%>
+<style>
+  .ah { --ah-ink:#3b1a00; --ah-ink2:#5c3510; --ah-accent:#f6af04; --ah-accent-dk:#a05000; --ah-cream:#fdfaf5; --ah-line:#f0e8d0; --ah-text:#4a4a4a; color:var(--ah-text); }
+  .ah section { scroll-margin-top: calc(var(--mtop) + 12px); }
+  .ah-section { padding:72px 0; background:#fff; }
+  .ah-section.ah-alt { background:var(--ah-cream); }
+  .ah-eyebrow { display:inline-block; font-size:12px; font-weight:700; letter-spacing:1.6px; text-transform:uppercase; color:var(--ah-accent-dk); margin-bottom:10px; }
+  .ah-h2 { font-family:var(--tit-font); font-size:32px; font-weight:700; color:var(--ah-ink); line-height:1.3; margin:0 0 14px; }
+  .ah-lead { font-size:16px; line-height:1.8; color:#666; max-width:720px; margin:0 0 28px; }
+  .ah-center { text-align:center; }
+  .ah-center .ah-lead { margin-left:auto; margin-right:auto; }
+  .ah-prose { font-size:16px; line-height:1.85; }
+  .ah-prose p { margin:0 0 16px; }
+  .ah-prose a, .ah-faq a, .ah-card a { color:var(--ah-accent-dk); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+  .ah-prose ul { list-style:disc; padding-left:22px; margin:0 0 16px; }
+  .ah-prose li { display:list-item; list-style:disc outside; margin-bottom:8px; }
+  .ah-prose li::marker { color:var(--ah-accent-dk); }
+
+  /* Hero */
+  .ah-hero { position:relative; overflow:hidden; background:linear-gradient(135deg,#0a0500 0%,#2a0e00 55%,#5a2000 100%); padding:64px 0 72px; color:#fff; }
+  .ah-hero::before { content:''; position:absolute; inset:0; background:url('<%= img.cssUrl('/images/ban-bg.jpg') %>') center/cover no-repeat; opacity:.1; }
+  .ah-hero .container { position:relative; z-index:1; }
+  .ah-hero-grid { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:48px; align-items:center; }
+  .ah-chip { display:inline-flex; align-items:center; gap:8px; background:rgba(246,175,4,.14); border:1px solid rgba(246,175,4,.45); color:var(--ah-accent); padding:6px 14px; border-radius:999px; font-size:13px; font-weight:600; margin-bottom:18px; }
+  .ah-hero h1 { font-family:var(--tit-font); color:#fff; font-size:46px; font-weight:700; line-height:1.18; margin:0 0 18px; }
+  .ah-hero h1 span { color:var(--ah-accent); }
+  .ah-hero-sub { color:rgba(255,255,255,.84); font-size:17px; line-height:1.75; margin:0 0 22px; max-width:600px; }
+  .ah-highlights { list-style:none; padding:0; margin:0 0 30px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 20px; max-width:560px; }
+  .ah-highlights li { display:flex; align-items:center; gap:10px; font-size:15px; color:#fff; }
+  .ah-highlights i { color:var(--ah-accent); }
+  .ah-btns { display:flex; flex-wrap:wrap; gap:12px; }
+  .ah-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:48px; padding:12px 26px; border-radius:999px; font-size:15px; font-weight:700; text-decoration:none; transition:transform .15s, box-shadow .15s, background .15s; }
+  .ah-btn:hover { transform:translateY(-1px); text-decoration:none; }
+  .ah-btn-primary { background:var(--ah-accent); color:#1a0a00; box-shadow:0 8px 22px rgba(246,175,4,.35); }
+  .ah-btn-primary:hover { color:#1a0a00; box-shadow:0 10px 26px rgba(246,175,4,.45); }
+  .ah-btn-ghost { border:1.5px solid rgba(255,255,255,.55); color:#fff; }
+  .ah-btn-ghost:hover { background:rgba(255,255,255,.1); color:#fff; }
+
+  .ah-search { background:#fff; border-radius:20px; padding:28px; box-shadow:0 24px 60px rgba(0,0,0,.35); color:var(--ah-text); }
+  .ah-search h2 { font-family:var(--tit-font); font-size:22px; color:var(--ah-ink); margin:0 0 6px; }
+  .ah-search p { font-size:14px; color:#777; margin:0 0 18px; }
+  .ah-field { margin-bottom:14px; }
+  .ah-field label { display:block; font-size:13px; font-weight:600; color:var(--ah-ink2); margin-bottom:6px; }
+  .ah-field select { width:100%; height:46px; border:1.5px solid #e6dcc6; border-radius:12px; padding:0 14px; font-size:15px; color:#333; background:#fff; }
+  .ah-field select:focus { outline:none; border-color:var(--ah-accent); box-shadow:0 0 0 3px rgba(246,175,4,.2); }
+  .ah-field-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .ah-search .ah-btn { width:100%; border:0; cursor:pointer; margin-top:4px; }
+
+  /* Quick facts */
+  .ah-facts { background:#fff; border-bottom:1px solid var(--ah-line); }
+  .ah-facts-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); }
+  .ah-fact { display:flex; gap:14px; align-items:flex-start; padding:24px 20px; border-right:1px solid var(--ah-line); }
+  .ah-fact:last-child { border-right:0; }
+  .ah-fact i { flex:0 0 42px; width:42px; height:42px; border-radius:12px; background:rgba(246,175,4,.14); color:var(--ah-accent-dk); display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .ah-fact b { display:block; font-size:12px; text-transform:uppercase; letter-spacing:1px; color:#999; font-weight:600; margin-bottom:3px; }
+  .ah-fact span { font-size:15px; font-weight:600; color:var(--ah-ink); line-height:1.45; }
+
+  /* Intro + contents */
+  .ah-two { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(0,1fr); gap:48px; align-items:start; }
+  .ah-features { list-style:none; padding:0; margin:8px 0 0; display:grid; gap:10px; }
+  .ah-features li { display:flex; gap:10px; align-items:flex-start; font-size:15px; color:var(--ah-ink2); }
+  .ah-features i { color:#2e7d32; margin-top:4px; }
+  .ah-toc { position:sticky; top:calc(var(--mtop) + 20px); background:var(--ah-cream); border:1px solid var(--ah-line); border-radius:18px; padding:24px; }
+  .ah-toc h2 { font-size:15px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--ah-ink); margin:0 0 12px; font-family:inherit; }
+  .ah-toc ol { margin:0; padding-left:20px; }
+  .ah-toc li { margin:8px 0; font-size:15px; }
+  .ah-toc a { color:var(--ah-ink2); text-decoration:none; }
+  .ah-toc a:hover { color:var(--ah-accent-dk); text-decoration:underline; }
+  .ah-stats { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:18px; }
+  .ah-stat { background:#fff; border-radius:12px; padding:12px; text-align:center; border:1px solid var(--ah-line); }
+  .ah-stat strong { display:block; font-size:22px; color:var(--ah-ink); }
+  .ah-stat small { font-size:12px; color:#888; }
+
+  /* Callouts */
+  .ah-callouts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:24px; }
+  .ah-callout { background:#fff; border-left:4px solid var(--ah-accent); border-radius:12px; padding:18px 20px; font-size:15px; line-height:1.7; box-shadow:0 2px 10px rgba(59,26,0,.05); }
+  .ah-callout b { display:block; color:var(--ah-ink); margin-bottom:4px; }
+
+  /* Cards */
+  .ah-grid-3 { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:22px; }
+  .ah-card { background:#fff; border:1.5px solid var(--ah-line); border-radius:18px; padding:26px 24px; transition:border-color .15s, box-shadow .15s, transform .15s; height:100%; }
+  .ah-card:hover { border-color:var(--ah-accent); box-shadow:0 10px 28px rgba(59,26,0,.08); transform:translateY(-2px); }
+  .ah-card-icon { width:50px; height:50px; border-radius:14px; background:linear-gradient(135deg,#fff3d6,#ffe2a3); color:var(--ah-accent-dk); display:flex; align-items:center; justify-content:center; font-size:21px; margin-bottom:16px; }
+  .ah-card h3 { font-size:18px; font-weight:700; color:var(--ah-ink); margin:0 0 8px; }
+  .ah-card p { font-size:15px; line-height:1.7; color:#666; margin:0; }
+  .ah-card-meta { display:flex; gap:8px; align-items:center; margin-top:14px; font-size:13px; color:var(--ah-accent-dk); font-weight:600; }
+
+  /* Steps */
+  .ah-steps { list-style:none; padding:0; margin:0; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:22px; counter-reset:ahstep; }
+  .ah-step { position:relative; background:#fff; border-radius:18px; padding:30px 22px 24px; border:1.5px solid var(--ah-line); }
+  .ah-step-num { position:absolute; top:-18px; left:22px; width:38px; height:38px; border-radius:50%; background:var(--ah-accent); color:#1a0a00; font-weight:800; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 16px rgba(246,175,4,.4); }
+  .ah-step i { font-size:24px; color:var(--ah-accent-dk); margin:8px 0 12px; display:block; }
+  .ah-step h3 { font-size:17px; font-weight:700; color:var(--ah-ink); margin:0 0 8px; }
+  .ah-step p { font-size:14.5px; line-height:1.7; color:#666; margin:0; }
+
+  /* Culture (dark) */
+  .ah-dark { background:linear-gradient(135deg,#1a0800,#3b1000); color:rgba(255,255,255,.86); }
+  .ah-dark .ah-h2 { color:var(--ah-accent); }
+  .ah-dark .ah-eyebrow { color:rgba(246,175,4,.85); }
+  .ah-dark .ah-lead { color:rgba(255,255,255,.78); }
+  .ah-tags { display:flex; flex-wrap:wrap; gap:10px; margin:10px 0 22px; list-style:none; padding:0; }
+  .ah-tags li { background:rgba(255,255,255,.08); border:1px solid rgba(246,175,4,.35); color:#fff; border-radius:999px; padding:7px 16px; font-size:14px; }
+  .ah-dark h3 { color:#fff; font-size:16px; font-weight:700; text-transform:uppercase; letter-spacing:1px; margin:0 0 4px; }
+  .ah-dark .ah-prose, .ah-dark .ah-prose p, .ah-dark .ah-prose li { color:rgba(255,255,255,.86); }
+  .ah-dark .ah-prose li::marker { color:var(--ah-accent); }
+  .ah-dark .ah-prose a { color:var(--ah-accent); }
+  .ah-dark .ah-prose strong, .ah-dark .ah-prose em { color:#fff; }
+  .ah-panel { background:rgba(255,255,255,.05); border:1px solid rgba(246,175,4,.25); border-radius:18px; padding:28px; }
+  .ah-panel h3.ah-panel-title { font-family:var(--tit-font); text-transform:none; letter-spacing:0; font-size:22px; color:var(--ah-accent); margin:0 0 14px; }
+
+  /* Info blocks */
+  .ah-grid-2 { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px; }
+  .ah-block h3 { font-family:var(--tit-font); font-size:22px; color:var(--ah-ink); margin:0 0 14px; }
+  .ah-block .ah-prose { font-size:15px; }
+
+  /* Links */
+  .ah-links { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+  .ah-link { display:flex; align-items:center; gap:14px; background:#fff; border:1.5px solid var(--ah-line); border-radius:14px; padding:16px 18px; text-decoration:none; color:var(--ah-ink); transition:border-color .15s, box-shadow .15s; }
+  .ah-link:hover { border-color:var(--ah-accent); box-shadow:0 6px 18px rgba(59,26,0,.07); color:var(--ah-ink); text-decoration:none; }
+  .ah-link i { flex:0 0 40px; width:40px; height:40px; border-radius:12px; background:rgba(246,175,4,.14); color:var(--ah-accent-dk); display:flex; align-items:center; justify-content:center; }
+  .ah-link strong { display:block; font-size:15px; }
+  .ah-link small { display:block; font-size:13px; color:#888; }
+  .ah-subhead { font-size:18px; font-weight:700; color:var(--ah-ink); margin:34px 0 16px; }
+
+  /* FAQ */
+  .ah-faq { max-width:860px; margin:0 auto; }
+  .ah-faq details { background:#fff; border:1.5px solid var(--ah-line); border-radius:14px; margin-bottom:12px; overflow:hidden; }
+  .ah-faq details[open] { border-color:var(--ah-accent); box-shadow:0 6px 18px rgba(59,26,0,.06); }
+  .ah-faq summary { list-style:none; cursor:pointer; padding:18px 54px 18px 22px; position:relative; font-size:16px; font-weight:600; color:var(--ah-ink); }
+  .ah-faq summary::-webkit-details-marker { display:none; }
+  .ah-faq summary::after { content:'+'; position:absolute; right:20px; top:50%; transform:translateY(-50%); width:26px; height:26px; border-radius:50%; background:rgba(246,175,4,.16); color:var(--ah-accent-dk); font-size:18px; line-height:26px; text-align:center; }
+  .ah-faq details[open] summary::after { content:'\2212'; }
+  .ah-faq details p { margin:0; padding:0 22px 20px; font-size:15px; line-height:1.75; color:#555; }
+
+  /* CTA */
+  .ah-cta { background:linear-gradient(135deg,#f6af04,#e08a00); padding:64px 0; color:#1a0a00; }
+  .ah-cta h2 { font-family:var(--tit-font); font-size:34px; color:#1a0a00; margin:0 0 10px; }
+  .ah-cta p { font-size:17px; margin:0 auto 22px; max-width:640px; color:#3b1a00; }
+  .ah-cta .ah-tags li { background:rgba(255,255,255,.45); border-color:rgba(59,26,0,.15); color:#3b1a00; font-weight:600; }
+  .ah-cta .ah-tags { justify-content:center; }
+  .ah-cta .ah-btns { justify-content:center; }
+  .ah-btn-dark { background:#1a0a00; color:#fff; }
+  .ah-btn-dark:hover { color:#fff; background:#3b1a00; }
+  .ah-btn-light { background:#fff; color:#1a0a00; }
+  .ah-btn-light:hover { color:#1a0a00; }
+
+  @media (max-width: 991px) {
+    .ah-hero-grid, .ah-two { grid-template-columns:1fr; gap:32px; }
+    .ah-toc { position:static; }
+    .ah-hero h1 { font-size:38px; }
+    .ah-facts-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .ah-fact:nth-child(2) { border-right:0; }
+    .ah-fact:nth-child(-n+2) { border-bottom:1px solid var(--ah-line); }
+    .ah-grid-3, .ah-links { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .ah-steps { grid-template-columns:repeat(2,minmax(0,1fr)); row-gap:34px; }
+  }
+  @media (max-width: 640px) {
+    .ah-section { padding:52px 0; }
+    .ah-hero { padding:44px 0 52px; }
+    .ah-hero h1 { font-size:31px; }
+    .ah-hero-sub { font-size:16px; }
+    .ah-h2 { font-size:26px; }
+    .ah-highlights { grid-template-columns:1fr; }
+    .ah-btns .ah-btn { flex:1 1 100%; }
+    .ah-search { padding:22px 18px; }
+    .ah-facts-grid, .ah-grid-3, .ah-grid-2, .ah-links, .ah-steps, .ah-callouts { grid-template-columns:1fr; }
+    .ah-fact { border-right:0; border-bottom:1px solid var(--ah-line); padding:18px 4px; }
+    .ah-fact:last-child { border-bottom:0; }
+    .ah-cta h2 { font-size:27px; }
+  }
+</style>
+</head>
+
+<body class="bm-regional">
+  <%- include('../partials/header') %>
+  <%- include('../partials/breadcrumb') %>
+
+  <main class="ah">
+    <!-- Hero -->
+    <section class="ah-hero" aria-labelledby="ah-title">
+      <div class="container">
+        <div class="ah-hero-grid">
+          <div>
+            <span class="ah-chip"><i class="fa fa-map-marker" aria-hidden="true"></i> <%= hero.tagline || `${cityName}, ${stateName}` %></span>
+            <h1 id="ah-title">
+              <% if (titleParts.length > 1) { %><%= titleParts[0] %><span><%= cityName %></span><%= titleParts.slice(1).join(cityName) %><% } else { %><%= heroTitle %><% } %>
+            </h1>
+            <% if (hero.subtitle) { %><p class="ah-hero-sub"><%= hero.subtitle %></p><% } %>
+            <% if (hero.highlights && hero.highlights.length) { %>
+            <ul class="ah-highlights">
+              <% hero.highlights.forEach((h) => { %><li><i class="fa fa-check-circle" aria-hidden="true"></i><%= h %></li><% }); %>
+            </ul>
+            <% } %>
+            <div class="ah-btns">
+              <% if (user) { %>
+              <a class="ah-btn ah-btn-primary" href="<%= profilesUrl %>"><i class="fa fa-search" aria-hidden="true"></i> Browse <%= cityName %> profiles</a>
+              <a class="ah-btn ah-btn-ghost" href="/daily-matches">Today's matches</a>
+              <% } else { %>
+              <a class="ah-btn ah-btn-primary" href="/register"><i class="fa fa-user-plus" aria-hidden="true"></i> <%= hero.ctaText && hero.ctaText !== 'Register Free' ? hero.ctaText : 'Register free' %></a>
+              <a class="ah-btn ah-btn-ghost" href="/login">Log in</a>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="ah-search">
+            <h2>Search <%= cityName %> matches</h2>
+            <p>Free for everyone. Results open after you sign in.</p>
+            <form action="<%= user ? '/all-profiles' : '/register' %>" method="GET" class="hero-search" data-guest="<%= user ? '0' : '1' %>">
+              <% if (!user) { %><input type="hidden" name="intent" value="search"><% } %>
+              <input type="hidden" name="city" value="<%= cityName %>">
+              <div class="ah-field">
+                <label for="ah-gender">I'm looking for</label>
+                <select id="ah-gender" name="gender">
+                  <option value="">Bride or groom</option>
+                  <option value="Female">A bride</option>
+                  <option value="Male">A groom</option>
+                </select>
+              </div>
+              <div class="ah-field-row">
+                <div class="ah-field">
+                  <label for="ah-age">Age</label>
+                  <select id="ah-age" name="age">
+                    <option value="">Any age</option>
+                    <option value="18-25">18 to 25</option>
+                    <option value="26-30">26 to 30</option>
+                    <option value="31-35">31 to 35</option>
+                    <option value="36-40">36 to 40</option>
+                    <option value="41-50">41 to 50</option>
+                    <option value="51-60">51 to 60</option>
+                  </select>
+                </div>
+                <div class="ah-field">
+                  <label for="ah-marital">Marital status</label>
+                  <select id="ah-marital" name="maritalStatus">
+                    <option value="">Any</option>
+                    <option value="Never Married">Never married</option>
+                    <option value="Divorced">Divorced</option>
+                    <option value="Widowed">Widowed</option>
+                    <option value="Awaiting Divorce">Awaiting divorce</option>
+                  </select>
+                </div>
+              </div>
+              <button type="submit" class="ah-btn ah-btn-primary"><i class="fa fa-search" aria-hidden="true"></i> Find matches in <%= cityName %></button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick facts -->
+    <section class="ah-facts" aria-label="<%= cityName %> at a glance">
+      <div class="container">
+        <div class="ah-facts-grid">
+          <div class="ah-fact"><i class="fa fa-map-marker" aria-hidden="true"></i><div><b>Location</b><span><%= cityName %>, <a href="/<%= stateSlug %>"><%= stateName %></a></span></div></div>
+          <div class="ah-fact"><i class="fa fa-users" aria-hidden="true"></i><div><b>Community</b><span>Banjara · Vanjara · Lambani · Gor</span></div></div>
+          <div class="ah-fact"><i class="fa fa-language" aria-hidden="true"></i><div><b>Languages</b><span><%= languages.length ? languages.slice(0, 3).join(', ') : 'Gujarati, Hindi, Gor Boli' %></span></div></div>
+          <div class="ah-fact"><i class="fa fa-inr" aria-hidden="true"></i><div><b>Cost</b><span>Free to join, search and chat</span></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Intro + contents -->
+    <section class="ah-section" aria-labelledby="ah-intro">
+      <div class="container">
+        <div class="ah-two">
+          <div>
+            <% if (intro.subheading) { %><span class="ah-eyebrow"><%= intro.subheading %></span><% } else { %><span class="ah-eyebrow"><%= cityName %> matrimony</span><% } %>
+            <h2 class="ah-h2" id="ah-intro"><%= intro.heading || `Welcome to Banjara Matrimony in ${cityName}` %></h2>
+            <% if (intro.content) { %><div class="ah-prose"><%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ intro.content %></div><% } %>
+            <% if (intro.features && intro.features.length) { %>
+            <ul class="ah-features">
+              <% intro.features.forEach((f) => { %><li><i class="fa fa-check" aria-hidden="true"></i><span><%= f %></span></li><% }); %>
+            </ul>
+            <% } %>
+          </div>
+          <aside class="ah-toc" aria-labelledby="ah-toc-title">
+            <h2 id="ah-toc-title">On this page</h2>
+            <ol>
+              <% toc.forEach(([id, label]) => { %><li><a href="#<%= id %>"><%= label %></a></li><% }); %>
+            </ol>
+            <% if (showStats) { %>
+            <div class="ah-stats">
+              <div class="ah-stat"><strong><%= stats.totalMembers %></strong><small>Members</small></div>
+              <div class="ah-stat"><strong><%= stats.verifiedProfiles || 0 %></strong><small>Verified</small></div>
+              <div class="ah-stat"><strong><%= stats.activeBrides || 0 %></strong><small>Brides</small></div>
+              <div class="ah-stat"><strong><%= stats.activeGrooms || 0 %></strong><small>Grooms</small></div>
+            </div>
+            <% } %>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="ah-section ah-alt" id="about" aria-labelledby="ah-about">
+      <div class="container">
+        <span class="ah-eyebrow">The community</span>
+        <h2 class="ah-h2" id="ah-about"><%= about.title || about.heading || `About the Banjara Community in ${cityName}` %></h2>
+        <% if (about.content) { %><div class="ah-prose"><%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ about.content %></div><% } %>
+        <% if (about.culturalNote || about.modernContext) { %>
+        <div class="ah-callouts">
+          <% if (about.culturalNote) { %><div class="ah-callout"><b>Language at home</b><%= about.culturalNote %></div><% } %>
+          <% if (about.modernContext) { %><div class="ah-callout"><b>The new generation</b><%= about.modernContext %></div><% } %>
+        </div>
+        <% } %>
+      </div>
+    </section>
+
+    <!-- Why -->
+    <% if (whyPoints.length) { %>
+    <section class="ah-section" id="why" aria-labelledby="ah-why">
+      <div class="container">
+        <div class="ah-center">
+          <span class="ah-eyebrow">Why BanjaraMatch</span>
+          <h2 class="ah-h2" id="ah-why"><%= why.heading || why.title || `Why ${cityName} families choose BanjaraMatch` %></h2>
+          <% if (why.subheading) { %><p class="ah-lead"><%= why.subheading %></p><% } else { %><div style="height:14px"></div><% } %>
+        </div>
+        <div class="ah-grid-3">
+          <% whyPoints.forEach((p) => { %>
+          <div class="ah-card">
+            <div class="ah-card-icon"><i class="fa <%= iconOf(p.icon, 'fa-check') %>" aria-hidden="true"></i></div>
+            <h3><%= p.title %></h3>
+            <% if (p.description) { %><p><%= p.description %></p><% } %>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- How it works -->
+    <% if (steps.length) { %>
+    <section class="ah-section ah-alt" id="how" aria-labelledby="ah-how">
+      <div class="container">
+        <div class="ah-center">
+          <span class="ah-eyebrow">How it works</span>
+          <h2 class="ah-h2" id="ah-how"><%= how.heading || how.title || `Find your match in ${cityName}` %></h2>
+          <div style="height:30px"></div>
+        </div>
+        <ol class="ah-steps">
+          <% steps.forEach((s, i) => { %>
+          <li class="ah-step">
+            <span class="ah-step-num" aria-hidden="true"><%= s.stepNumber || i + 1 %></span>
+            <i class="fa <%= iconOf(s.icon, 'fa-check') %>" aria-hidden="true"></i>
+            <h3><%= s.title %></h3>
+            <% if (s.description) { %><p><%= s.description %></p><% } %>
+          </li>
+          <% }); %>
+        </ol>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Areas -->
+    <% if (localities.length || loc.introduction) { %>
+    <section class="ah-section" id="areas" aria-labelledby="ah-areas">
+      <div class="container">
+        <span class="ah-eyebrow"><%= loc.subheading || `Across ${cityName}` %></span>
+        <h2 class="ah-h2" id="ah-areas"><%= loc.heading || `Matches from every part of ${cityName}` %></h2>
+        <% if (loc.introduction) { %><p class="ah-lead"><%= loc.introduction %></p><% } %>
+        <% if (localities.length) { %>
+        <div class="ah-grid-3">
+          <% localities.forEach((l) => { %>
+          <div class="ah-card">
+            <h3><i class="fa fa-map-marker" aria-hidden="true" style="color:var(--ah-accent-dk);margin-right:8px"></i><%= l.name %></h3>
+            <% if (l.description) { %><p><%= l.description %></p><% } %>
+            <% if (l.connectivity) { %><div class="ah-card-meta"><i class="fa fa-train" aria-hidden="true"></i><span><%= l.connectivity %></span></div><% } %>
+          </div>
+          <% }); %>
+        </div>
+        <% } %>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Culture -->
+    <section class="ah-section ah-dark" id="culture" aria-labelledby="ah-culture">
+      <div class="container">
+        <span class="ah-eyebrow">Culture &amp; traditions</span>
+        <h2 class="ah-h2" id="ah-culture"><%= insightsSection.heading || `Banjara culture and traditions in ${cityName}` %></h2>
+        <% if (insights.description) { %><p class="ah-lead"><%= insights.description %></p><% } %>
+        <div class="ah-two">
+          <div>
+            <% if (languages.length) { %>
+            <h3>Languages spoken</h3>
+            <ul class="ah-tags"><% languages.forEach((l) => { %><li><%= l %></li><% }); %></ul>
+            <% } %>
+            <% if (events.length) { %>
+            <h3>Festivals celebrated</h3>
+            <ul class="ah-tags"><% events.forEach((e) => { %><li><%= e %></li><% }); %></ul>
+            <% } %>
+            <% if (insights.religiousPractices) { %><p class="ah-prose" style="font-size:15px"><%= insights.religiousPractices %></p><% } %>
+          </div>
+          <% if (blocks[0]) { %>
+          <div class="ah-panel">
+            <h3 class="ah-panel-title"><%= blocks[0].title %></h3>
+            <div class="ah-prose" style="font-size:15px"><%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ blocks[0].content %></div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
+    <!-- More info blocks -->
+    <% if (blocks.length > 1) { %>
+    <section class="ah-section" aria-label="Practical advice for <%= cityName %> families">
+      <div class="container">
+        <div class="ah-grid-2">
+          <% blocks.slice(1).forEach((b) => { %>
+          <div class="ah-card ah-block">
+            <h3><%= b.title %></h3>
+            <div class="ah-prose"><%- /* raw-ok: admin CMS HTML, sanitised on write (Track A sanitize-html) */ b.content %></div>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Internal links -->
+    <section class="ah-section ah-alt" aria-labelledby="ah-explore">
+      <div class="container">
+        <span class="ah-eyebrow">Explore more</span>
+        <h2 class="ah-h2" id="ah-explore"><%= nearbySection.heading || `Banjara matrimony across ${stateName}` %></h2>
+        <% if (nearbySection.description) { %><p class="ah-lead"><%= nearbySection.description %></p><% } %>
+        <div class="ah-links">
+          <a class="ah-link" href="/<%= stateSlug %>"><i class="fa fa-map" aria-hidden="true"></i><span><strong><%= stateName %> Banjara Matrimony</strong><small>All matches across <%= stateName %></small></span></a>
+          <% sameState.forEach((c) => { const n = c.city && typeof c.city === 'object' ? c.city.name : c.slug.replace('banjara-matrimony-', ''); %>
+          <a class="ah-link" href="/<%= c.slug %>"><i class="fa fa-map-marker" aria-hidden="true"></i><span><strong>Banjara Matrimony in <%= n %></strong><small>Brides and grooms in <%= n %></small></span></a>
+          <% }); %>
+        </div>
+
+        <h3 class="ah-subhead">Helpful for <%= cityName %> families</h3>
+        <div class="ah-links">
+          <a class="ah-link" href="/banjara-gotra-list"><i class="fa fa-sitemap" aria-hidden="true"></i><span><strong>Banjara gotra list</strong><small>Clans and gotras explained</small></span></a>
+          <a class="ah-link" href="/banjara-community-history"><i class="fa fa-book" aria-hidden="true"></i><span><strong>Banjara community history</strong><small>Origins, culture and heritage</small></span></a>
+          <a class="ah-link" href="/biodata-builder"><i class="fa fa-file-text-o" aria-hidden="true"></i><span><strong>Marriage biodata maker</strong><small>Create a biodata to share</small></span></a>
+          <a class="ah-link" href="/lambadi-matrimony"><i class="fa fa-heart-o" aria-hidden="true"></i><span><strong>Lambadi matrimony</strong><small>Lambadi and Lambani matches</small></span></a>
+          <a class="ah-link" href="/gormati-matrimony"><i class="fa fa-heart-o" aria-hidden="true"></i><span><strong>Gormati matrimony</strong><small>Gor Banjara matches</small></span></a>
+          <a class="ah-link" href="/success-stories"><i class="fa fa-smile-o" aria-hidden="true"></i><span><strong>Success stories</strong><small>Couples who met here</small></span></a>
+          <a class="ah-link" href="/banjara-matrimony-app"><i class="fa fa-mobile" aria-hidden="true"></i><span><strong>BanjaraMatch app</strong><small>Search and chat on your phone</small></span></a>
+          <a class="ah-link" href="/blogs"><i class="fa fa-newspaper-o" aria-hidden="true"></i><span><strong>Blog</strong><small>Advice for families and singles</small></span></a>
+          <a class="ah-link" href="/faq"><i class="fa fa-question-circle" aria-hidden="true"></i><span><strong>Help &amp; FAQ</strong><small>How BanjaraMatch works</small></span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <% if (faqs.length && faqSection.showFaq !== false) { %>
+    <section class="ah-section" id="faq" aria-labelledby="ah-faq">
+      <div class="container">
+        <div class="ah-center">
+          <span class="ah-eyebrow">FAQs</span>
+          <h2 class="ah-h2" id="ah-faq"><%= faqSection.heading || `Banjara Matrimony in ${cityName}: FAQs` %></h2>
+          <div style="height:22px"></div>
+        </div>
+        <div class="ah-faq">
+          <% faqs.forEach((f, i) => { %>
+          <details<%= i === 0 ? ' open' : '' %>>
+            <summary><%= f.question %></summary>
+            <p><%= f.answer %></p>
+          </details>
+          <% }); %>
+        </div>
+      </div>
+    </section>
+    <% } %>
+
+    <%- include('../partials/blog-section', { sectionTitle: `Articles for ${cityName} families`, blogs: featuredBlogs || [] }) %>
+
+    <!-- CTA -->
+    <section class="ah-cta ah-center" aria-labelledby="ah-cta">
+      <div class="container">
+        <h2 id="ah-cta"><%= cta.heading || cta.title || `Ready to meet your match in ${cityName}?` %></h2>
+        <% if (cta.subheading) { %><p><%= cta.subheading %></p><% } %>
+        <% if (cta.benefits && cta.benefits.length) { %>
+        <ul class="ah-tags"><% cta.benefits.forEach((b) => { %><li><i class="fa fa-check" aria-hidden="true"></i> <%= b %></li><% }); %></ul>
+        <% } %>
+        <div class="ah-btns">
+          <% if (!user) { %><a class="ah-btn ah-btn-dark" href="/register"><%= cta.primaryButtonText || 'Register free' %></a><% } %>
+          <a class="ah-btn ah-btn-light" href="<%= profilesUrl %>"><%= cta.secondaryButtonText || 'Browse profiles' %></a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%- jsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: `Banjara Matrimony in ${cityName}`,
+    serviceType: 'Matrimonial service',
+    description: (meta && meta.description) || hero.subtitle || '',
+    url: site.url + '/' + page.slug,
+    provider: { '@type': 'Organization', name: site.name, url: site.url },
+    areaServed: { '@type': 'City', name: cityName, containedInPlace: { '@type': 'State', name: stateName } },
+    audience: { '@type': 'Audience', audienceType: 'Banjara, Vanjara, Lambani and Gor families' },
+  }) %>
+
+  <%- include('../partials/footer') %>
+<%- include('../partials/scripts') %>
+  <script>
+    // Guests: the search goes to /register?next=<encoded /all-profiles?...> (same as the shared city template).
+    (function () {
+      var form = document.querySelector('form.hero-search[data-guest="1"]');
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        var qs = new URLSearchParams();
+        ['gender', 'age', 'maritalStatus', 'city'].forEach(function (name) {
+          var el = form.elements[name];
+          if (el && el.value) qs.set(name, el.value);
+        });
+        var next = '/all-profiles' + (qs.toString() ? '?' + qs.toString() : '');
+        e.preventDefault();
+        location.href = '/register?next=' + encodeURIComponent(next);
+      });
+    })();
+  </script>
+</body>
+</html>

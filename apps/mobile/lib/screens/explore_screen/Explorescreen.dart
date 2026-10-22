@@ -20,6 +20,7 @@ import 'package:banjaramatch/localization/features/app_strings.dart';
 import 'package:banjaramatch/screens/common/match_percent_chip.dart';
 import 'package:banjaramatch/screens/common/section_card.dart';
 import 'package:banjaramatch/screens/daily_matches_screen/daily_matches_screen.dart';
+import 'package:banjaramatch/screens/member_card.dart' show calculateAge;
 import 'package:banjaramatch/screens/setting_screen/setting_screen.dart';
 import 'package:banjaramatch/screens/shortlist_screen/shortlist_screen.dart';
 import 'package:banjaramatch/screens/user_interests_controller.dart';

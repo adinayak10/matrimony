@@ -552,27 +552,33 @@ class EnhancedNotificationCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        name,
-                        style: MyTextStyle.gilroyBold(
-                          size: 16,
-                          color: const Color(0xFF1F2937),
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF10B981),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Icon(
-                          Icons.verified,
-                          color: Colors.white,
-                          size: 12,
+                      Flexible(
+                        child: Text(
+                          name,
+                          style: MyTextStyle.gilroyBold(
+                            size: 16,
+                            color: const Color(0xFF1F2937),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      // Verified badge only for verified senders
+                      if (notification.fromUser?.isVerified == 1) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.verified,
+                            color: Colors.white,
+                            size: 12,
+                          ),
+                        ),
+                      ],
                       const Spacer(),
                       Text(
                         time,

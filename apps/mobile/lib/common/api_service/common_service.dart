@@ -43,8 +43,14 @@ class CommonService {
     );
   }
 
+  /// [start] is the number of rows already loaded; the API pages by `page` (1-based).
   void fetchUserNotifications(int start, Function(List<UserNotification> notifications) completion) {
-    var param = {Param.start: start, Param.limit: Limits.pagination, Param.myUserId: SessionManager.shared.getUserID()};
+    var param = {
+      Param.start: start,
+      'page': start ~/ Limits.pagination + 1,
+      Param.limit: Limits.pagination,
+      Param.myUserId: SessionManager.shared.getUserID(),
+    };
     ApiService.shared.call(
       url: WebService.fetchUserNotification,
       param: param,

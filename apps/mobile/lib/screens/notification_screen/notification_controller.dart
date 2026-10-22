@@ -20,6 +20,8 @@ class NotificationScreenController extends CupertinoController {
   List<UserNotification> userNotifications = [];
   bool isPlatformNotificationLoading = false;
   bool hasMoreAnnouncements = true;
+  bool isUserNotificationsLoading = false;
+  bool hasMoreUserNotifications = true;
 
   @override
   void onReady() {
@@ -60,14 +62,15 @@ class NotificationScreenController extends CupertinoController {
   }
 
   void fetchUserNotifications() {
-    if (userNotifications.isEmpty) {
-      // startLoading();
-    }
+    if (isUserNotificationsLoading || !hasMoreUserNotifications) return;
+    isUserNotificationsLoading = true;
 
     CommonService.shared.fetchUserNotifications(userNotifications.length, (notifications) {
+      isUserNotificationsLoading = false;
       if (userNotifications.isEmpty) {
         stopLoading();
       }
+      if (notifications.length < Limits.pagination) hasMoreUserNotifications = false;
 
       userNotifications.addAll(notifications);
       print(userNotifications.length.toString());

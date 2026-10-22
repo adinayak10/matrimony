@@ -1,6 +1,7 @@
 import 'package:figma_squircle/figma_squircle.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
 import 'package:banjaramatch/common/managers/session_manager.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
@@ -97,7 +98,7 @@ class ChatTag extends StatelessWidget {
               ),
             ),
             Text(
-              message.createdAt!,
+              _formatTime(message.createdAt),
               style: MyTextStyle.gilroyRegular(size: 12, color: cLightText),
             ),
 
@@ -130,6 +131,15 @@ class ChatTag extends StatelessWidget {
         !isMyMsg ? const Spacer() : Container(),
       ],
     );
+  }
+
+  /// "10:04 PM" for today, "18 Oct, 10:04 PM" otherwise (local time).
+  static String _formatTime(String? createdAt) {
+    final date = DateTime.tryParse(createdAt ?? '')?.toLocal();
+    if (date == null) return '';
+    final now = DateTime.now();
+    final sameDay = date.year == now.year && date.month == now.month && date.day == now.day;
+    return sameDay ? DateFormat('h:mm a').format(date) : DateFormat('d MMM, h:mm a').format(date);
   }
 
   String _getStatusLabel(String status) {

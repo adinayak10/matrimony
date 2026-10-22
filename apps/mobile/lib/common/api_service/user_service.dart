@@ -226,7 +226,7 @@ class UserService {
       completion: (response) {
         var res = ModelGalleryPhotos.fromJson(response);
 
-        completion(res.data!);
+        completion(res.data ?? []);
       },
     );
   }
@@ -1121,7 +1121,7 @@ class UserService {
       param: param,
       completion: (response) {
         var users = MarrigeIntentModel.fromJson(response).data;
-        completion(users!);
+        if (users != null) completion(users);
       },
     );
   }

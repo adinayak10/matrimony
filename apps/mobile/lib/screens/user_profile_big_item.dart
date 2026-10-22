@@ -878,50 +878,55 @@ class BigUserCardItem extends StatelessWidget {
           // First row: Height, Location, and Caste
           Row(
             children: [
-              // Height with proper icon
-              Icon(
-                Icons.straighten,
-                size: 16,
-                color: Colors.lightBlue.shade300,
-              ),
-              const SizedBox(width: 6),
-              Text(
-                '${HeightConverter().cmToImperialString(profile.height) ?? "No Height"}',
-                style: MyTextStyle.gilroySemiBold(size: 14, color: cWhite),
-              ),
-              const SizedBox(width: 8),
-
-              // Location with proper icon
-              Icon(
-                Icons.location_city,
-                size: 16,
-                color: Colors.orange.shade300,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  '${profile.location?.city?.name ?? "No Location"}',
-                  style: MyTextStyle.gilroySemiBold(size: 14, color: cWhite),
-                  overflow: TextOverflow.ellipsis,
+              // Height (hidden when not set)
+              if (HeightConverter().cmToImperialString(profile.height) != null) ...[
+                Icon(
+                  Icons.straighten,
+                  size: 16,
+                  color: Colors.lightBlue.shade300,
                 ),
-              ),
-
-              const SizedBox(width: 8),
-
-              // Caste/Community with proper icon
-              Icon(
-                Icons.people_outline,
-                size: 16,
-                color: Colors.purple.shade300,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  '${profile.caste?.name ?? "No Caste"}',
+                const SizedBox(width: 6),
+                Text(
+                  HeightConverter().cmToImperialString(profile.height)!,
                   style: MyTextStyle.gilroySemiBold(size: 14, color: cWhite),
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
+                const SizedBox(width: 8),
+              ],
+
+              // Location (hidden when not set)
+              if ((profile.location?.city?.name ?? '').isNotEmpty) ...[
+                Icon(
+                  Icons.location_city,
+                  size: 16,
+                  color: Colors.orange.shade300,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    profile.location!.city!.name!,
+                    style: MyTextStyle.gilroySemiBold(size: 14, color: cWhite),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+
+              // Gotra (every member is Banjara, so the caste is not shown)
+              if ((profile.gotra?.name ?? '').isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.people_outline,
+                  size: 16,
+                  color: Colors.purple.shade300,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    profile.gotra!.name!,
+                    style: MyTextStyle.gilroySemiBold(size: 14, color: cWhite),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ],
           ),
 

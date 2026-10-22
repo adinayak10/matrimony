@@ -245,6 +245,12 @@ class UsersListController extends BaseController {
     final id = profile.id;
     if (id == null || id.isEmpty) return;
     UserService.shared.fetchChatRoom(id, (room) {
+      // fetchOrGenerateRoom returns the bare room (participants only): fill in
+      // the other member from the profile the chat was opened from.
+      room.userId ??= id;
+      room.fullName ??= profile.fullName;
+      room.profile ??= profile.profile;
+      room.isOnline ??= profile.isOnline;
       Navigate.to(ChattingView(chatRoom: room));
     });
   }

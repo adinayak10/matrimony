@@ -26,18 +26,19 @@ class SearchUserController extends GetxController {
   double minAgeIndex = 18;
   double maxAgeIndex = 30;
 
-  double minHeightIndex = 0;
-  double maxHeightIndex = 10;
-
   final List<String> heightOptions =
       List.generate(37, (i) => "${(4 + (i ~/ 12))}'${(i % 12)}\""); // Generates from 4'0" to 7'0"
+
+  // Default height filter is the whole range (it was 4'0"-4'10", which hid almost everyone).
+  double minHeightIndex = 0;
+  late double maxHeightIndex = (heightOptions.length - 1).toDouble();
 
   final income = TextEditingController();
   String selectedMaritalStatus = '';
   final maritalStatusOptions = ['Single', 'Divorced', 'Widowed'];
 
-  List<CasteGotra> allCastes = [], allGotras = [], filteredCastes = [], filteredGotras = [];
-  List<CasteGotra> selectedCastes = [], selectedGotras = [];
+  List<CasteGotra> allGotras = [], filteredGotras = [];
+  List<CasteGotra> selectedGotras = [];
 
   List<CommonItem> educationSuggestions = [], professionSuggestions = [];
   List<CommonItem> selectedQualification = [], selectedProfession = [];
@@ -51,7 +52,6 @@ class SearchUserController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchCastes();
     fetchGotras();
     fetchEducation("");
     fetchProfession("");
@@ -60,17 +60,6 @@ class SearchUserController extends GetxController {
   }
 
   // ---------------- Filters Data Fetch ----------------
-  void fetchCastes() {
-    UserService.shared.fetchCasteList(
-        page: 1,
-        completion: (list) {
-          allCastes = list;
-          filteredCastes = List.from(list);
-          _resolveSavedSelections();
-          update();
-        });
-  }
-
   void fetchGotras() {
     UserService.shared.fetchGotraList(
         page: 1,
@@ -82,19 +71,8 @@ class SearchUserController extends GetxController {
         });
   }
 
-  void filterCaste(String query) {
-    filteredCastes = allCastes.where((c) => c.name?.toLowerCase().contains(query.toLowerCase()) ?? false).toList();
-    update();
-  }
-
   void filterGotra(String query) {
     filteredGotras = allGotras.where((g) => g.name?.toLowerCase().contains(query.toLowerCase()) ?? false).toList();
-    update();
-  }
-
-  void toggleCasteSelection(CasteGotra caste) {
-    final exists = selectedCastes.any((e) => e.sId == caste.sId);
-    exists ? selectedCastes.removeWhere((e) => e.sId == caste.sId) : selectedCastes.add(caste);
     update();
   }
 
@@ -186,7 +164,6 @@ class SearchUserController extends GetxController {
       },
       "income": income.text.trim(),
       "marital_status": selectedMaritalStatus,
-      "caste": selectedCastes.map((e) => e.sId).toList(),
       "gotra": selectedGotras.map((e) => e.sId).toList(),
       "qualification": selectedQualification.map((e) => e.sId).toList(),
       "profession": selectedProfession.map((e) => e.sId).toList(),
@@ -197,7 +174,7 @@ class SearchUserController extends GetxController {
 
   /// The current selections in the saved-search contract shape
   /// `{age_range:{min,max}, height_range:{min,max} (cm), marital_status[],
-  /// caste[], gotra[], qualification[], profession[], incomeRange?, isVerify?,
+  /// gotra[], qualification[], profession[], incomeRange?, isVerify?,
   /// recentlyActive?}`, derived from [buildFilterPayload] so a saved search
   /// returns what "Find Matches" returns.
   Map<String, dynamic> buildSavedSearchFilters() {
@@ -218,7 +195,7 @@ class SearchUserController extends GetxController {
     }
     final marital = '${payload['marital_status'] ?? ''}'.trim();
     if (marital.isNotEmpty) out['marital_status'] = [marital];
-    for (final key in const ['caste', 'gotra', 'qualification', 'profession']) {
+    for (final key in const ['gotra', 'qualification', 'profession']) {
       final list = payload[key];
       if (list is List) {
         final ids = list.whereType<String>().where((e) => e.isNotEmpty).toSet().toList();
@@ -232,7 +209,7 @@ class SearchUserController extends GetxController {
   }
 
   /// Loads a saved search's filters into the selections (see [buildSavedSearchFilters]).
-  /// Ids not yet in the loaded caste/gotra/education/profession lists are kept
+  /// Ids not yet in the loaded gotra/education/profession lists are kept
   /// selected and get their names once the lists arrive.
   void applySavedFilters(Map<String, dynamic> filters) {
     final age = filters['age_range'];
@@ -265,7 +242,6 @@ class SearchUserController extends GetxController {
     final maritalList = marital is List ? marital.map((e) => '$e').toList() : (marital is String ? [marital] : <String>[]);
     selectedMaritalStatus = maritalList.isNotEmpty ? maritalList.first : '';
 
-    selectedCastes = _idsOf(filters['caste']).map((id) => CasteGotra(sId: id)).toList();
     selectedGotras = _idsOf(filters['gotra']).map((id) => CasteGotra(sId: id)).toList();
     selectedQualification = _idsOf(filters['qualification']).map((id) => CommonItem(sId: id)).toList();
     selectedProfession = _idsOf(filters['profession']).map((id) => CommonItem(sId: id)).toList();
@@ -336,7 +312,6 @@ class SearchUserController extends GetxController {
         item.name != null ? item : (all.firstWhereOrNull((e) => e.sId == item.sId) ?? item);
     CommonItem resolveCi(CommonItem item, List<CommonItem> all) =>
         item.name != null ? item : (all.firstWhereOrNull((e) => e.sId == item.sId) ?? item);
-    selectedCastes = selectedCastes.map((e) => resolveCg(e, allCastes)).toList();
     selectedGotras = selectedGotras.map((e) => resolveCg(e, allGotras)).toList();
     selectedQualification = selectedQualification.map((e) => resolveCi(e, educationSuggestions)).toList();
     selectedProfession = selectedProfession.map((e) => resolveCi(e, professionSuggestions)).toList();
