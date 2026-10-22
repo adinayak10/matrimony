@@ -152,6 +152,6 @@
 {"url":"https://admin.banjaramatch.com/health","status":404,"location":"","canonical":"","expected":"404"}
 {"url":"https://admin.banjaramatch.com/css/style.css","status":200,"location":"","canonical":"","expected":"200"}
 {"url":"https://admin.banjaramatch.com/js/api.js","status":200,"location":"","canonical":"","expected":"200"}
-{"url":"https://admin.banjaramatch.com/debug.html","status":200,"location":"","canonical":"","expected":"404"}
+{"url":"https://admin.banjaramatch.com/debug.html","status":404,"location":"","canonical":"","expected":"404"}
 {"url":"https://admin.banjaramatch.com/users.html","status":200,"location":"","canonical":"","expected":"200"}
 {"url":"https://admin.banjaramatch.com/dashboard","status":200,"location":"","canonical":"","expected":"200"}
