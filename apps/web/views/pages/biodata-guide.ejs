@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%
+  // Locals (routes/biodata.js guide route): page (published BiodataPage kind 'guide'), slug,
+  // faqs, cta, relatedLinks, guides (other published guides), templates (gallery rows).
+  // Article + FAQPage JSON-LD come from the route (meta.jsonLd).
+  const _p = page || {};
+  const _h1 = (typeof _p.h1 === 'string' && _p.h1.trim()) || (typeof _p.metaTitle === 'string' ? _p.metaTitle.replace(/\s*\|\s*BanjaraMatch\s*$/i, '') : '') || 'Marriage biodata guide';
+  const _intro = typeof _p.intro === 'string' ? _p.intro.trim() : '';
+  const _updated = (() => { const d = _p.updatedAt ? new Date(_p.updatedAt) : null; return d && !isNaN(d) ? d : null; })();
+  const _tpls = Array.isArray(templates) ? templates : [];
+  const _links = [...(relatedLinks || []), ...(guides || [])].filter((l, i, a) => l && l.href && a.findIndex((x) => x.href === l.href) === i).slice(0, 10);
+%>
+</head>
+
+<body class="bdp-body">
+  <%- include('../partials/header') %>
+  <%- include('../partials/breadcrumb') %>
+
+  <main class="bdp">
+    <header class="bdp-head">
+      <div class="bdp-wrap">
+        <span class="bdp-eyebrow">Biodata guide</span>
+        <h1><%= _h1 %></h1>
+        <% if (_updated) { %><p style="font-size:14px">Updated <time datetime="<%= _updated.toISOString().slice(0, 10) %>"><%= _updated.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }) %></time></p><% } %>
+      </div>
+    </header>
+
+    <section class="bdp-section is-tight">
+      <div class="bdp-wrap">
+        <div class="bdp-guide">
+          <article>
+            <% if (_intro) { %><div class="bdp-prose" style="margin-bottom:34px"><%- /* raw-ok: BiodataPage intro, sanitised on write by the API (sanitizeRich) */ _intro %></div><% } %>
+            <%- include('../partials/biodata-blocks', { blocks: _p.contentBlocks }) %>
+
+            <% if (faqs && faqs.length) { %>
+            <section class="bdp-block" aria-labelledby="bdp-faq">
+              <h2 id="bdp-faq">Frequently asked questions</h2>
+              <div class="bdp-faq" style="margin:0">
+                <% faqs.forEach((f) => { %><details><summary><%= f.question %></summary><p><%= f.answer %></p></details><% }); %>
+              </div>
+            </section>
+            <% } %>
+          </article>
+
+          <aside class="bdp-aside" aria-label="Biodata maker">
+            <div class="bdp-aside-card">
+              <h2><%= cta.heading %></h2>
+              <% if (cta.text) { %><p><%= cta.text %></p><% } %>
+              <a class="bdp-btn bdp-btn-primary" href="<%= cta.primaryHref %>"><%= cta.primaryLabel %></a>
+              <% if (cta.secondaryLabel && cta.secondaryHref) { %><p style="margin:12px 0 0;text-align:center"><a href="<%= cta.secondaryHref %>"><%= cta.secondaryLabel %></a></p><% } %>
+            </div>
+            <% if (_links.length) { %>
+            <nav class="bdp-aside-card" aria-label="Related pages">
+              <h2>Related</h2>
+              <ul>
+                <% _links.forEach((l) => { %><li><a href="<%= l.href %>"><%= l.label %></a></li><% }); %>
+              </ul>
+            </nav>
+            <% } %>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <% if (_tpls.length) { %>
+    <section class="bdp-section is-white is-tight" aria-labelledby="bdp-strip">
+      <div class="bdp-wrap">
+        <span class="bdp-eyebrow">Templates</span>
+        <h2 class="bdp-h2" id="bdp-strip">Start from a ready design</h2>
+        <ul class="bdp-strip-thumbs" style="margin-top:20px">
+          <% _tpls.forEach((t) => { %>
+          <li><a href="/biodata-maker/create?template=<%= encodeURIComponent(t.id) %>"><%- include('../partials/biodata-thumb', { t, alt: t.name + ' marriage biodata template' }) %><%= t.name %></a></li>
+          <% }); %>
+        </ul>
+        <p style="margin-top:22px"><a href="/biodata-maker/templates">See all templates <i class="fa fa-arrow-right" aria-hidden="true"></i></a></p>
+      </div>
+    </section>
+    <% } %>
+
+    <section class="bdp-section is-tight" aria-labelledby="bdp-cta">
+      <div class="bdp-wrap">
+        <div class="bdp-cta">
+          <h2 id="bdp-cta"><%= cta.heading %></h2>
+          <% if (cta.text) { %><p><%= cta.text %></p><% } %>
+          <div class="bdp-btns">
+            <a class="bdp-btn bdp-btn-white" href="<%= cta.primaryHref %>"><%= cta.primaryLabel %></a>
+            <a class="bdp-btn bdp-btn-ghost" href="/biodata-maker">About the biodata maker</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+  <%- include('../partials/scripts') %>
+</body>
+</html>

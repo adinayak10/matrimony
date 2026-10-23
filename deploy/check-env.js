@@ -24,6 +24,10 @@ const DEFAULT_SECRETS = new Set([
 ]);
 // Set by pm2 (ecosystem.config.js), never expected in a .env file.
 const PM2_PROVIDED = new Set(['RELEASE_SHA']);
+// Optional on the server: absent means the feature is simply off (noted, not failed).
+// CHROMIUM_PATH / BIODATA_PDF_DISABLED: biodata PDF (docs/plans/02-biodata-maker.md);
+// CITY_INDEX_MIN_WORDS: read only by tools/applyCityPageContent.js.
+const OPTIONAL = { api: new Set(['CHROMIUM_PATH', 'BIODATA_PDF_DISABLED', 'CITY_INDEX_MIN_WORDS']) };
 
 const STRICT = process.argv.includes('--strict');
 const problems = [];
@@ -81,8 +85,11 @@ function serverMode() {
     if (!keys) {
       fail(`apps/${app}/.env.example is missing (cannot verify ${app}.env is complete)`);
     } else {
-      const missing = keys.filter((k) => !PM2_PROVIDED.has(k) && !env.has(k));
+      const optional = OPTIONAL[app] || new Set();
+      const missing = keys.filter((k) => !PM2_PROVIDED.has(k) && !optional.has(k) && !env.has(k));
       if (missing.length) fail(`${app}.env is missing: ${missing.join(', ')}`);
+      const optionalMissing = keys.filter((k) => optional.has(k) && !env.has(k));
+      if (optionalMissing.length) ok(`${app}.env optional keys not set (feature off): ${optionalMissing.join(', ')}`);
       else ok(`${app}.env has every key of apps/${app}/.env.example (${keys.length})`);
       const empty = keys.filter((k) => env.has(k) && env.get(k) === '');
       if (empty.length) ok(`${app}.env empty values (allowed): ${empty.join(', ')}`);
@@ -115,6 +122,11 @@ function serverMode() {
     if (fsa && !fs.existsSync(fsa)) fail('api.env FIREBASE_SERVICE_ACCOUNT_PATH does not exist');
     const bid = envs.api.get('BLOG_IMAGE_DIR');
     if (bid && !fs.existsSync(bid)) fail('api.env BLOG_IMAGE_DIR does not exist');
+    // Biodata PDF: a missing Chromium only turns PDF downloads off (the builder offers Print), so warn.
+    const chromium = envs.api.get('CHROMIUM_PATH');
+    if (chromium && !fs.existsSync(chromium)) warn('api.env CHROMIUM_PATH does not exist; biodata PDF downloads stay off (see deploy/server-setup.sh step 2b)');
+    else if (chromium) ok('api.env CHROMIUM_PATH exists');
+    else ok('api.env CHROMIUM_PATH empty: biodata PDF downloads are off');
   }
 
   const dep = parseEnv(path.join(SHARED, 'env', 'deploy.env'));

@@ -77,6 +77,17 @@ const settingSchema = new mongoose.Schema({
   // Interest rules (A6.3)
   limits: {
     interestDailyCap: { type: Number, default: 20 }
+  },
+
+  // Biodata maker (docs/plans/02-biodata-maker.md). Read through
+  // services/biodataService.settings(), which applies these same defaults
+  // when the stored document predates the fields.
+  biodata: {
+    enabled: { type: Boolean, default: true },
+    guestDownloads: { type: Boolean, default: true },
+    maxPerUser: { type: Number, default: 10, min: 1, max: 50 },
+    languages: { type: [String], default: () => ['en', 'hi'] },
+    shareDefaultDays: { type: Number, default: 30, min: 1, max: 365 }
   }
 });
 

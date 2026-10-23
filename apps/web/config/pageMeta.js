@@ -303,6 +303,14 @@ const PAGES = {
           },
           {
             "@type": "Question",
+            name: "Can I make a marriage biodata on BanjaraMatch?",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Yes. The free Biodata Maker lets you choose from 15 templates, add your photo, family and education details, preview the biodata as you type and download it as a PDF or print it. You can use it without an account; a free account saves your drafts and lets you share a private link."
+            }
+          },
+          {
+            "@type": "Question",
             name: "How do I report a fake or suspicious profile?",
             acceptedAnswer: {
               "@type": "Answer",
@@ -346,8 +354,8 @@ const PAGES = {
           price: "0",
           priceCurrency: "INR"
         },
-        description: "India's first completely free Banjara matrimony platform and app. Smart AI matching, verified profiles, real-time chat, nearby GPS matching, Ice Breaker game, Match Radar, and more – all free.",
-        featureList: "Smart Match Scoring, Manual Profile Verification, Real-Time Chat, Advanced Search Filters, Daily AI Matches, Privacy Controls, Nearby GPS Matches, Ice Breaker Game, AI Match Radar, Push Notifications, Mobile App",
+        description: "India's first completely free Banjara matrimony platform and app. Smart AI matching, verified profiles, real-time chat, nearby GPS matching, Match Radar, and more – all free.",
+        featureList: "Smart Match Scoring, Manual Profile Verification, Real-Time Chat, Advanced Search Filters, Daily AI Matches, Privacy Controls, Nearby GPS Matches, AI Match Radar, Push Notifications, Mobile App",
         author: {
           "@id": "https://www.banjaramatch.com/#organization"
         }
@@ -859,14 +867,6 @@ const PAGES = {
     description: "",
     robots: "noindex, nofollow"
   },
-  iceBreaker: {
-    title: "Ice Breaker Game - Banjara Match",
-    description: "",
-    robots: "noindex, nofollow",
-    scripts: [
-      "https://cdn.socket.io/4.5.4/socket.io.min.js"
-    ]
-  },
   dashboard: {
     title: "Dashboard - Banjara Match",
     description: "",
@@ -970,6 +970,118 @@ const PAGES = {
     title: "Saved Searches - Banjara Match",
     description: "",
     robots: "noindex, nofollow"
+  },
+  // Marriage Biodata Maker (routes/biodata.js, docs/plans/02-biodata-maker.md).
+  // FAQPage is appended by the routes only when FAQs are on the page.
+  biodataMaker: {
+    title: "Free Marriage Biodata Maker – Templates & PDF",
+    description: "Make a marriage biodata online for free: 15 templates, photo and family details, live preview, Hindi or English labels and a print-ready PDF download.",
+    keywords: [
+      "marriage biodata maker",
+      "biodata maker for marriage",
+      "free marriage biodata",
+      "marriage biodata format",
+      "biodata for marriage pdf",
+      "marriage biodata template",
+      "hindi marriage biodata",
+      "banjara marriage biodata",
+      "online biodata maker"
+    ],
+    canonical: "/biodata-maker",
+    ogImage: "/images/biodata/og-biodata-maker.jpg",
+    ogImageAlt: "Marriage biodata templates from the BanjaraMatch Biodata Maker",
+    pageCategory: "biodata",
+    styles: ["css/biodata-pages.css"],
+    scripts: ["js/biodata-pages.js"],
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        name: "BanjaraMatch Marriage Biodata Maker",
+        url: "https://www.banjaramatch.com/biodata-maker",
+        description: "Free online marriage biodata maker with 15 templates, live preview, photo and family details, Hindi and English labels, and PDF download.",
+        applicationCategory: "LifestyleApplication",
+        operatingSystem: "Any (web browser)",
+        browserRequirements: "Requires JavaScript",
+        inLanguage: ["en-IN", "hi-IN"],
+        isAccessibleForFree: true,
+        image: "https://www.banjaramatch.com/images/biodata/og-biodata-maker.jpg",
+        offers: {
+          "@type": "Offer",
+          price: "0",
+          priceCurrency: "INR"
+        },
+        featureList: [
+          "15 marriage biodata templates",
+          "Live preview while you type",
+          "Photo upload with cropping",
+          "Family, education, profession and partner preference sections",
+          "Show, hide, rename and reorder sections",
+          "English, Hindi or bilingual labels",
+          "PDF download and print",
+          "Works on mobile phones",
+          "Saved drafts with a free account",
+          "Private share links"
+        ],
+        provider: { "@id": "https://www.banjaramatch.com/#organization" }
+      }
+    ]
+  },
+  biodataTemplates: {
+    title: "Free Marriage Biodata Templates & Formats",
+    description: "Browse free marriage biodata templates: traditional, modern, minimal, photo-focused and community designs. Pick one, add your details and download a PDF.",
+    keywords: [
+      "marriage biodata templates",
+      "biodata format for marriage",
+      "free biodata templates",
+      "hindu marriage biodata template",
+      "muslim marriage biodata template",
+      "simple biodata for marriage"
+    ],
+    canonical: "/biodata-maker/templates",
+    ogImage: "/images/biodata/og-biodata-maker.jpg",
+    pageCategory: "biodata",
+    styles: ["css/biodata-pages.css"],
+    scripts: ["js/biodata-pages.js"]
+  },
+  biodataBuilder: {
+    title: "Create Your Marriage Biodata – Free Builder",
+    description: "Fill in your details, choose a template and download your marriage biodata as a PDF. Free, with live preview.",
+    robots: "noindex, follow",
+    canonical: "/biodata-maker/create",
+    ogImage: "/images/biodata/og-biodata-maker.jpg",
+    pageCategory: "biodata_builder",
+    styles: ["css/biodata-builder.css"],
+    scripts: ["js/biodata-kit.js", "js/biodata-cropper.js", "js/biodata-builder.js"]
+  },
+  biodataMy: {
+    title: "My Biodatas - Banjara Match",
+    description: "",
+    robots: "noindex, nofollow",
+    canonical: "/biodata-maker/my",
+    pageCategory: "biodata",
+    styles: ["css/biodata-pages.css"],
+    scripts: ["js/biodata-pages.js"]
+  },
+  biodataShared: {
+    title: "Shared Marriage Biodata",
+    description: "",
+    robots: "noindex, nofollow",
+    // The share token is in the URL: keep it out of analytics.
+    noAnalytics: true,
+    ogImage: "/images/biodata/og-biodata-maker.jpg",
+    pageCategory: "biodata",
+    styles: ["css/biodata-pages.css"],
+    scripts: ["js/biodata-pages.js"]
+  },
+  biodataGuide: {
+    title: "Marriage Biodata Guide",
+    brandSuffix: false,
+    description: "",
+    ogType: "article",
+    ogImage: "/images/biodata/og-biodata-maker.jpg",
+    pageCategory: "biodata_guide",
+    styles: ["css/biodata-pages.css"]
   }
 };
 

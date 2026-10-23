@@ -1,5 +1,7 @@
-// utils/generateSitemap.js — sitemap-main.xml: the static pages plus the blog
-// category pages that have at least one published post (D3.31).
+// utils/generateSitemap.js — sitemap-main.xml: the static pages, the blog
+// category pages that have at least one published post (D3.31), and the
+// published Biodata Maker guide/category pages with >= 300 words
+// (docs/plans/02-biodata-maker.md).
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
@@ -41,7 +43,52 @@ const pages = [
   { loc: 'child-safety-policy', sourceFile: 'views/pages/child-safety-policy.ejs', priority: '0.3', changefreq: 'yearly' },
   { loc: 'faq', sourceFile: 'views/pages/faq.ejs', priority: '0.6', changefreq: 'monthly' },
   { loc: 'success-stories', sourceFile: 'views/pages/success-stories.ejs', priority: '0.6', changefreq: 'weekly' },
+  { loc: 'biodata-maker', sourceFile: 'views/pages/biodata-landing.ejs', priority: '0.8', changefreq: 'weekly' },
+  { loc: 'biodata-maker/templates', sourceFile: 'views/pages/biodata-templates.ejs', priority: '0.7', changefreq: 'weekly' },
 ];
+
+// Biodata pages from GET /api/biodata/pages?published=1 ({slug, kind, updatedAt,
+// contentWords}): guides at the top level, categories under the gallery, and
+// only with >= 300 words (the same rule that sets their robots tag). The landing
+// page is a static entry above.
+const BIODATA_GUIDE_RE = /^(marriage|banjara)-biodata-[a-z0-9-]{2,60}$/;
+const BIODATA_CATEGORY_RE = /^[a-z0-9][a-z0-9-]{1,39}$/;
+const BIODATA_MIN_WORDS = 300;
+
+function mapBiodataRows(rows) {
+  const out = [];
+  const seen = new Set();
+  for (const r of Array.isArray(rows) ? rows : []) {
+    if (!r || typeof r.slug !== 'string' || r.isPublished === false) continue;
+    if (!(Number(r.contentWords) >= BIODATA_MIN_WORDS)) continue;
+    let loc = null;
+    if (r.kind === 'guide' && BIODATA_GUIDE_RE.test(r.slug)) loc = r.slug;
+    else if (r.kind === 'category' && BIODATA_CATEGORY_RE.test(r.slug)) loc = 'biodata-maker/templates/' + r.slug;
+    if (!loc || seen.has(loc)) continue;
+    seen.add(loc);
+    const d = r.updatedAt ? new Date(r.updatedAt) : null;
+    out.push({
+      loc,
+      lastmod: d && !isNaN(d) ? d.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      priority: r.kind === 'guide' ? '0.6' : '0.5',
+      changefreq: 'monthly',
+    });
+  }
+  return out;
+}
+
+// [] when the API has no biodata pages (or predates the endpoint: 404); null
+// when it cannot be reached, so the caller keeps the previous file.
+async function fetchBiodataPages() {
+  try {
+    const res = await axios.get(`${API_URL}/api/biodata/pages?published=1`, { timeout: 5000 });
+    return mapBiodataRows(Array.isArray(res.data && res.data.data) ? res.data.data : []);
+  } catch (err) {
+    if (err && err.response && err.response.status === 404) return [];
+    console.warn('⚠️ Biodata pages unavailable for the sitemap:', err.message);
+    return null;
+  }
+}
 
 // GET /api/blogs/categories -> { data: [{ category: 'Tips', count: 3 }, ...] }
 async function fetchCategoryPages() {
@@ -61,14 +108,15 @@ async function fetchCategoryPages() {
 }
 
 const generateSitemap = async () => {
-  const fetched = await fetchCategoryPages();
-  if (fetched === null && countUrls(realTarget(sitemapPath('sitemap-main.xml'))) > 0) {
-    // Without the API the category URLs would silently drop out; keep the file as it is.
+  const [fetched, biodataFetched] = await Promise.all([fetchCategoryPages(), fetchBiodataPages()]);
+  if ((fetched === null || biodataFetched === null) && countUrls(realTarget(sitemapPath('sitemap-main.xml'))) > 0) {
+    // Without the API the category/biodata URLs would silently drop out; keep the file as it is.
     console.warn('⚠️ sitemap-main.xml: keeping the previous file');
     return null;
   }
   const categoryPages = fetched || [];
-  const all = [...pages, ...categoryPages].map((page) => ({
+  const biodataPages = biodataFetched || [];
+  const all = [...pages, ...categoryPages, ...biodataPages].map((page) => ({
     ...page,
     lastmod: page.lastmod || getLastmodFromFile(page.sourceFile),
   }));
@@ -85,10 +133,12 @@ ${all.map((page) => `  <url>
 `;
 
   if (writeSitemap('sitemap-main.xml', xml, { count: all.length })) {
-    console.log(`✅ Main sitemap generated: ${pages.length} static + ${categoryPages.length} category pages`);
+    console.log(`✅ Main sitemap generated: ${pages.length} static + ${categoryPages.length} category + ${biodataPages.length} biodata pages`);
   }
   return all.length;
 };
 
 module.exports = generateSitemap;
 module.exports.pages = pages;
+module.exports.mapBiodataRows = mapBiodataRows;
+module.exports.fetchBiodataPages = fetchBiodataPages;

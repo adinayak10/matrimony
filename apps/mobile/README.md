@@ -8,7 +8,9 @@ laptop.
 - Package: `com.banjaramatch` (`android/app/build.gradle`), `pubspec.yaml` name `banjaramatch`.
 - Version: `version: 1.1.0+N` in `pubspec.yaml` (1.1.0+5 is the feature-expansion release). `N` is the Android
   `versionCode` and is what the forced-update check compares (see below).
-- API host: `https://api.banjaramatch.com/` (`lib/utilities/const.dart`).
+- API host: `https://api.banjaramatch.com/` (`lib/utilities/const.dart`). Release builds
+  (`flutter build apk/appbundle --release`) always use it. Debug runs can target a local API with
+  `--dart-define=API_HOST=http://10.0.2.2:4002` (Android emulator → laptop); the flag is ignored in release.
   The host and the `/socket.io` path must not change; every installed app has them baked in.
 - Firebase client config (`android/app/google-services.json`,
   `ios/Runner/GoogleService-Info.plist`) is committed on purpose: the keys in

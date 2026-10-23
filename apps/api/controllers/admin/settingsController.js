@@ -25,7 +25,16 @@ const ALLOWED = {
   'matching.enforceGotraExogamy': 'boolean',
   'security.legacySocketJoin': 'boolean',
   'limits.interestDailyCap': 'number',
+  // Biodata maker (docs/plans/02-biodata-maker.md)
+  'biodata.enabled': 'boolean',
+  'biodata.guestDownloads': 'boolean',
+  'biodata.maxPerUser': 'number',
+  'biodata.languages': 'langs',
+  'biodata.shareDefaultDays': 'number',
 };
+
+// Label languages the biodata kit ships (K.labels); 'en' is always kept.
+const BIODATA_LANGS = ['en', 'hi'];
 
 function readPath(obj, dotted) {
   return dotted.split('.').reduce((acc, k) => (acc && typeof acc === 'object' ? acc[k] : undefined), obj);
@@ -42,6 +51,20 @@ function coerce(value, type) {
   if (type === 'number') {
     const n = Number(value);
     return Number.isFinite(n) && n >= 0 ? n : undefined;
+  }
+  if (type === 'langs') {
+    // an array or a comma list ("en, hi"); unknown codes reject the field
+    const list = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : null;
+    if (!list || list.length > 10) return undefined;
+    const out = ['en'];
+    for (const raw of list) {
+      if (typeof raw !== 'string') return undefined;
+      const code = raw.trim().toLowerCase();
+      if (!code) continue;
+      if (!BIODATA_LANGS.includes(code)) return undefined;
+      if (!out.includes(code)) out.push(code);
+    }
+    return out;
   }
   return undefined;
 }
@@ -60,6 +83,12 @@ function buildSettingsUpdate(body) {
   }
   if ($set['limits.interestDailyCap'] !== undefined) {
     $set['limits.interestDailyCap'] = Math.max(1, Math.min(500, Math.floor($set['limits.interestDailyCap'])));
+  }
+  if ($set['biodata.maxPerUser'] !== undefined) {
+    $set['biodata.maxPerUser'] = Math.max(1, Math.min(50, Math.floor($set['biodata.maxPerUser'])));
+  }
+  if ($set['biodata.shareDefaultDays'] !== undefined) {
+    $set['biodata.shareDefaultDays'] = Math.max(1, Math.min(365, Math.floor($set['biodata.shareDefaultDays'])));
   }
   return { $set, rejected };
 }
@@ -120,3 +149,4 @@ exports.updateSettings = async (req, res) => {
 
 exports.ALLOWED_SETTINGS = ALLOWED;
 exports.buildSettingsUpdate = buildSettingsUpdate;
+exports.BIODATA_LANGS = BIODATA_LANGS;

@@ -9,8 +9,8 @@
 //   schedular/           node-cron schedules jobs at require time (process never exits)
 //   schemas/             legacy duplicates of models/ (re-register User/Setting -> OverwriteModelError); nothing requires them
 //   tools/               one-off maintenance scripts, not part of the server
-// socket.js and gamesocket.js are loaded transitively by services/*; they only
-// export functions at require time.
+// socket.js is loaded transitively by services/*; it only exports functions at
+// require time.
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

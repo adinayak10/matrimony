@@ -108,10 +108,10 @@ const htmlRedirectMap = {
   '/wedding.html':            '/',
   '/wedding-video.html':      '/',
   '/404.html':                '/',
-  '/biodata-builder-v2.html': '/',
-  '/biodata-builder-old-24templates.html': '/',
-  '/biodata-builder-backup.html': '/',
-  '/biodata-builder.html':        '/',
+  '/biodata-builder-v2.html': '/biodata-maker',
+  '/biodata-builder-old-24templates.html': '/biodata-maker',
+  '/biodata-builder-backup.html': '/biodata-maker',
+  '/biodata-builder.html':        '/biodata-maker',
   '/blog.html':                   '/blogs',
   '/user-chat.html':              '/user-chat',
 };
@@ -144,6 +144,10 @@ if (SITEMAP_DIR) {
 }
 
 // ---------- STATIC FILES ----------
+// Biodata maker fonts from the shared kit (packages/shared/biodata/fonts), used
+// by the builder preview and the share view. Resolved on first request.
+app.use('/fonts/biodata', require('./routes/biodata').fonts);
+
 // Hashed build output (utils/assets.js manifest): immutable for a year.
 app.use('/build', express.static(path.join(__dirname, 'public', 'build'), {
   immutable: true,
@@ -214,6 +218,7 @@ app.use(require('./routes/auth'));
 app.use(require('./routes/cspReport'));
 app.use(require('./routes/stories'));
 app.use(require('./routes/member'));
+app.use(require('./routes/biodata'));
 const indexRoutes = require('./routes/index');
 app.use('/', indexRoutes);
 app.use(require('./middleware/apiProxy'));

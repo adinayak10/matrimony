@@ -13,7 +13,7 @@ What the inventory found:
 
 ## Decisions (confirmed with the owner 2026-10-21)
 
-- All four pillars: App completeness, Trust & verification, Matching depth, Community & admin tools. Plus in-app voice/video calls on the existing Agora backend. Biodata PDF deferred.
+- All four pillars: App completeness, Trust & verification, Matching depth, Community & admin tools. Plus in-app voice/video calls on the existing Agora backend. Biodata PDF deferred (superseded by docs/plans/02-biodata-maker.md, 2026-10-22).
 - Mobile code is written here **uncompiled**; the owner builds on the laptop. CI unchanged.
 - Legacy social code in the app is removed. If the tooling denies `git rm`, the exact list (section M1) goes to the owner.
 - Product stays free: no payments, no paid gating. `/membership` upgrade action, RevenueCat, "premium" UI go away.
@@ -181,7 +181,7 @@ Version: bump `pubspec.yaml` to `1.1.0+5`. Old builds keep working (additive API
 - **Owner (server go-live)**: `mkdir -m 700 /var/www/banjaramatch-shared/private-uploads` and add `private-uploads` to the shared-dir loop in `deploy/deploy.sh` (~line 130); set `PRIVATE_UPLOADS_DIR`, `CRON_ENABLED=true`, `VERIFICATION_FILE_RETENTION_DAYS=30` in `api.env`; `AGORA_APP_ID/CERTIFICATE` must be real for calls; then either add the GitHub remote and push `main` (webhook deploys) or run `npm ci && npm run build --workspaces && bash deploy/deploy.sh --reload-only`; run `node apps/api/tools/backfill-profile-completion.js` once and seed Ice Breaker defaults from the admin tab; refresh the URL baseline; upload the new APK in the admin APK manager.
 
 ## Out of scope / deferred
-Biodata PDF; Gormati translations; paid plans; CI Flutter build; removing the legacy social API routes/collections (`follow*`, Room/RoomUser, SavedNotification…) until the cleaned app build has shipped (then `tools/cleanup/drop-legacy-social.js` dry-run → owner).
+Biodata PDF (superseded 2026-10-22: rebuilt as the biodata maker, see docs/plans/02-biodata-maker.md); Gormati translations; paid plans; CI Flutter build; removing the legacy social API routes/collections (`follow*`, Room/RoomUser, SavedNotification…) until the cleaned app build has shipped (then `tools/cleanup/drop-legacy-social.js` dry-run → owner).
 
 ---
 

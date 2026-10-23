@@ -1,0 +1,160 @@
+<%
+var isEdit = !!pageId;
+%>
+<div class="page-biodata-page-form" data-page-id="<%= pageId %>">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <a href="/biodata-pages">Biodata pages</a><span aria-hidden="true">/</span><span data-page-crumb><%= isEdit ? 'Edit page' : 'New page' %></span>
+  </nav>
+
+  <div class="alert alert--error alert--flush" role="alert" data-form-error hidden>
+    <span data-form-error-text></span>
+    <button type="button" class="btn btn--secondary btn--sm alert__retry" data-retry hidden>Retry</button>
+  </div>
+
+  <form class="card" id="biodata-page-form" novalidate<% if (isEdit) { %> aria-busy="true"<% } %>>
+    <div class="card__body">
+      <div class="word-counter" role="status">
+        <span class="word-counter__value" data-words>0</span>
+        <span class="word-counter__hint">unique words (estimate) across the heading, intro, content blocks and FAQs. <strong>Guides and category pages are indexed at 300 or more unique words</strong>; the landing page is always indexed. The API recounts on save.</span>
+        <span data-words-badge></span>
+      </div>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Page</legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="bp-kind">Kind <span class="text-danger" aria-hidden="true">*</span></label>
+            <select class="form-select" id="bp-kind" name="kind" aria-describedby="bp-kind-help"<%= isEdit ? ' disabled' : '' %>>
+              <option value="guide" selected>Guide</option>
+              <option value="category">Category</option>
+              <option value="landing">Landing</option>
+            </select>
+            <p class="form-help" id="bp-kind-help"><%= isEdit ? 'The kind is fixed once the page exists.' : 'Fixed once the page is created.' %></p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bp-slug">URL slug <span class="text-danger" aria-hidden="true">*</span></label>
+            <input class="form-control mono" type="text" id="bp-slug" name="slug" maxlength="80" autocomplete="off" spellcheck="false" list="bp-category-slugs" required aria-describedby="bp-slug-help">
+            <datalist id="bp-category-slugs"></datalist>
+            <p class="form-help" id="bp-slug-help" data-slug-help>Guide: <span class="mono">marriage-biodata-&hellip;</span> or <span class="mono">banjara-biodata-&hellip;</span> followed by 2 to 60 lowercase letters, digits or hyphens (pattern <span class="mono">^(marriage|banjara)-biodata-[a-z0-9-]{2,60}$</span>). Category: the template category slug. Landing: always <span class="mono">biodata-maker</span>. The slug is frozen once the page is published.</p>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="bp-h1">Page heading (H1) <span class="text-danger" aria-hidden="true">*</span><span class="form-count" data-count-for="bp-h1" aria-hidden="true"></span></label>
+          <input class="form-control" type="text" id="bp-h1" name="h1" maxlength="120" required autocomplete="off">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="bp-intro">Intro</label>
+          <textarea class="form-control mono" id="bp-intro" name="intro" rows="6" aria-describedby="bp-intro-help"></textarea>
+          <p class="form-help" id="bp-intro-help">HTML (paragraphs, lists, links, bold). It is sanitised by the API when saved.</p>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Content blocks</legend>
+        <p class="form-help">Shown in this order below the intro, up to 20 blocks. Rich text and callouts take HTML (sanitised by the API); steps and checklists take one item per line; a table takes one row per line with cells separated by commas (the first line is the header; wrap a cell in "double quotes" if it contains a comma).</p>
+        <div class="repeater" data-blocks></div>
+        <div class="cluster">
+          <label class="form-label form-label--sm mb-0" for="bp-block-type">Block type</label>
+          <select class="form-select bp-inline-select" id="bp-block-type" data-block-type>
+            <option value="richText">Rich text</option>
+            <option value="steps">Steps</option>
+            <option value="checklist">Checklist</option>
+            <option value="table">Table</option>
+            <option value="callout">Callout</option>
+            <option value="cta">Call to action</option>
+          </select>
+          <button type="button" class="btn btn--secondary btn--sm" data-action="add-block">Add block</button>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">FAQs</legend>
+        <p class="form-help">Up to 15 questions, plain text. They are shown on the page and become its FAQ rich result, so answer only what is true today.</p>
+        <div class="repeater" data-faqs></div>
+        <button type="button" class="btn btn--secondary btn--sm" data-action="add-faq">Add a question</button>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Call to action</legend>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="bp-cta-heading">Heading</label>
+            <input class="form-control" type="text" id="bp-cta-heading" name="ctaConfig.heading" maxlength="120" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bp-cta-text">Text</label>
+            <input class="form-control" type="text" id="bp-cta-text" name="ctaConfig.text" maxlength="300" autocomplete="off">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="bp-cta-primary-label">Primary button label</label>
+            <input class="form-control" type="text" id="bp-cta-primary-label" name="ctaConfig.primaryLabel" maxlength="60" autocomplete="off" placeholder="Create your biodata">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bp-cta-primary-href">Primary button link</label>
+            <input class="form-control mono" type="text" id="bp-cta-primary-href" name="ctaConfig.primaryHref" maxlength="300" autocomplete="off" placeholder="/biodata-maker/create" data-href>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="bp-cta-secondary-label">Secondary button label</label>
+            <input class="form-control" type="text" id="bp-cta-secondary-label" name="ctaConfig.secondaryLabel" maxlength="60" autocomplete="off" placeholder="Browse templates">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bp-cta-secondary-href">Secondary button link</label>
+            <input class="form-control mono" type="text" id="bp-cta-secondary-href" name="ctaConfig.secondaryHref" maxlength="300" autocomplete="off" placeholder="/biodata-maker/templates" data-href>
+          </div>
+        </div>
+        <p class="form-help">Links are paths on the website, starting with <span class="mono">/</span>. Leave the whole block empty to use the default call to action.</p>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Related links</legend>
+        <p class="form-help">Up to 8 internal links shown at the end of the page (paths on the website such as <span class="mono">/marriage-biodata-format</span>).</p>
+        <div class="repeater" data-links></div>
+        <button type="button" class="btn btn--secondary btn--sm" data-action="add-link">Add a link</button>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Search appearance</legend>
+        <div class="form-group">
+          <label class="form-label" for="bp-meta-title">Meta title<span class="form-count" data-count-for="bp-meta-title" aria-hidden="true"></span></label>
+          <input class="form-control" type="text" id="bp-meta-title" name="metaTitle" maxlength="70" autocomplete="off" aria-describedby="bp-meta-title-help">
+          <p class="form-help" id="bp-meta-title-help">Up to 70 characters, used as the full page title (no brand suffix is added).</p>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="bp-meta-description">Meta description<span class="form-count" data-count-for="bp-meta-description" aria-hidden="true"></span></label>
+          <textarea class="form-control" id="bp-meta-description" name="metaDescription" rows="2" maxlength="170" aria-describedby="bp-meta-description-help"></textarea>
+          <p class="form-help" id="bp-meta-description-help">Up to 170 characters.</p>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="bp-canonical">Canonical override</label>
+            <input class="form-control mono" type="text" id="bp-canonical" name="canonicalOverride" maxlength="300" autocomplete="off" aria-describedby="bp-canonical-help">
+            <p class="form-help" id="bp-canonical-help">Leave empty: the page is canonical to itself. Only set this to a full https:// address on this website when another page should rank instead.</p>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="bp-og-image">Social image</label>
+            <input class="form-control mono" type="text" id="bp-og-image" name="ogImage" maxlength="300" autocomplete="off" aria-describedby="bp-og-image-help">
+            <p class="form-help" id="bp-og-image-help">Optional. A path on the website such as <span class="mono">/images/biodata/og.jpg</span>.</p>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="fieldset">
+        <legend class="fieldset__legend">Publishing</legend>
+        <div class="form-group mb-0">
+          <label class="switch" for="bp-published"><input type="checkbox" role="switch" id="bp-published" name="isPublished" aria-describedby="bp-published-help"><span class="switch__track" aria-hidden="true"></span><span>Published on the website</span></label>
+          <p class="form-help" id="bp-published-help" data-publish-help>Applied when you save. Publishing freezes the slug and regenerates the sitemap.</p>
+        </div>
+      </fieldset>
+    </div>
+    <div class="form-actions">
+      <span class="muted" data-dirty-note>No unsaved changes</span>
+      <a class="btn btn--secondary" href="/biodata-pages">Cancel</a>
+      <a class="btn btn--ghost" href="#" data-live-link target="_blank" rel="noopener noreferrer" hidden>Open on website</a>
+      <button type="submit" class="btn btn--primary" data-save><%= isEdit ? 'Save changes' : 'Create page' %></button>
+    </div>
+  </form>
+</div>

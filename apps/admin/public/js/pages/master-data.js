@@ -10,9 +10,6 @@
 //   DELETE /api/admin/constants/<key>/:id      409 { code:'IN_USE', inUse, message } while members reference it
 //   POST   /api/admin/gotras/ai-suggest {}     → data [{ gotraId, name, suggestedClanId, suggestedClanName, confidence, reasoning }]
 //   POST   /api/admin/gotras/ai-apply { assignments:[{ gotraId, clanId }] } → { modifiedCount }
-//   Ice breaker tab (feature expansion B7) uses its own endpoint (cfg.endpoint):
-//   GET/POST /api/admin/icebreaker/questions, PUT/DELETE /:id, POST /:id/toggle,
-//   POST /api/admin/icebreaker/questions/seed-defaults → { inserted, total }
 // The API returns whole lists, so search and paging happen here over the cached list.
 import { api, errorMessage } from '../core/api.js';
 import { html, setHtml, appendHtml, el, els, delegate } from '../core/dom.js';
@@ -187,34 +184,10 @@ const TABS = {
     sort: (a, b) => String(a.category || '').localeCompare(String(b.category || '')) || String(a.value || '').localeCompare(String(b.value || '')),
     search: (r) => [r.category, r.value],
   },
-  'icebreaker-questions': {
-    noun: 'ice breaker question',
-    endpoint: '/admin/icebreaker/questions',
-    size: 'lg',
-    help: 'Questions for the Ice Breaker game in the app. The game falls back to the built-in defaults while fewer than 5 questions are active; "Seed default questions" copies those defaults here so you can edit them. Changes reach the game within 5 minutes.',
-    columns: [
-      { key: 'question', label: 'Question', render: (r) => html`<span class="cell-wrap">${r.question || '—'}</span>` },
-      { key: 'options', label: 'Options', render: (r) => list(r.options, 3) },
-      { key: 'category', label: 'Category', render: (r) => titleCase(r.category || 'personality') },
-      { key: 'difficulty', label: 'Depth', render: (r) => titleCase(r.difficulty || 'medium') },
-      { key: 'isActive', label: 'Status', render: (r) => html`${yesNo(r.isActive)} <button type="button" class="btn btn--ghost btn--sm" data-action="toggle" data-id="${r._id}">${r.isActive !== false ? 'Deactivate' : 'Activate'}</button>` },
-      { key: 'order', label: 'Order', class: 'num', render: (r) => String(r.order ?? 0) },
-    ],
-    fields: [
-      { name: 'question', label: 'Question', type: 'textarea', rows: 2, required: true, maxlength: 300 },
-      { name: 'options', label: 'Answer options (one per line, 2 to 6)', type: 'textarea', kind: 'lines', required: true, minItems: 2, maxItems: 6 },
-      { name: 'category', label: 'Category', type: 'select', fallback: 'personality', options: ['personality', 'lifestyle', 'values', 'interests', 'relationships', 'goals'].map((v) => ({ value: v, label: titleCase(v) })) },
-      { name: 'difficulty', label: 'Depth', type: 'select', fallback: 'medium', options: ['easy', 'medium', 'deep'].map((v) => ({ value: v, label: titleCase(v) })) },
-      { name: 'order', label: 'Order', type: 'number', min: 0, step: 1, fallback: 0, help: 'Lower numbers first.' },
-      ACTIVE,
-    ],
-    sort: (a, b) => (a.order || 0) - (b.order || 0) || String(a.question || '').localeCompare(String(b.question || '')),
-    search: (r) => [r.question, r.category, ...(r.options || [])],
-  },
 };
 
-/** Where a tab's list lives: its own endpoint, else the shared constants route. */
-const endpointFor = (key) => TABS[key].endpoint || `/admin/constants/${key}`;
+/** Where a tab's list lives. */
+const endpointFor = (key) => `/admin/constants/${key}`;
 
 // ---------------------------------------------------------------- state
 const cache = {};          // key → rows
@@ -223,7 +196,6 @@ let current = 'castes';
 const searchInput = el('#md-search');
 const clanFilter = el('#md-clan');
 const aiBtn = el('[data-action="ai-suggest"]');
-const seedBtn = el('[data-action="seed-icebreaker"]');
 const helpEl = el('[data-tab-help]');
 
 async function rowsFor(key) {
@@ -260,7 +232,6 @@ function tableFor(key) {
     onAction: (action, id, row) => {
       if (action === 'edit') edit(key, row);
       else if (action === 'delete') remove(key, id, row);
-      else if (action === 'toggle') toggleActive(key, id);
     },
   });
   return tables[key];
@@ -297,7 +268,6 @@ initTabs(el('[data-tabs]'), {
     searchInput.value = '';
     searchInput.placeholder = `Search ${titleCase(key).toLowerCase()}`;
     aiBtn.hidden = key !== 'gotras';
-    seedBtn.hidden = key !== 'icebreaker-questions';
     els('[data-gotra-only]').forEach((n) => { n.hidden = key !== 'gotras'; });
     if (key === 'gotras') fillClanFilter();
     applySearch();
@@ -335,7 +305,6 @@ function controlFor(key, f, item, clans) {
     return field({ label: f.label, name: f.name, type: 'select', value: currentId, options: [{ value: '', label: 'No clan assigned' }, ...clans.map((c) => ({ value: c._id, label: c.name }))] });
   }
   if (f.kind === 'list') return field({ label: f.label, name: f.name, value: listToText(stored), help: f.help || '' });
-  if (f.kind === 'lines') return field({ label: f.label, name: f.name, type: 'textarea', rows: 6, value: listToText(stored, '\n'), required: !!f.required, help: f.help || '' });
   return field({ label: f.label, name: f.name, type: f.type, value, required: !!f.required, maxlength: f.maxlength || null, options: f.options || [], min: f.min ?? null, step: f.step ?? null, help: f.help || '', rows: 3 });
 }
 
@@ -361,7 +330,6 @@ function readBody(key, form) {
     else if (f.type === 'number') body[f.name] = input.value === '' ? null : Number(input.value);
     else if (f.type === 'clan') body[f.name] = input.value || null;
     else if (f.kind === 'list') body[f.name] = textToList(input.value);
-    else if (f.kind === 'lines') body[f.name] = textToList(input.value, '\n');
     else body[f.name] = input.value.trim();
     if (f.omitEmpty && body[f.name] === '') delete body[f.name];
   }
@@ -375,7 +343,6 @@ function validate(key, form, body) {
     if (!input) continue;
     if (f.required && (body[f.name] === '' || body[f.name] === null || body[f.name] === undefined)) return invalid(input, `${f.label} is required.`);
     if (f.type === 'number' && body[f.name] !== null && (!Number.isFinite(body[f.name]) || body[f.name] < 0)) return invalid(input, `${f.label} must be a number, zero or more.`);
-    if (f.kind === 'lines' && (body[f.name].length < (f.minItems || 0) || body[f.name].length > (f.maxItems || Infinity))) return invalid(input, `Give between ${f.minItems} and ${f.maxItems} options, one per line.`);
   }
   if (key === 'income-ranges' && body.max < body.min) return invalid(form.elements.max, 'The maximum must not be below the minimum.');
   return true;
@@ -549,32 +516,5 @@ async function aiSuggest() {
   });
 }
 
-// ---------------------------------------------------------------- Ice breaker extras
-async function toggleActive(key, id) {
-  try {
-    await api(`${endpointFor(key)}/${id}/toggle`, { method: 'POST', body: {} });
-    toast.success('Status changed');
-    reload(key);
-  } catch (err) { toast.error(errorMessage(err, 'Could not change the status.')); }
-}
-
-async function seedIcebreaker() {
-  const ok = await confirm({
-    title: 'Seed the default questions?',
-    message: 'The built-in Ice Breaker questions are added to this list. Questions that are already here, including ones you edited, are left alone.',
-    confirmText: 'Seed defaults',
-  });
-  if (!ok) return;
-  await busy(seedBtn, async () => {
-    try {
-      const resp = await api('/admin/icebreaker/questions/seed-defaults', { method: 'POST', body: {} });
-      const d = resp.data || resp;
-      toast.success(d && d.inserted != null ? `${d.inserted} question${d.inserted === 1 ? '' : 's'} added` : 'Default questions seeded');
-      reload('icebreaker-questions');
-    } catch (err) { toast.error(errorMessage(err, 'Could not seed the default questions.')); }
-  });
-}
-
 delegate(document, 'click', '[data-action="create"]', () => edit(current, null));
-seedBtn.addEventListener('click', seedIcebreaker);
 aiBtn.addEventListener('click', aiSuggest);

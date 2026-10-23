@@ -51,6 +51,8 @@ const NAV = [
       item('success-stories', 'Success stories', 'heart'),
       item('announcements', 'Announcements', 'megaphone'),
       item('faqs', 'FAQs', 'help-circle'),
+      item('biodata-templates', 'Biodata templates', 'layout'),
+      item('biodata-pages', 'Biodata pages', 'file-text'),
       item('master-data', 'Master data', 'database'),
     ],
   },

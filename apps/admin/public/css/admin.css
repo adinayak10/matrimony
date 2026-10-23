@@ -510,3 +510,10 @@ textarea.form-control { min-height: 96px; resize: vertical; }
 .radio-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
 .radio-row label { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-md); }
 .reco-warnings { margin: var(--space-2) 0 0; padding-left: 1.2em; }
+
+/* ---------- Biodata maker (templates, pages) ---------- */
+.thumb--portrait { width: 48px; height: 68px; object-fit: cover; object-position: top; }
+.bp-inline-select { width: auto; min-width: 180px; }
+.bt-name { min-width: 170px; }
+.bt-tags { min-width: 150px; }
+.table th.bt-actions { text-align: right; }

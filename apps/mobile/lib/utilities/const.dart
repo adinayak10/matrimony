@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
 
 const String appName = "BanjaraMatch";
 // const String baseURL = "http://192.168.1.9:4000/";
-/// Single API host. Override at build time with --dart-define=API_HOST=...
-const String apiHost = String.fromEnvironment('API_HOST', defaultValue: 'https://api.banjaramatch.com');
+/// Live API host. Release builds always use it; debug/profile builds can point
+/// elsewhere with --dart-define=API_HOST=... (e.g. http://10.0.2.2:4002 on an emulator).
+const String liveApiHost = 'https://api.banjaramatch.com';
+const String apiHost = kReleaseMode ? liveApiHost : String.fromEnvironment('API_HOST', defaultValue: liveApiHost);
 const String baseURL = "$apiHost/";
 const String itemBaseURL = "${baseURL}";
 const String apiURL = "${baseURL}api/";

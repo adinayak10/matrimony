@@ -1,0 +1,23 @@
+<section class="stats-grid" aria-label="Biodata maker numbers">
+  <div class="stat"><div class="stat__icon stat__icon--primary"><%- icon('file-text') %></div><div><div class="stat__value" data-stat="documents">&ndash;</div><div class="stat__label">Biodatas saved</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('activity') %></div><div><div class="stat__value" data-stat="last30Days">&ndash;</div><div class="stat__label">Created, last 30 days</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--info"><%- icon('users') %></div><div><div class="stat__value" data-stat="users">&ndash;</div><div class="stat__label">Members with a biodata</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--warning"><%- icon('send') %></div><div><div class="stat__value" data-stat="activeShares">&ndash;</div><div class="stat__label">Active share links</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--neutral"><%- icon('layout') %></div><div><div class="stat__value" data-stat-text="templates">&ndash;</div><div class="stat__label">Templates active / total</div></div></div>
+  <div class="stat"><div class="stat__icon stat__icon--success"><%- icon('check-circle') %></div><div><div class="stat__value" data-stat="pagesPublished">&ndash;</div><div class="stat__label"><a href="/biodata-pages">Biodata pages</a> published</div></div></div>
+</section>
+
+<section class="card">
+  <div class="card__header card__header--stack">
+    <div class="page-head mb-0">
+      <p class="page-head__text">The template designs ship with the website code; here you only change how each one is listed in the public gallery and the builder: its name, description, category, tags, thumbnail, order, and whether it is offered at all. A hidden template keeps working for biodatas that already use it. Guest downloads are not stored, so usage counts only saved biodatas.</p>
+      <div class="card__actions">
+        <a class="btn btn--secondary" href="<%= webPublicUrl %>/biodata-maker/templates" target="_blank" rel="noopener noreferrer" data-gallery-link>Open the gallery</a>
+        <button type="button" class="btn btn--secondary" data-action="reload">Refresh</button>
+      </div>
+    </div>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="biodata-templates-table" aria-live="polite" aria-busy="true"></div>
+  </div>
+</section>

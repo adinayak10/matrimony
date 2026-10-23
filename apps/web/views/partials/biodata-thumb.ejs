@@ -1,0 +1,21 @@
+<%#
+  A4 thumbnail of a biodata template (/images/biodata/<id>.webp, made by
+  apps/web/scripts/biodata-thumbnails.js). Include with
+    include('../partials/biodata-thumb', { t, eager: false, alt: '...', sizes: '...' })
+  `t` is a gallery row from routes/biodata.js (id, name, thumbnail, hasThumb, thumb2x).
+  The placeholder underneath shows when the file is missing (server check) or fails to load
+  (public/js/biodata-pages.js adds .is-missing).
+%>
+<%
+  const _t = t || {};
+  const _eager = typeof eager !== 'undefined' && eager;
+  const _alt = (typeof alt !== 'undefined' && alt) || ((_t.name || 'Biodata') + ' marriage biodata template');
+  const _sizes = (typeof sizes !== 'undefined' && sizes) || '(max-width: 640px) 45vw, 260px';
+  const _phColors = ['#e11d48', '#9f1239', '#0f766e', '#1d4ed8', '#b45309', '#7e22ce'];
+  const _ph = _phColors[String(_t.id || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0) % _phColors.length];
+  const _missing = !_t.hasThumb;
+%>
+<figure class="bdp-thumb<%= _missing ? ' is-missing' : '' %>" style="--ph:<%= _ph %>">
+  <% if (!_missing) { %><img src="<%= _t.thumbnail %>"<% if (_t.thumb2x) { %> srcset="<%= _t.thumbnail %> 1x, <%= _t.thumb2x %> 2x"<% } %> width="420" height="594" alt="<%= _alt %>" <% if (_eager) { %>loading="eager" fetchpriority="high"<% } else { %>loading="lazy"<% } %> decoding="async" data-bdp-thumb><% } %>
+  <span class="bdp-thumb-ph" aria-hidden="true"><i></i><b><%= _t.name || '' %></b><u></u></span>
+</figure>

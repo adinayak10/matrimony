@@ -1,0 +1,26 @@
+<%#
+  One template card for the biodata galleries. Include with
+    include('../partials/biodata-card', { t, categoriesBySlug, eager: false })
+  `t`: gallery row (routes/biodata.js normalizeTemplate). The card links to the builder
+  with the template preselected.
+%>
+<%
+  const _c = t || {};
+  const _cats = (typeof categoriesBySlug !== 'undefined' && categoriesBySlug) || {};
+  const _href = '/biodata-maker/create?template=' + encodeURIComponent(_c.id);
+%>
+<li data-cats="<%= (_c.categories || []).join(' ') %>">
+  <article class="bdp-card">
+    <a class="bdp-card-media" href="<%= _href %>" tabindex="-1" aria-hidden="true">
+      <% if (_c.isFeatured) { %><span class="bdp-card-badge">Popular</span><% } %>
+      <%- include('./biodata-thumb', { t: _c, eager: typeof eager !== 'undefined' && eager, alt: _c.name + ' marriage biodata template preview' }) %>
+    </a>
+    <div class="bdp-card-body">
+      <h3><%= _c.name %></h3>
+      <% if (_c.tagline) { %><p><%= _c.tagline %></p><% } %>
+      <% const _labels = (_c.categories || []).map((s) => _cats[s]).filter(Boolean).slice(0, 3); %>
+      <% if (_labels.length) { %><ul class="bdp-tags"><% _labels.forEach((n) => { %><li><%= n %></li><% }); %></ul><% } %>
+      <a class="bdp-btn bdp-btn-primary" href="<%= _href %>">Use this template</a>
+    </div>
+  </article>
+</li>

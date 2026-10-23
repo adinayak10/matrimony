@@ -33,7 +33,7 @@ async function runInterestMonitor({ now = new Date() } = {}) {
     .populate('visited', 'full_name device_token settings is_block')
     .lean();
 
-  // socket.js is required lazily: it requires controllers indirectly via gamesocket
+  // socket.js is required lazily to keep it out of the require graph at boot
   // eslint-disable-next-line global-require
   const { getIO, onlineUsers } = require('../../socket');
 

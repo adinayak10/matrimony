@@ -9,6 +9,7 @@
  *   every 15 min       interest monitor        (services/jobs/interestMonitor)
  *   06:07 every 6 h    saved-search alerts     (services/jobs/savedSearchAlerts)
  *   03:30 daily        verification file purge (services/jobs/verificationFilePurge)
+ *   03:45 daily        biodata share-link + temp-file prune (services/jobs/biodataSharePrune)
  * (cron expressions in JOBS below)
  *
  * Each job has a running flag: a slow run is never overlapped by the next tick.
@@ -18,6 +19,7 @@ const JOBS = [
   { name: 'interestMonitor', cron: '*/15 * * * *', load: () => require('../services/jobs/interestMonitor') },
   { name: 'savedSearchAlerts', cron: '7 */6 * * *', load: () => require('../services/jobs/savedSearchAlerts') },
   { name: 'verificationFilePurge', cron: '30 3 * * *', load: () => require('../services/jobs/verificationFilePurge') },
+  { name: 'biodataSharePrune', cron: '45 3 * * *', load: () => require('../services/jobs/biodataSharePrune') },
 ];
 
 let tasks = [];

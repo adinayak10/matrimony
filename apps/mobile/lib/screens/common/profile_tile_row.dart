@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:banjaramatch/common/extensions/font_extension.dart';
 import 'package:banjaramatch/common/widgets/my_cached_image.dart';
 import 'package:banjaramatch/models/registration.dart';
-import 'package:banjaramatch/screens/common/match_percent_chip.dart';
 import 'package:banjaramatch/utilities/const.dart';
 
 /// Compact list row for a profile: photo, name + verified tick, a details
-/// line (age · height · city · profession), optional extra line/chips, a
-/// match % chip and a trailing widget (buttons/menu). Used by the visitors,
+/// line (age · height · city · profession), optional extra line/chips and a
+/// trailing widget (buttons/menu). Used by the visitors,
 /// shortlist, daily-matches, nearby and saved-search result lists.
 class ProfileTileRow extends StatelessWidget {
   const ProfileTileRow({
@@ -17,7 +16,6 @@ class ProfileTileRow extends StatelessWidget {
     this.trailing,
     this.subtitle,
     this.chips = const [],
-    this.showMatchPercent = true,
     this.avatarSize = 56,
     this.margin = const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
   });
@@ -32,8 +30,6 @@ class ProfileTileRow extends StatelessWidget {
   /// Extra chips (e.g. daily-match `matchedOn` reasons) shown under the text.
   final List<Widget> chips;
 
-  /// Shows `matchPercent ?? matchScore` when present.
-  final bool showMatchPercent;
   final double avatarSize;
   final EdgeInsetsGeometry margin;
 
@@ -57,7 +53,6 @@ class ProfileTileRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final name = (user.fullName ?? '').trim();
     final details = detailsLine(user);
-    final percent = user.matchPercent ?? user.matchScore;
     return Container(
       margin: margin,
       decoration: BoxDecoration(
@@ -142,13 +137,12 @@ class ProfileTileRow extends StatelessWidget {
                           style: MyTextStyle.gilroyMedium(size: 12, color: cDarkText.withOpacity(0.7)),
                         ),
                       ],
-                      if ((showMatchPercent && percent != null) || chips.isNotEmpty) ...[
+                      if (chips.isNotEmpty) ...[
                         const SizedBox(height: 6),
                         Wrap(
                           spacing: 6,
                           runSpacing: 4,
                           children: [
-                            if (showMatchPercent && percent != null) MatchPercentChip(percent: percent, compact: true),
                             ...chips,
                           ],
                         ),

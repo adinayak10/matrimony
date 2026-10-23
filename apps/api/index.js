@@ -13,6 +13,23 @@ process.on('uncaughtException', (e) => {
 });
 process.on('warning', (e) => console.warn(e.stack));
 
+// Close the biodata PDF browser (a Chromium child) before pm2 restarts us;
+// the default SIGINT/SIGTERM exit would otherwise orphan it.
+let stopping = false;
+for (const sig of ['SIGTERM', 'SIGINT']) {
+  process.on(sig, () => {
+    if (stopping) return;
+    stopping = true;
+    const done = () => process.exit(0);
+    const timer = setTimeout(done, 6000);
+    timer.unref();
+    require('./services/biodataPdf')
+      .shutdown()
+      .catch(() => {})
+      .finally(done);
+  });
+}
+
 (async () => {
   try {
     await connectDB();

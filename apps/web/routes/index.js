@@ -11,7 +11,7 @@ const { robotsFor, uniqueCmsWords } = require('../utils/regionalIndexing');
 const cityPageTemplates = require('../config/cityPageTemplates');
 const site = require('../config/site');
 const { faqPageJsonLd } = require('../utils/jsonLd');
-const { RETURN_TO_COOKIE } = require('./auth');
+const { RETURN_TO_COOKIE, safeRedirect } = require('./auth');
 
 const router = express.Router();
 
@@ -311,8 +311,8 @@ router.get('/beta-tester', optionalUser, (req, res) => {
   });
 });
 
-// Biodata Builder was removed from the platform; the URL was indexed, so it redirects.
-router.get('/biodata-builder', (req, res) => res.redirect(301, '/'));
+// The old Biodata Builder URL (indexed) points at the new Biodata Maker (routes/biodata.js).
+router.get('/biodata-builder', (req, res) => res.redirect(301, '/biodata-maker'));
 
 router.get('/child-safety-policy', optionalUser, (req, res) => {
   res.render('pages/child-safety-policy', {
@@ -372,6 +372,12 @@ router.get('/sitemap', optionalUser, async (req, res) => {
 
 // Primary login page (Email/Password authentication)
 router.get('/login', redirectIfAuthenticated, (req, res) => {
+  // ?returnTo=/path (same-site path only, e.g. the biodata maker's "log in to save") is
+  // stored in the returnTo cookie that routes/auth.js honours after a successful login.
+  const rt = safeRedirect(req.query.returnTo);
+  if (rt) {
+    res.cookie(RETURN_TO_COOKIE, rt, { httpOnly: true, secure: isProd || req.secure, sameSite: 'lax', path: '/', maxAge: 600000 });
+  }
   res.render('pages/login', {
     title: 'Login - Banjara Matrimony | BanjaraMatch.com',
     meta: pageMeta('login'),
@@ -656,15 +662,6 @@ router.get('/onboarding', ensureAuth, (req, res) => {
     title: 'Complete Your Profile - Banjara Match',
     meta: pageMeta('onboarding'),
     user: req.user,
-  });
-});
-
-// --- Ice Breaker Game Page ---
-router.get('/ice-breaker-game', ensureAuth, (req, res) => {
-  res.render('pages/ice-breaker-game', {
-    title: 'Ice Breaker Game - Banjara Match',
-    meta: pageMeta('iceBreaker'),
-    user: req.user
   });
 });
 

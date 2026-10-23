@@ -366,18 +366,6 @@ a[href^="mailto:"], a[href^="http"] { overflow-wrap: anywhere; }
 /* Child-safety header: light text on the purple band (inherited brown was unreadable). */
 .child-safety-header h1, .child-safety-header p, .child-safety-header p strong { color: #fff; }
 
-/* Biodata builder: nested card padding left 230px for the inputs on a 390px phone. */
-@media screen and (max-width: 767px) {
-    .biodata-builder-section .biodata-form-container,
-    .biodata-builder-section .biodata-preview-container,
-    .biodata-builder-section .template-selection { padding: 20px 14px; }
-    .biodata-builder-section .form-section { padding: 16px 12px; margin-bottom: 22px; }
-    .biodata-builder-section .biodata-form-container h3 { font-size: 21px; }
-    .biodata-builder-section .form-section h4 { font-size: 18px; }
-    .biodata-builder-section .biodata-builder-header h1 { font-size: 27px; }
-    .biodata-builder-section .preview-placeholder { padding: 48px 16px; }
-}
-
 /* Article body (CMS HTML): the global reset removed list markers and spacing, so lists read as loose lines. */
 .blog-content-section ul, .blog-content-section ol { padding-left: 22px; margin: 0 0 16px; }
 .blog-content-section ul li { list-style: disc; }
@@ -492,11 +480,6 @@ a[href^="mailto:"], a[href^="http"] { overflow-wrap: anywhere; }
 /* ---------- 9. LOGGED-IN PAGES ---------- */
 @media screen and (max-width: 767px) {
     .db { padding: 24px 0 40px; }
-    /* Ice-breaker promo: room for the "Featured" badge, icon above the text. */
-    .bm-ib-row { padding: 54px 16px 22px !important; }
-    .bm-ib-head { flex-direction: column; text-align: center; gap: 12px !important; }
-    .bm-ib-row > [class*="col-"] { text-align: center !important; }
-    .bm-ib-row > [class*="col-"] + [class*="col-"] { margin-top: 16px; }
     /* Sidebar becomes a compact strip: small avatar, menu as a swipeable row. */
     .db-nav { margin: 0 0 24px; padding: 14px 14px 10px; }
     .db-nav-pro { margin-bottom: 12px; text-align: center; }

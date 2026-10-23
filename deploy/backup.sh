@@ -9,6 +9,7 @@
 # What it writes:
 #   backups/mongo/aasd-<YYYY-MM-DD>.archive.gz      mongodump --archive --gzip
 #   backups/uploads/<YYYY-MM-DD>/ (+ latest ->)     rsync --link-dest: unchanged files share inodes
+#   backups/private-uploads/<YYYY-MM-DD>/ (700)     same, for SHARED/private-uploads (local only, never off-box)
 #   backups/config/<YYYY-MM-DD>.tar.gz (600)        SHARED/env + SHARED/secrets
 #
 # Size floor: the archive must be >= BACKUP_MIN_BYTES and >= 50 % of the
@@ -119,6 +120,23 @@ rsync -a --delete "${LINK_DEST[@]}" "$SHARED/uploads/" "$SNAP/" || rc=$?
 ln -sfn "$TODAY" "$BACKUPS/uploads/latest"
 log "uploads ok: $(find "$SNAP" -type f | wc -l) files in $SNAP"
 
+# ── 2b. Private uploads (verification documents, biodata photos) ────────────
+# Same hard-linked snapshot, owner-only (700). Guest-render temp files are
+# skipped. Deliberately NOT copied off-box by the rclone step below: these are
+# ID documents and private photos.
+if [ -d "$SHARED/private-uploads" ]; then
+  install -d -m 700 "$BACKUPS/private-uploads"
+  PSNAP="$BACKUPS/private-uploads/$TODAY"
+  PLINK_DEST=()
+  if [ -d "$BACKUPS/private-uploads/latest" ]; then PLINK_DEST=(--link-dest="$(readlink -f "$BACKUPS/private-uploads/latest")"); fi
+  rc=0
+  rsync -a --delete --exclude 'biodata_tmp/' "${PLINK_DEST[@]}" "$SHARED/private-uploads/" "$PSNAP/" || rc=$?
+  [ "$rc" -eq 0 ] || [ "$rc" -eq 24 ] || fail "rsync of private-uploads failed (exit $rc)"
+  chmod 700 "$PSNAP"
+  ln -sfn "$TODAY" "$BACKUPS/private-uploads/latest"
+  log "private uploads ok: $(find "$PSNAP" -type f | wc -l) files in $PSNAP"
+fi
+
 # ── 3. Config (env + secrets) ────────────────────────────────────────────────
 CFG_FILE="$BACKUPS/config/$TODAY.tar.gz"
 ( umask 077 && tar -czf "$CFG_FILE" -C "$SHARED" env secrets ) || fail "config tarball failed"
@@ -143,5 +161,6 @@ fi
 find "$BACKUPS/mongo" -maxdepth 1 -type f -name "$DB_NAME-*.archive.gz" -mtime +"$RETENTION_DAYS" -delete
 find "$BACKUPS/config" -maxdepth 1 -type f -name '*.tar.gz' -mtime +"$RETENTION_DAYS" -delete
 find "$BACKUPS/uploads" -mindepth 1 -maxdepth 1 -type d -name '20*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
+[ -d "$BACKUPS/private-uploads" ] && find "$BACKUPS/private-uploads" -mindepth 1 -maxdepth 1 -type d -name '20*' -mtime +"$RETENTION_DAYS" -exec rm -rf {} +
 KEPT="$(ls -1 "$BACKUPS/mongo/$DB_NAME-"*.archive.gz 2>/dev/null | wc -l | tr -d ' ')"
 log "done: $KEPT database backups kept ($RETENTION_DAYS days)"

@@ -4,7 +4,9 @@
 //   PUT  /api/admin/settings   allowlist only: appName, helpUrl, termsUrl, privacyPolicyUrl,
 //        setRoomUsersLimit, maxImagesCanBeUploadedInOnePost, minuteLimitInCreatingStory,
 //        isAdmobOn, adBannerAndroid, adInterstitialAndroid,
-//        matching.enforceGotraExogamy, security.legacySocketJoin, limits.interestDailyCap
+//        matching.enforceGotraExogamy, security.legacySocketJoin, limits.interestDailyCap,
+//        biodata.enabled, biodata.guestDownloads, biodata.maxPerUser (1..50), biodata.shareDefaultDays (1..365),
+//        biodata.languages (sent as comma text "en, hi"; the API coerces it to a list that always has 'en')
 //        Nested fields are sent as NESTED OBJECTS ({ security: { legacySocketJoin: false } }):
 //        express-mongo-sanitize strips body keys that contain a dot. apk.* is never sent here.
 //   POST /api/admin/auth/change-password { currentPassword, newPassword } → { reauth: true }
@@ -25,18 +27,37 @@ const loadError = el('[data-load-error]');
 const controls = () => Array.from(form.elements).filter((c) => c.name);
 const getPath = (obj, path) => path.split('.').reduce((acc, k) => (acc && typeof acc === 'object' ? acc[k] : undefined), obj);
 // Defaults the API applies when a nested block has never been saved (models/settings.js).
-const DEFAULTS = { 'matching.enforceGotraExogamy': true, 'security.legacySocketJoin': true, 'limits.interestDailyCap': 20 };
+const DEFAULTS = {
+  'matching.enforceGotraExogamy': true,
+  'security.legacySocketJoin': true,
+  'limits.interestDailyCap': 20,
+  'biodata.enabled': true,
+  'biodata.guestDownloads': true,
+  'biodata.maxPerUser': 10,
+  'biodata.shareDefaultDays': 30,
+  'biodata.languages': 'en, hi',
+};
+
+/** [ 'en', 'hi' ] or ' EN,hi,,en ' → 'en, hi' (lower case, no blanks, no repeats). */
+function normaliseList(v) {
+  const items = (Array.isArray(v) ? v : String(v == null ? '' : v).split(','))
+    .map((x) => String(x).trim().toLowerCase())
+    .filter(Boolean);
+  return [...new Set(items)].join(', ');
+}
 
 let loaded = {};   // name → value as last loaded/saved
 
 function readControl(c) {
   if (c.type === 'checkbox') return c.checked;
   if (c.hasAttribute('data-number')) return c.value === '' ? null : Number(c.value);
+  if (c.hasAttribute('data-list')) return normaliseList(c.value);
   return c.value.trim();
 }
 
 function writeControl(c, value) {
   if (c.type === 'checkbox') c.checked = !!value;
+  else if (c.hasAttribute('data-list')) c.value = normaliseList(value);
   else c.value = value === null || value === undefined ? '' : String(value);
 }
 
@@ -93,6 +114,16 @@ function validate(diff) {
   }
   const cap = diff['limits.interestDailyCap'];
   if (cap !== undefined && (cap < 1 || cap > 500)) return invalid(form.elements['limits.interestDailyCap'], 'Enter a number between 1 and 500.');
+  const perUser = diff['biodata.maxPerUser'];
+  if (perUser !== undefined && (perUser < 1 || perUser > 50)) return invalid(form.elements['biodata.maxPerUser'], 'Enter a number between 1 and 50.');
+  const days = diff['biodata.shareDefaultDays'];
+  if (days !== undefined && (days < 1 || days > 365)) return invalid(form.elements['biodata.shareDefaultDays'], 'Enter a number between 1 and 365.');
+  if ('biodata.languages' in diff) {
+    const langs = diff['biodata.languages'] ? diff['biodata.languages'].split(', ') : [];
+    const input = form.elements['biodata.languages'];
+    if (!langs.includes('en')) return invalid(input, 'English (en) must stay in the list.');
+    if (langs.some((l) => !/^[a-z]{2}$/.test(l))) return invalid(input, 'Use two-letter language codes such as en, hi.');
+  }
   return true;
 }
 
@@ -123,6 +154,15 @@ async function save() {
       confirmText: off ? 'Switch it off' : 'Switch it on',
       danger: true,
       typed: off ? 'OFF' : 'ON',
+    });
+    if (!ok) return;
+  }
+  if ('biodata.enabled' in diff && diff['biodata.enabled'] === false) {
+    const ok = await confirm({
+      title: 'Switch off the biodata maker?',
+      message: 'Members and visitors can no longer build, save or download biodatas until it is switched back on. Existing biodatas are kept.',
+      confirmText: 'Switch it off',
+      danger: true,
     });
     if (!ok) return;
   }

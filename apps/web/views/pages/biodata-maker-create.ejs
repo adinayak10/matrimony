@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+</head>
+<%#
+  Biodata builder shell (docs/plans/02-biodata-maker.md, Phase 3 "Builder").
+  Locals (contract section 3): meta, user, breadcrumbs, boot.
+  Everything inside #bdm-app is driven by public/js/biodata-builder.js, which reads
+  window.BM_BIODATA_BOOT and window.BiodataKit; the markup here is the static frame
+  plus the loading / no-JS states. Styles: public/css/biodata-builder.css (bdm-*).
+%>
+<%
+  const _boot = (typeof boot !== 'undefined' && boot) || {};
+  const _doc = _boot.document || null;
+  const _docId = _doc && _doc._id ? String(_doc._id) : '';
+  const _owner = Boolean(_boot.user);
+  const _pdf = _boot.pdfAvailable !== false;
+%>
+<body class="bdm-page">
+<%- include('../partials/header') %>
+
+<div class="bdm-top-gap"></div>
+<%- include('../partials/breadcrumb') %>
+
+<script>window.BM_BIODATA_BOOT = <%- safeJson(_boot) %>;</script>
+
+<main id="bdm-app" class="bdm is-loading" data-doc="<%= _docId %>" data-owner="<%= _owner ? '1' : '0' %>" data-pdf="<%= _pdf ? '1' : '0' %>" aria-labelledby="bdm-heading">
+  <h1 id="bdm-heading" class="bdm-sr">Marriage biodata maker</h1>
+
+  <%# Top bar: title, save status, history, document actions, export. %>
+  <div class="bdm-bar" role="toolbar" aria-label="Biodata actions">
+    <div class="bdm-bar__doc">
+      <span class="bdm-bar__logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm8 1.5V8h4.5L14 3.5zM8 12h8v1.6H8V12zm0 3.4h8V17H8v-1.6zm0-6.8h4v1.6H8V8.6z"/></svg>
+      </span>
+      <div class="bdm-bar__titlewrap">
+        <label class="bdm-sr" for="bdm-title">Biodata title</label>
+        <input id="bdm-title" class="bdm-bar__title" type="text" maxlength="80" placeholder="Untitled biodata" autocomplete="off" disabled>
+        <span id="bdm-status" class="bdm-status" role="status" aria-live="polite"><span class="bdm-status__dot" aria-hidden="true"></span><span class="bdm-status__text">Loading…</span></span>
+      </div>
+    </div>
+    <div class="bdm-bar__actions">
+      <div class="bdm-bar__group" role="group" aria-label="History">
+        <button type="button" class="bdm-iconbtn" data-action="undo" aria-label="Undo (Ctrl+Z)" title="Undo (Ctrl+Z)" disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62A7.95 7.95 0 0 1 12.5 10.5c3.54 0 6.55 2.31 7.6 5.5l2.37-.78A10.5 10.5 0 0 0 12.5 8z"/></svg>
+        </button>
+        <button type="button" class="bdm-iconbtn" data-action="redo" aria-label="Redo (Ctrl+Shift+Z)" title="Redo (Ctrl+Shift+Z)" disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M18.4 10.6A10.46 10.46 0 0 0 11.5 8c-4.65 0-8.58 3.03-9.96 7.22l2.36.78a8 8 0 0 1 7.6-5.5c1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+        </button>
+      </div>
+      <button type="button" class="bdm-btn bdm-btn--ghost bdm-hide-sm" data-action="sections" disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 5h18v2H3V5zm0 6h18v2H3v-2zm0 6h18v2H3v-2z"/></svg>
+        <span>Sections</span>
+      </button>
+      <button type="button" class="bdm-btn bdm-btn--ghost" data-action="sample" disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 2l2.4 6.9H22l-6 4.6 2.3 7L12 16.2 5.7 20.5l2.3-7-6-4.6h7.6z"/></svg>
+        <span>Load sample</span>
+      </button>
+      <div class="bdm-menu">
+        <button type="button" class="bdm-iconbtn" data-action="menu" aria-haspopup="menu" aria-expanded="false" aria-controls="bdm-menu" aria-label="More actions" title="More actions" disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="5" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="19" r="2" fill="currentColor"/></svg>
+        </button>
+        <div id="bdm-menu" class="bdm-menu__list" role="menu" aria-label="More actions" hidden></div>
+      </div>
+      <button type="button" class="bdm-btn bdm-btn--primary" data-action="export" disabled>
+        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M11 3h2v9.17l3.59-3.58L18 10l-6 6-6-6 1.41-1.41L11 12.17V3zM5 19h14v2H5v-2z"/></svg>
+        <span class="bdm-export-label"><%= _pdf ? 'Download PDF' : 'Print / Save as PDF' %></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="bdm-notices" class="bdm-notices"></div>
+
+  <%# Mobile / tablet: Edit | Preview tabs (hidden at >= 992px). %>
+  <div class="bdm-mtabs" role="tablist" aria-label="Builder view">
+    <button type="button" role="tab" id="bdm-mtab-edit" class="bdm-mtabs__tab" aria-selected="true" aria-controls="bdm-editor" tabindex="0">Edit</button>
+    <button type="button" role="tab" id="bdm-mtab-preview" class="bdm-mtabs__tab" aria-selected="false" aria-controls="bdm-preview" tabindex="-1">Preview <span class="bdm-mtabs__count" data-bind="pages"></span></button>
+  </div>
+
+  <div class="bdm-workspace">
+    <%# Step navigator (vertical rail on wide screens, scrolling strip below). %>
+    <nav class="bdm-steps" aria-label="Biodata steps">
+      <div class="bdm-steps__head">
+        <p class="bdm-steps__count" id="bdm-steps-count">Step 1 of 12</p>
+        <p class="bdm-steps__pct"><span data-bind="pct">0</span>% complete</p>
+      </div>
+      <div class="bdm-progress" role="progressbar" aria-labelledby="bdm-steps-count" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="bdm-progress__fill"></span></div>
+      <div id="bdm-steps" class="bdm-steps__list" role="tablist" aria-label="Steps" aria-orientation="vertical"></div>
+    </nav>
+
+    <section id="bdm-editor" class="bdm-editor" role="tabpanel" aria-labelledby="bdm-mtab-edit">
+      <div id="bdm-panel" class="bdm-panel" role="tabpanel" tabindex="-1" aria-labelledby="bdm-heading">
+        <div class="bdm-skeleton" aria-hidden="true">
+          <span class="bdm-skeleton__line bdm-skeleton__line--title"></span>
+          <span class="bdm-skeleton__line"></span>
+          <span class="bdm-skeleton__box"></span>
+          <span class="bdm-skeleton__box"></span>
+          <span class="bdm-skeleton__box bdm-skeleton__box--short"></span>
+        </div>
+        <p class="bdm-loading-text">Loading the biodata builder…</p>
+        <noscript>
+          <div class="bdm-callout bdm-callout--warn">
+            <p class="bdm-callout__title">JavaScript is needed</p>
+            <p>The biodata maker runs in your browser. Please enable JavaScript to create your biodata.</p>
+          </div>
+        </noscript>
+      </div>
+    </section>
+
+    <aside id="bdm-preview" class="bdm-preview" role="tabpanel" aria-labelledby="bdm-mtab-preview" aria-label="Live preview">
+      <div class="bdm-preview__card">
+        <div class="bdm-preview__bar">
+          <div class="bdm-preview__zoom" role="group" aria-label="Preview zoom">
+            <button type="button" class="bdm-iconbtn bdm-iconbtn--sm" data-action="zoom-out" aria-label="Zoom out">−</button>
+            <button type="button" class="bdm-zoomval" data-action="zoom-reset" aria-label="Reset zoom to 100%"><span data-bind="zoom">100%</span></button>
+            <button type="button" class="bdm-iconbtn bdm-iconbtn--sm" data-action="zoom-in" aria-label="Zoom in">+</button>
+            <button type="button" class="bdm-chipbtn" data-action="zoom-fit" aria-pressed="true">Fit width</button>
+          </div>
+          <p class="bdm-preview__pages" aria-live="polite"><span data-bind="pageinfo">Preparing preview…</span></p>
+          <button type="button" class="bdm-btn bdm-btn--ghost bdm-btn--sm" data-action="print">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M7 3h10v4H7V3zm-2 5h14a3 3 0 0 1 3 3v6h-4v4H6v-4H2v-6a3 3 0 0 1 3-3zm3 8v3h8v-3H8zm10-5a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>
+            <span>Print</span>
+          </button>
+        </div>
+        <div id="bdm-preview-notice" class="bdm-preview__notice" aria-live="polite" hidden></div>
+        <div id="bdm-viewport" class="bdm-preview__viewport" tabindex="0" aria-label="Biodata preview pages">
+          <div id="bdm-scaler" class="bdm-preview__scaler">
+            <iframe id="bdm-frame" class="bdm-preview__frame" title="Biodata preview" tabindex="-1"></iframe>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <button type="button" class="bdm-pill" data-action="show-preview" hidden>
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg>
+    <span>Preview · <span data-bind="pagesShort">1 page</span></span>
+  </button>
+
+  <div id="bdm-live" class="bdm-sr" aria-live="polite"></div>
+  <div id="bdm-toasts" class="bdm-toasts" aria-live="polite"></div>
+</main>
+
+<%- include('../partials/footer') %>
+<%- include('../partials/scripts') %>
+</body>
+</html>

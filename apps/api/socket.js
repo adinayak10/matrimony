@@ -22,9 +22,6 @@ const { countUnreadNotifications } = require('./services/notificationVisibility'
 const { effectiveVisibility } = require('./services/profileSerializer');
 const { ALLOW_MESSAGES_ENUM } = require('./enum/enum');
 
-// Import Ice Breaker Game Module
-const { setupIcebreakerSocket, getIcebreakerStats, cleanupAbandonedGames } = require('./gamesocket');
-
 const lazyIO = new Proxy({}, {
   get(_, prop) {
     if (!ioInstance) throw new Error('Socket.io not initialized');
@@ -182,12 +179,6 @@ async function endRingingCallsOf(userId) {
 
 module.exports = {
   setupSocket: (io) => {
-    // Set up cleanup interval for abandoned ice breaker games
-    const cleanupTimer = setInterval(() => {
-      cleanupAbandonedGames();
-    }, 300000); // Clean up every 5 minutes
-    if (typeof cleanupTimer.unref === 'function') cleanupTimer.unref();
-
     ioInstance = io;
 
     // A5.1 handshake auth, dual mode (integrator conflict #2):
@@ -289,9 +280,6 @@ module.exports = {
         await bindOnline(userId);
         // The O(N) high_match_online loop that used to run here was deleted (A5.2).
       });
-
-      // Ice Breaker Game socket events
-      setupIcebreakerSocket(socket, io, onlineUsers, User);
 
       // ─── send_message (A5.5) ────────────────────────────────────────────
       on('send_message', async (data) => {
@@ -472,11 +460,6 @@ module.exports = {
         const userId = me();
         if (!userId) return;
         io.to(socket.id).emit('unread_chatroom_count_update', { total: await unreadRoomCount(userId) });
-      });
-
-      on('get_icebreaker_stats', () => {
-        const stats = getIcebreakerStats();
-        io.to(socket.id).emit('icebreaker_stats', stats);
       });
 
       // ─── Voice/video call signalling (Agora) ──────────────────────────────

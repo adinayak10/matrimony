@@ -46,27 +46,6 @@ router.get('/faqs', FaqController.getFaqs);
 // Website "contributors" list: completed suggestions, safe fields only, no PII.
 router.get('/community-feedback/contributors', rl.publicListLimiter, CommunityFeedbackController.getPublicContributors);
 
-// Ice Breaker Game stats (counts only, no PII)
-router.get('/getIcebreakerStats', (req, res) => {
-  try {
-    // lazy: gamesocket.js is loaded by socket.js at boot
-    // eslint-disable-next-line global-require
-    const { getIcebreakerStats } = require('../gamesocket');
-    const stats = getIcebreakerStats() || {};
-    return res.json({
-      status: true,
-      data: {
-        activeGames: stats.activeGames || 0,
-        queuedPlayers: stats.playersInQueue || 0,
-      },
-    });
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error getting ice breaker stats:', error.message);
-    return res.json({ status: false, message: 'Error getting stats', data: { activeGames: 0, queuedPlayers: 0 } });
-  }
-});
-
 /** Paths served here, used by test/auth-required.test.js to know what is public. */
 router.PUBLIC_PATHS = [
   '/countries',
@@ -82,7 +61,6 @@ router.PUBLIC_PATHS = [
   '/fetchReportReasons',
   '/fetchBanner',
   '/community-feedback/contributors',
-  '/getIcebreakerStats',
   '/fetchFAQs',
   '/faqs',
 ];

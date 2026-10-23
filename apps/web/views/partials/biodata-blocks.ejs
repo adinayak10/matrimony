@@ -1,0 +1,74 @@
+<%#
+  BiodataPage content blocks (guide and landing pages). Include with
+    include('../partials/biodata-blocks', { blocks: page.contentBlocks })
+  Types: richText | steps | checklist | table | callout | cta. `html` fields are
+  sanitised by the API on write (sanitizeRich) and are the only raw output here;
+  headings, items, table cells and CTA labels are plain text and escaped.
+%>
+<%
+  const _blocks = (Array.isArray(blocks) ? blocks : []).filter((b) => b && typeof b === 'object').slice(0, 20);
+  const _txt = (v) => (typeof v === 'string' ? v : (v && typeof v === 'object' ? String(v.text || v.title || v.label || '') : ''));
+  // Items are strings or {title, text}. In a steps list a short first sentence ending in "." is the step title.
+  const _item = (v) => (v && typeof v === 'object'
+    ? { title: String(v.title || v.heading || v.label || ''), text: String(v.text || v.body || v.description || '') }
+    : { title: '', text: String(v == null ? '' : v) });
+  const _step = (v) => {
+    const i = _item(v);
+    if (i.title) return i;
+    const m = /^([^.!?:]{3,70})[.:]\s+(\S[\s\S]*)$/.exec(i.text.trim());
+    return m ? { title: m[1], text: m[2] } : i;
+  };
+  const _href = (h) => (typeof h === 'string' && /^\/(?!\/)[A-Za-z0-9/_.#?=&%-]*$/.test(h) ? h : '/biodata-maker/create');
+  const _html = (h) => (typeof h === 'string' ? h : '');
+%>
+<% _blocks.forEach((b) => { const heading = _txt(b.heading); %>
+  <% if (b.type === 'richText' && _html(b.html)) { %>
+  <section class="bdp-block">
+    <% if (heading) { %><h2><%= heading %></h2><% } %>
+    <div class="bdp-prose"><%- /* raw-ok: BiodataPage html, sanitised on write by the API (sanitizeRich) */ _html(b.html) %></div>
+  </section>
+  <% } else if (b.type === 'steps' && Array.isArray(b.items) && b.items.length) { %>
+  <section class="bdp-block">
+    <% if (heading) { %><h2><%= heading %></h2><% } %>
+    <ol class="bdp-block-steps">
+      <% b.items.map(_step).filter((i) => i.title || i.text).forEach((i) => { %>
+      <li><% if (i.title) { %><b><%= i.title %></b><% } %><% if (i.text) { %><span><%= i.text %></span><% } %></li>
+      <% }); %>
+    </ol>
+  </section>
+  <% } else if (b.type === 'checklist' && Array.isArray(b.items) && b.items.length) { %>
+  <section class="bdp-block">
+    <% if (heading) { %><h2><%= heading %></h2><% } %>
+    <ul class="bdp-block-check">
+      <% b.items.map(_item).filter((i) => i.title || i.text).forEach((i) => { %>
+      <li><i class="fa fa-check-circle" aria-hidden="true"></i><span><% if (i.title) { %><b><%= i.title %></b> <% } %><%= i.text %></span></li>
+      <% }); %>
+    </ul>
+  </section>
+  <% } else if (b.type === 'table' && Array.isArray(b.rows) && b.rows.length) { const rows = b.rows.filter(Array.isArray); %>
+  <section class="bdp-block">
+    <% if (heading) { %><h2><%= heading %></h2><% } %>
+    <div class="bdp-scroll">
+      <table class="bdp-table">
+        <% if (rows.length > 1) { %><thead><tr><% rows[0].forEach((c) => { %><th scope="col"><%= _txt(c) || String(c == null ? '' : c) %></th><% }); %></tr></thead><% } %>
+        <tbody>
+          <% rows.slice(rows.length > 1 ? 1 : 0).forEach((r) => { %><tr><% r.forEach((c) => { %><td><%= _txt(c) || String(c == null ? '' : c) %></td><% }); %></tr><% }); %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <% } else if (b.type === 'callout' && (_html(b.html) || heading)) { %>
+  <aside class="bdp-block bdp-callout">
+    <i class="fa fa-lightbulb-o" aria-hidden="true"></i>
+    <div>
+      <% if (heading) { %><h2><%= heading %></h2><% } %>
+      <% if (_html(b.html)) { %><div class="bdp-prose"><%- /* raw-ok: BiodataPage html, sanitised on write by the API (sanitizeRich) */ _html(b.html) %></div><% } %>
+    </div>
+  </aside>
+  <% } else if (b.type === 'cta') { %>
+  <aside class="bdp-block bdp-ctabox">
+    <h2><%= heading || 'Make your biodata now' %></h2>
+    <a class="bdp-btn bdp-btn-primary" href="<%= _href(b.ctaHref) %>"><%= _txt(b.ctaLabel) || 'Create Biodata Free' %> <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+  </aside>
+  <% } %>
+<% }); %>

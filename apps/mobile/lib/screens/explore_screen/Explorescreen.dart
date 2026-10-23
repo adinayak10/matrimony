@@ -17,7 +17,6 @@ import 'package:banjaramatch/screens/profile_screen/profile_screen.dart';
 import 'package:banjaramatch/screens/search_profiles_screen.dart';
 import 'package:banjaramatch/utilities/const.dart';
 import 'package:banjaramatch/localization/features/app_strings.dart';
-import 'package:banjaramatch/screens/common/match_percent_chip.dart';
 import 'package:banjaramatch/screens/common/section_card.dart';
 import 'package:banjaramatch/screens/daily_matches_screen/daily_matches_screen.dart';
 import 'package:banjaramatch/screens/member_card.dart' show calculateAge;
@@ -96,7 +95,6 @@ class ExplorePage extends StatelessWidget {
                                 icon: Icons.auto_awesome,
                                 gradientColors: [Color(0xFFE8F5E8), Color(0xFFB8E6B8)],
                                 onSeeAll: _goToMatchesTab,
-                                showMatchPercentage: true,
                                 showDistance: false,
                                 showOnlineStatus: true,
                               ),
@@ -112,7 +110,6 @@ class ExplorePage extends StatelessWidget {
                                 gradientColors: [Color(0xFFE8F0FF), Color(0xFFB8D4FF)],
                                 onSeeAll: () => Navigate.to(const VisitorsScreen(initialSegment: 0)),
                                 showViewedDate: true,
-                                showMatchPercentage: true,
                               ),
                             ),
 
@@ -143,7 +140,6 @@ class ExplorePage extends StatelessWidget {
                                 icon: Icons.supervised_user_circle,
                                 gradientColors: [Color(0xFFF7E8FF), Color(0xFFD2B8FF)],
                                 onSeeAll: _goToMatchesTab,
-                                showMatchPercentage: true,
                                 showActiveStatus: true,
                               ),
                             ),
@@ -300,7 +296,8 @@ class ExplorePage extends StatelessWidget {
       onSeeAll: () => Navigate.to(const DailyMatchesScreen()),
       padding: const EdgeInsets.fromLTRB(16, 16, 0, 16),
       child: SizedBox(
-        height: 178,
+        // 112 photo + 6 gap + one name line, with a little room for larger system fonts.
+        height: 142,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.only(right: 16),
@@ -308,7 +305,6 @@ class ExplorePage extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
             final user = users[index];
-            final percent = user.matchPercent ?? user.matchScore;
             return GestureDetector(
               onTap: () => _onUserCardTap(user),
               child: SizedBox(
@@ -316,34 +312,37 @@ class ExplorePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: MyCachedProfileImage(
-                        imageUrl: user.profile,
-                        fullName: user.fullName,
-                        width: 112,
-                        height: 112,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
+                    Stack(
                       children: [
-                        Flexible(
-                          child: Text(
-                            (user.fullName ?? '').trim(),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: MyTextStyle.gilroyBold(size: 13, color: cDarkText),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: MyCachedProfileImage(
+                            imageUrl: user.profile,
+                            fullName: user.fullName,
+                            width: 112,
+                            height: 112,
                           ),
                         ),
-                        if (user.isVerified == 1) ...[
-                          const SizedBox(width: 3),
-                          const Icon(Icons.verified_rounded, size: 13, color: cBlueTick),
-                        ],
+                        // On the photo's top-left corner so it sits in the same spot on every card.
+                        if (user.isVerified == 1)
+                          Positioned(
+                            top: 6,
+                            left: 6,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                              child: const Icon(Icons.verified_rounded, size: 16, color: cBlueTick),
+                            ),
+                          ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    if (percent != null) MatchPercentChip(percent: percent, compact: true),
+                    const SizedBox(height: 6),
+                    Text(
+                      (user.fullName ?? '').trim(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: MyTextStyle.gilroyBold(size: 13, color: cDarkText),
+                    ),
                   ],
                 ),
               ),
@@ -1001,7 +1000,6 @@ class ExplorePage extends StatelessWidget {
     required VoidCallback onSeeAll,
     required IconData icon,
     required List<Color> gradientColors,
-    bool showMatchPercentage = false,
     bool showDistance = false,
     bool showOnlineStatus = false,
     bool showViewedDate = false,
@@ -1108,7 +1106,6 @@ class ExplorePage extends StatelessWidget {
                         displayUsers[index],
                         isBlurred: isLast,
                         remaining: remaining,
-                        showMatchPercentage: showMatchPercentage,
                         showDistance: showDistance,
                         showOnlineStatus: showOnlineStatus,
                         showViewedDate: showViewedDate,
@@ -1905,7 +1902,6 @@ class ExplorePage extends StatelessWidget {
     User user, {
     bool isBlurred = false,
     int remaining = 0,
-    bool showMatchPercentage = false,
     bool showDistance = false,
     bool showOnlineStatus = false,
     bool showViewedDate = false,
@@ -2081,10 +2077,6 @@ class ExplorePage extends StatelessWidget {
                         ),
                     ],
                   ),
-                  if (showMatchPercentage && (user.matchPercent ?? user.matchScore) != null) ...[
-                    SizedBox(height: 6),
-                    MatchPercentChip(percent: user.matchPercent ?? user.matchScore, compact: true),
-                  ],
                   if (showDistance && user.distanceKm != null) ...[
                     SizedBox(height: 4),
                     Row(

@@ -10,7 +10,6 @@ import 'package:banjaramatch/screens/call_screen/call_history_screen.dart';
 import 'package:banjaramatch/screens/daily_matches_screen/daily_matches_screen.dart';
 import 'package:banjaramatch/screens/extra_views/logo_tag.dart';
 import 'package:banjaramatch/screens/faq_screen/faq_screen.dart';
-import 'package:banjaramatch/screens/ice_breaker_screen.dart';
 import 'package:banjaramatch/screens/nearby_screen/nearby_screen.dart';
 import 'package:banjaramatch/screens/notification_screen/notification_screen.dart';
 import 'package:banjaramatch/screens/partner_preference-view_screen.dart';
@@ -74,8 +73,6 @@ class SettingScreenSide extends StatelessWidget {
                       _section(AppKeys.drawerCommunity.tr),
                       _row(context, Icons.celebration_outlined, AppKeys.drawerSuccessStories.tr,
                           () => _open(context, const SuccessStoriesScreen())),
-                      _row(context, Icons.psychology_alt_outlined, AppKeys.drawerIceBreaker.tr,
-                          () => _open(context, const IceBreakerScreen())),
                       _section(AppKeys.drawerActivity.tr),
                       _row(context, Icons.notifications_none_rounded, LKeys.notification.tr,
                           () => _open(context, const NotificationScreen())),

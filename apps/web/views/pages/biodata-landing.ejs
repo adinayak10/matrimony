@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%
+  // Locals (routes/biodata.js): templates, categories, page (BiodataPage 'biodata-maker' from the
+  // API, or the seed content module, or null), faqs, cta, relatedLinks, guides, articles,
+  // featuredBlogs, guestDownloads. No kit JS on this page (LCP): thumbnails are static images.
+  const _tpls = Array.isArray(templates) ? templates : [];
+  const _cats = Array.isArray(categories) ? categories : [];
+  const _catNames = Object.fromEntries(_cats.map((c) => [c.slug, c.name]));
+  const _page = page || {};
+  const _h1 = (typeof _page.h1 === 'string' && _page.h1.trim()) || 'Free Marriage Biodata Maker';
+  const _n = _tpls.length;
+  const _hero = _tpls[0] || null;
+  const _fanA = _tpls[1] || null;
+  const _fanB = _tpls[2] || null;
+  const _blocks = Array.isArray(_page.contentBlocks) ? _page.contentBlocks : [];
+  const _stepsBlock = _blocks.find((b) => b && b.type === 'steps' && Array.isArray(b.items) && b.items.length >= 3) || null;
+  const _otherBlocks = _blocks.filter((b) => b !== _stepsBlock);
+  const _intro = typeof _page.intro === 'string' ? _page.intro.trim() : '';
+  // Items are strings ("Choose a template. Pick one of ...": a short first sentence is the title) or {title, text}.
+  const _stepItem = (v) => {
+    if (v && typeof v === 'object') return { title: String(v.title || v.heading || v.label || ''), text: String(v.text || v.body || v.description || '') };
+    const s = String(v == null ? '' : v).trim();
+    const m = /^([^.!?]{3,70}[.!?])\s+(\S[\s\S]*)$/.exec(s);
+    return m ? { title: m[1].replace(/[.]$/, ''), text: m[2] } : { title: '', text: s };
+  };
+  const _defaultSteps = [
+    { title: 'Choose a template', text: `Start from ${_n ? _n + ' designs' : 'a ready design'}: traditional, modern, minimal, photo-focused and community styles. Switch at any time without losing what you typed.` },
+    { title: 'Add your details', text: 'Fill in personal, family, education, profession and partner preferences step by step. Hide anything you do not want to share, add your own fields and reorder sections.' },
+    { title: 'Download, print or share', text: 'Download a print-ready A4 PDF or print it. With a free account you can keep drafts and share a private link that you can turn off whenever you like.' },
+  ];
+  const _steps = _stepsBlock ? _stepsBlock.items.map(_stepItem).filter((s) => s.title || s.text).slice(0, 6) : _defaultSteps;
+  const _sampleIds = ['royal-heritage', 'contemporary-professional', 'photo-focused'];
+  let _samples = _sampleIds.map((id) => _tpls.find((t) => t.id === id)).filter(Boolean);
+  if (_samples.length < 3) _samples = _tpls.slice(3, 6).length === 3 ? _tpls.slice(3, 6) : _tpls.slice(0, 3);
+  const _features = [
+    ['fa-eye', 'Live preview', 'The A4 preview updates as you type, page by page, so what you see is what you download.'],
+    ['fa-th-large', _n ? `${_n} templates` : 'Ready-made templates', 'Traditional, modern, minimal, photo-focused and community designs, each with colour and font options.'],
+    ['fa-camera', 'Photo and family details', 'Crop your photo in the builder and list parents, siblings, family type, native place and more.'],
+    ['fa-sliders', 'Sections your way', 'Show, hide, rename and reorder sections, and add your own fields where the standard ones do not fit.'],
+    ['fa-file-pdf-o', 'PDF download and print', 'Download an A4 PDF with selectable text, or print it straight from your browser.'],
+    ['fa-language', 'Hindi and English labels', 'Labels in English, Hindi or both. Your own words stay exactly as you type them.'],
+    ['fa-mobile', 'Made for phones too', 'Fill it in on your phone with separate Edit and Preview tabs.'],
+    ['fa-cloud-upload', 'Drafts with a free account', 'Your browser keeps your work as you go; signed in, drafts are saved to your account to continue on any device.'],
+    ['fa-link', 'Private share links', 'Send a private link instead of a file. Contact details stay hidden unless you choose to show them, and you can turn the link off at any time.'],
+  ];
+  const _compare = [
+    ['Layout', 'Designed templates, aligned for you', 'Tables, borders and spacing aligned by hand'],
+    ['Page breaks', 'Details flow onto A4 pages; a section title is never left alone at the bottom', 'Breaks move every time you add a line'],
+    ['Photo', 'Crop and place your photo in the builder', 'Resize and wrap the picture yourself'],
+    ['Changing the design', 'Switch template, your details stay', 'Redo the formatting from the start'],
+    ['Hindi labels', 'One switch: English, Hindi or both', 'Type and format every label yourself'],
+    ['On a phone', 'Edit and preview on mobile', 'A .docx is hard to edit on a phone'],
+    ['Sharing', 'PDF, print, or a private link you control', 'Send the file as an attachment'],
+  ];
+%>
+</head>
+
+<body class="bdp-body">
+  <%- include('../partials/header') %>
+  <%- include('../partials/breadcrumb') %>
+
+  <main class="bdp">
+    <!-- Hero -->
+    <section class="bdp-hero" aria-labelledby="bdp-title">
+      <div class="bdp-wrap">
+        <div class="bdp-hero-grid">
+          <div>
+            <span class="bdp-pill"><i class="fa fa-heart" aria-hidden="true"></i> Free for everyone · <%= guestDownloads ? 'No sign-up needed' : 'Start without signing up' %></span>
+            <h1 id="bdp-title"><%= _h1 %></h1>
+            <p class="bdp-hero-sub">Create a beautiful marriage biodata in minutes. Pick a template, add your personal, family and education details and a photo, then download a print-ready PDF in English, Hindi or both.</p>
+            <div class="bdp-btns">
+              <a class="bdp-btn bdp-btn-white" href="/biodata-maker/create"><i class="fa fa-pencil" aria-hidden="true"></i> Create Biodata Free</a>
+              <a class="bdp-btn bdp-btn-ghost" href="#templates">Explore Templates</a>
+            </div>
+            <ul class="bdp-hero-points">
+              <li><i class="fa fa-check-circle" aria-hidden="true"></i> <%= _n ? _n + ' templates' : 'Ready-made templates' %></li>
+              <li><i class="fa fa-check-circle" aria-hidden="true"></i> Live A4 preview</li>
+              <li><i class="fa fa-check-circle" aria-hidden="true"></i> PDF and print</li>
+              <% if (user) { %><li><i class="fa fa-folder-open" aria-hidden="true"></i> <a href="/biodata-maker/my" style="color:#fff;text-decoration:underline">My biodatas</a></li><% } %>
+            </ul>
+          </div>
+
+          <% if (_hero) { %>
+          <div class="bdp-visual" aria-hidden="true">
+            <% if (_fanA) { %><div class="bdp-fan is-a"><%- include('../partials/biodata-thumb', { t: _fanA, alt: '' }) %></div><% } %>
+            <% if (_fanB) { %><div class="bdp-fan is-b"><%- include('../partials/biodata-thumb', { t: _fanB, alt: '' }) %></div><% } %>
+            <div class="bdp-frame">
+              <div class="bdp-frame-bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><span class="bdp-frame-title">Biodata Maker</span><span class="bdp-frame-status">Saved</span></div>
+              <div class="bdp-frame-body">
+                <div class="bdp-form-mock">
+                  <div class="bdp-steps-mock"><span class="is-done">Personal</span><span class="is-done">Photo</span><span class="is-on">Family</span><span>Education</span></div>
+                  <div class="bdp-field-mock"><b>Father's name</b><span class="is-focus">Ramesh Rathod</span></div>
+                  <div class="bdp-field-mock"><b>Mother's name</b><span>Sunita Rathod</span></div>
+                  <div class="bdp-field-row">
+                    <div class="bdp-field-mock"><b>Family type</b><span>Joint</span></div>
+                    <div class="bdp-field-mock"><b>Native place</b><span>Nanded</span></div>
+                  </div>
+                  <div class="bdp-mock-btn">Next: Education</div>
+                </div>
+                <div class="bdp-preview-mock">
+                  <span class="bdp-live">Live preview</span>
+                  <%- include('../partials/biodata-thumb', { t: _hero, eager: true, alt: (_hero.name || 'Marriage') + ' biodata template filled with sample details', sizes: '(max-width: 640px) 60vw, 260px' }) %>
+                </div>
+              </div>
+            </div>
+          </div>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust strip -->
+    <div class="bdp-strip">
+      <div class="bdp-wrap">
+        <div class="bdp-strip-grid">
+          <div class="bdp-strip-item"><i class="fa fa-gift" aria-hidden="true"></i><div><b>Free to use</b><small>Every template, no paid tier</small></div></div>
+          <div class="bdp-strip-item"><i class="fa fa-eye" aria-hidden="true"></i><div><b>Live preview</b><small>See each change as you type</small></div></div>
+          <div class="bdp-strip-item"><i class="fa fa-file-pdf-o" aria-hidden="true"></i><div><b>PDF and print</b><small>A4 pages, ready to print</small></div></div>
+          <div class="bdp-strip-item"><i class="fa fa-language" aria-hidden="true"></i><div><b>English and Hindi</b><small>Labels in either, or both</small></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <section class="bdp-section" id="how" aria-labelledby="bdp-how">
+      <div class="bdp-wrap">
+        <div class="bdp-center">
+          <span class="bdp-eyebrow">How it works</span>
+          <h2 class="bdp-h2" id="bdp-how"><%= (_stepsBlock && _stepsBlock.heading) || 'Your biodata in three steps' %></h2>
+          <p class="bdp-lead">No design skills and no formatting: you type the details, the template takes care of the layout.</p>
+        </div>
+        <ol class="bdp-steps">
+          <% _steps.forEach((s) => { %>
+          <li class="bdp-step">
+            <% if (s.title) { %><h3><%= s.title %></h3><% } %>
+            <% if (s.text) { %><p><%= s.text %></p><% } %>
+          </li>
+          <% }); %>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Template gallery -->
+    <section class="bdp-section is-white" id="templates" aria-labelledby="bdp-templates">
+      <div class="bdp-wrap">
+        <div class="bdp-center">
+          <span class="bdp-eyebrow">Templates</span>
+          <h2 class="bdp-h2" id="bdp-templates">Choose your biodata template</h2>
+          <p class="bdp-lead">Every template is free. Pick one to start; you can switch to another later and keep everything you typed.</p>
+        </div>
+        <% if (_n) { %>
+        <div class="bdp-toolbar" data-bdp-filters>
+          <ul class="bdp-chips" aria-label="Filter templates by style">
+            <li><a class="bdp-chip is-active" href="/biodata-maker/templates" data-filter="all" aria-pressed="true">All <small><%= _n %></small></a></li>
+            <% _cats.forEach((c) => { %>
+            <li><a class="bdp-chip" href="/biodata-maker/templates/<%= c.slug %>" data-filter="<%= c.slug %>" aria-pressed="false"><%= c.name %> <small><%= c.count %></small></a></li>
+            <% }); %>
+          </ul>
+        </div>
+        <p class="bdp-count" data-bdp-count role="status" aria-live="polite">Showing all <%= _n %> templates</p>
+        <ul class="bdp-grid" data-bdp-grid>
+          <% _tpls.forEach((t) => { %><%- include('../partials/biodata-card', { t, categoriesBySlug: _catNames }) %><% }); %>
+        </ul>
+        <div class="bdp-center" style="margin-top:34px">
+          <a class="bdp-btn bdp-btn-outline" href="/biodata-maker/templates">Browse the template gallery <i class="fa fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        <% } else { %>
+        <div class="bdp-empty">
+          <i class="fa fa-th-large" aria-hidden="true"></i>
+          <h3>The template gallery is being updated</h3>
+          <p>You can start your biodata right away and choose a design inside the builder.</p>
+          <div class="bdp-btns"><a class="bdp-btn bdp-btn-primary" href="/biodata-maker/create">Create Biodata Free</a></div>
+        </div>
+        <% } %>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="bdp-section" id="features" aria-labelledby="bdp-features">
+      <div class="bdp-wrap">
+        <div class="bdp-center">
+          <span class="bdp-eyebrow">Features</span>
+          <h2 class="bdp-h2" id="bdp-features">Everything a marriage biodata needs</h2>
+          <p class="bdp-lead">Built for Indian marriage biodatas: family details, community fields, partner preferences and bilingual labels.</p>
+        </div>
+        <ul class="bdp-features">
+          <% _features.forEach(([icon, title, text]) => { %>
+          <li class="bdp-feature"><i class="fa <%= icon %>" aria-hidden="true"></i><h3><%= title %></h3><p><%= text %></p></li>
+          <% }); %>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Categories -->
+    <% if (_cats.length) { %>
+    <section class="bdp-section is-white is-tight" id="categories" aria-labelledby="bdp-cats">
+      <div class="bdp-wrap">
+        <span class="bdp-eyebrow">Browse by style</span>
+        <h2 class="bdp-h2" id="bdp-cats">Template categories</h2>
+        <ul class="bdp-cats" style="margin-top:22px">
+          <% _cats.forEach((c) => { %>
+          <li><a class="bdp-cat" href="/biodata-maker/templates/<%= c.slug %>"><b><%= c.name %> <small><%= c.count %></small></b><% if (c.description) { %><span><%= c.description %></span><% } %></a></li>
+          <% }); %>
+        </ul>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Samples -->
+    <% if (_samples.length) { %>
+    <section class="bdp-section" id="samples" aria-labelledby="bdp-samples">
+      <div class="bdp-wrap">
+        <div class="bdp-center">
+          <span class="bdp-eyebrow">Sample biodatas</span>
+          <h2 class="bdp-h2" id="bdp-samples">See how a finished biodata looks</h2>
+          <p class="bdp-lead">The same template, filled in. Yours will follow the layout with your own details.</p>
+        </div>
+        <ul class="bdp-samples">
+          <% _samples.forEach((t) => { %>
+          <li>
+            <figure class="bdp-sample">
+              <a href="/biodata-maker/create?template=<%= encodeURIComponent(t.id) %>" aria-label="Use the <%= t.name %> template"><%- include('../partials/biodata-thumb', { t, alt: t.name + ' biodata filled with fictional sample details' }) %></a>
+              <figcaption><b><%= t.name %></b>Sample biodata</figcaption>
+            </figure>
+          </li>
+          <% }); %>
+        </ul>
+        <p class="bdp-note"><i class="fa fa-info-circle" aria-hidden="true"></i><span>Every preview on this page is filled with fictional sample details, not a real person's biodata.</span></p>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Comparison -->
+    <section class="bdp-section is-white" id="compare" aria-labelledby="bdp-compare">
+      <div class="bdp-wrap">
+        <div class="bdp-center">
+          <span class="bdp-eyebrow">Why use a biodata maker</span>
+          <h2 class="bdp-h2" id="bdp-compare">Less time formatting, more time on what you write</h2>
+          <p class="bdp-lead">A biodata made in a word processor works, but the layout takes longer than the content. Here is what changes.</p>
+        </div>
+        <div class="bdp-scroll">
+          <table class="bdp-compare">
+            <thead><tr><th scope="col">&nbsp;</th><th scope="col" class="is-us">Biodata Maker</th><th scope="col">Formatting it yourself</th></tr></thead>
+            <tbody>
+              <% _compare.forEach(([row, us, them]) => { %>
+              <tr><th scope="row"><%= row %></th><td class="is-us" data-label="Biodata Maker"><i class="fa fa-check" aria-hidden="true"></i><%= us %></td><td data-label="Yourself"><i class="fa fa-minus" aria-hidden="true"></i><%= them %></td></tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Page content (BiodataPage intro + blocks) -->
+    <% if (_intro || _otherBlocks.length) { %>
+    <section class="bdp-section" id="guide" aria-label="About marriage biodatas">
+      <div class="bdp-wrap">
+        <span class="bdp-eyebrow">About the biodata maker</span>
+        <h2 class="bdp-h2">Made for the way families share biodatas</h2>
+        <% if (_intro) { %><div class="bdp-prose" style="margin-bottom:34px"><%- /* raw-ok: BiodataPage intro, sanitised on write by the API (sanitizeRich) or seed copy from packages/shared */ _intro %></div><% } %>
+        <%- include('../partials/biodata-blocks', { blocks: _otherBlocks }) %>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- FAQ -->
+    <% if (faqs && faqs.length) { %>
+    <section class="bdp-section<%= (_intro || _otherBlocks.length) ? ' is-white' : '' %>" id="faq" aria-labelledby="bdp-faq">
+      <div class="bdp-wrap">
+        <div class="bdp-center">
+          <span class="bdp-eyebrow">FAQ</span>
+          <h2 class="bdp-h2" id="bdp-faq">Biodata maker: common questions</h2>
+          <div style="height:18px"></div>
+        </div>
+        <div class="bdp-faq">
+          <% faqs.forEach((f, i) => { %>
+          <details<%= i === 0 ? ' open' : '' %>>
+            <summary><%= f.question %></summary>
+            <p><%= f.answer %></p>
+          </details>
+          <% }); %>
+        </div>
+      </div>
+    </section>
+    <% } %>
+
+    <!-- Guides and articles -->
+    <section class="bdp-section is-tight" aria-labelledby="bdp-read">
+      <div class="bdp-wrap">
+        <span class="bdp-eyebrow">Before you write</span>
+        <h2 class="bdp-h2" id="bdp-read">Guides for a better biodata</h2>
+        <ul class="bdp-links" style="margin-top:22px">
+          <% (() => {
+               // Guides (published, from the API), the two biodata articles, then the page's related links; one card per URL.
+               const seen = new Set(['/biodata-maker', '/biodata-maker/create', '/biodata-maker/templates']);
+               const rows = [
+                 ...(guides || []).map((g) => ({ ...g, icon: 'fa-book' })),
+                 ...(articles || []).map((a) => ({ ...a, icon: 'fa-newspaper-o' })),
+                 ...(relatedLinks || []).map((l) => ({ ...l, icon: 'fa-angle-right' })),
+                 { href: '/banjara-gotra-list', label: 'Banjara gotra list, for the community section', icon: 'fa-sitemap' },
+               ].filter((l) => l && l.href && !seen.has(l.href) && seen.add(l.href));
+               rows.forEach((l) => { %>
+          <li><a class="bdp-link" href="<%= l.href %>"><i class="fa <%= l.icon %>" aria-hidden="true"></i><span><%= l.label %></span></a></li>
+          <% }); })(); %>
+        </ul>
+      </div>
+    </section>
+
+    <%- include('../partials/blog-section', { sectionTitle: 'Marriage tips and articles', blogs: featuredBlogs || [] }) %>
+
+    <!-- Final CTA -->
+    <section class="bdp-section is-tight" aria-labelledby="bdp-cta">
+      <div class="bdp-wrap">
+        <div class="bdp-cta">
+          <h2 id="bdp-cta"><%= cta.heading %></h2>
+          <% if (cta.text) { %><p><%= cta.text %></p><% } %>
+          <div class="bdp-btns">
+            <a class="bdp-btn bdp-btn-white" href="<%= cta.primaryHref %>"><%= cta.primaryLabel %></a>
+            <% if (cta.secondaryLabel && cta.secondaryHref) { %><a class="bdp-btn bdp-btn-ghost" href="<%= cta.secondaryHref %>"><%= cta.secondaryLabel %></a><% } %>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+  <%- include('../partials/scripts') %>
+</body>
+</html>

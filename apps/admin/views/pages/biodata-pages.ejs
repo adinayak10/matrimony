@@ -1,0 +1,23 @@
+<section class="card">
+  <div class="card__header card__header--stack">
+    <div class="page-head mb-0">
+      <p class="page-head__text">Search pages for the biodata maker: the landing page at <span class="mono">/biodata-maker</span>, guides at <span class="mono">/marriage-biodata-&hellip;</span> or <span class="mono">/banjara-biodata-&hellip;</span>, and category pages at <span class="mono">/biodata-maker/templates/&lt;category&gt;</span>. Guides and category pages are indexed and listed in the sitemap only when published with 300 or more unique words. A published page's URL is frozen.</p>
+      <a class="btn btn--primary" href="/biodata-pages/new">New page</a>
+    </div>
+    <%- include('../partials/table-toolbar', {
+      id: 'biodata-page-filters',
+      search: false,
+      filters: [
+        { name: 'kind', label: 'Kind', options: [
+          { value: '', label: 'All kinds' }, { value: 'landing', label: 'Landing' }, { value: 'guide', label: 'Guide' }, { value: 'category', label: 'Category' }
+        ] },
+        { name: 'published', label: 'Status', options: [
+          { value: '', label: 'Any status' }, { value: '1', label: 'Published' }, { value: '0', label: 'Draft' }
+        ] }
+      ]
+    }) %>
+  </div>
+  <div class="card__body card__body--flush">
+    <div id="biodata-pages-table" data-table-mount></div>
+  </div>
+</section>

@@ -28,8 +28,6 @@ node apps/api/tools/backfill-profile-completion.js
 node apps/api/tools/backfill-profile-completion.js --apply --yes-i-know --prod
 ```
 
-Then in the admin panel: **Master data → Ice breaker → Seed default questions** (optional; the game falls back to built-in questions when fewer than 5 are active).
-
 ### Checks
 
 ```bash

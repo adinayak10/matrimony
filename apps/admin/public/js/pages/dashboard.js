@@ -4,6 +4,7 @@
 //   GET /api/admin/dashboard/user-growth?days=30 → data [{ _id:'YYYY-MM-DD', count }]
 //   GET /api/admin/dashboard/engagement     → data { activeMessagers, activeRequesters, averageMessagesPerUser, totalActiveMessagers }
 //   GET /api/admin/dashboard/recent-users?limit=10
+//   GET /api/admin/biodata/stats            → data.documents.total (or data.documentsTotal): the Biodatas tile
 // Charts come from core/charts.js (inline SVG, no vendor script): one series,
 // one hue, grid recessive, direct label on the peak only, hover tooltip, table view.
 import { api, errorMessage } from '../core/api.js';
@@ -52,6 +53,16 @@ async function loadStats() {
   } catch (err) {
     toast.error(errorMessage(err, 'Could not load dashboard numbers.'));
   }
+}
+
+// The biodata tile is optional: an older API without the endpoint leaves the dash.
+async function loadBiodataTile() {
+  try {
+    const { data } = await api('/admin/biodata/stats');
+    const d = data || {};
+    const total = d.documents && typeof d.documents === 'object' ? d.documents.total : (d.documentsTotal ?? d.documents);
+    if (total !== undefined && total !== null) setStat('biodataDocuments', total);
+  } catch (err) { /* not critical */ }
 }
 
 async function loadGrowth() {
@@ -124,6 +135,7 @@ function initRecentUsers() {
 }
 
 loadStats();
+loadBiodataTile();
 loadGrowth();
 loadEngagement();
 initRecentUsers();

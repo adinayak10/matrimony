@@ -1,5 +1,6 @@
 'use strict';
-// One GET per nav item, plus /users/:id, /blogs/new and /blogs/:id/edit — every
+// One GET per nav item, plus /users/:id, /blogs/new, /blogs/:id/edit,
+// /biodata-pages/new and /biodata-pages/:id/edit — every
 // one behind requireAdmin, every one rendered from views/pages/<view>.ejs with
 // its page module public/js/pages/<script>.js.
 //
@@ -55,6 +56,22 @@ router.get('/blogs/:id/edit', requireAdmin, async (req, res, next) => {
       return await renderError(res, 404, { title: 'Blog not found', message: 'That is not a valid blog id.', retryHref: '/blogs' });
     }
     return await renderPage(res, 'blog-form', { title: 'Edit blog post', pageScript: 'blog-form', activeKey: 'blogs', blogId: req.params.id });
+  } catch (err) { return next(err); }
+});
+
+// Biodata page form (biodata maker, Phase 4): same pattern as the blog form;
+// the module reads data-page-id ('' = create).
+router.get('/biodata-pages/new', requireAdmin, async (req, res, next) => {
+  try {
+    return await renderPage(res, 'biodata-page-form', { title: 'New biodata page', pageScript: 'biodata-page-form', activeKey: 'biodata-pages', pageId: '' });
+  } catch (err) { return next(err); }
+});
+router.get('/biodata-pages/:id/edit', requireAdmin, async (req, res, next) => {
+  try {
+    if (!OBJECT_ID.test(req.params.id)) {
+      return await renderError(res, 404, { title: 'Page not found', message: 'That is not a valid biodata page id.', retryHref: '/biodata-pages' });
+    }
+    return await renderPage(res, 'biodata-page-form', { title: 'Edit biodata page', pageScript: 'biodata-page-form', activeKey: 'biodata-pages', pageId: req.params.id });
   } catch (err) { return next(err); }
 });
 

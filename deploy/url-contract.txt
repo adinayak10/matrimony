@@ -67,6 +67,16 @@ https://www.banjaramatch.com/daily-matches 302
 https://www.banjaramatch.com/saved-searches 302
 https://www.banjaramatch.com/connections 302
 https://www.banjaramatch.com/user-plan 302
+# biodata maker (docs/plans/02-biodata-maker.md): public pages, member/share redirects; guides after the seed
+https://www.banjaramatch.com/biodata-maker 200
+https://www.banjaramatch.com/biodata-maker/templates 200
+https://www.banjaramatch.com/biodata-maker/create 200
+https://www.banjaramatch.com/biodata-maker/templates?category=traditional 301
+https://www.banjaramatch.com/biodata-maker/my 302
+https://www.banjaramatch.com/biodata-maker/s/000000000000000000000000000000000000000000000000 404
+https://www.banjaramatch.com/marriage-biodata-format 200
+https://www.banjaramatch.com/marriage-biodata-in-hindi 200
+https://www.banjaramatch.com/banjara-biodata-gotra-and-clan 200
 https://www.banjaramatch.com/doesnotexist-xyz 404
 https://www.banjaramatch.com/robots.txt 200
 https://www.banjaramatch.com/ads.txt 200

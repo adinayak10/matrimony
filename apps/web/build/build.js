@@ -11,6 +11,9 @@
 //                                                + purged responsive.css (mobile layer, last)
 //   js       public/build/js/site.<hash>.js      jquery, popper, bootstrap, chosen, slick, custom, esc
 //            public/build/js/<extra>.<hash>.js   per-page extras, kept separate
+//            public/build/js/biodata-kit.<hash>.js  the shared biodata kit (packages/shared/biodata,
+//                                                   K.bundleFiles in bundle order), minified
+//            public/build/css/<extra>.<hash>.css per-page stylesheets (biodata pages and builder)
 //   manifest public/build/manifest.json          read by utils/assets.js
 //   .gz next to every css/js output (nginx gzip_static)
 //
@@ -143,7 +146,8 @@ async function purge(purgecss, raw, label, extra = {}) {
   if (!purgecss || !purgecss.PurgeCSS) return raw;
   try {
     const [res] = await new purgecss.PurgeCSS().purge({
-      content: [path.join(ROOT, 'views', '**', '*.ejs'), path.join(PUBLIC, 'js', '*.js')],
+      // Globs need forward slashes (on Windows path.join gives backslashes and nothing matches).
+      content: [path.join(ROOT, 'views', '**', '*.ejs'), path.join(PUBLIC, 'js', '*.js')].map((p) => p.split(path.sep).join('/')),
       css: [{ raw }],
       safelist: PURGE_SAFELIST,
       ...extra,
@@ -205,8 +209,36 @@ function stripPreloader(js) {
 const SITE_JS = ['js/jquery.min.js', 'js/popper.min.js', 'js/bootstrap.min.js', 'js/select-opt.min.js', 'js/slick.min.js', 'js/custom.js', 'js/esc.js'];
 // Page-specific extras stay separate hashed files, keyed by the real source
 // path so asset('js/Chart.js') falls back to a file that exists before the first build.
-const EXTRA_JS = [['js/Chart.js', 'chart'], ['js/jquery.validate.min.js', 'jquery.validate']];
-const EXTRA_CSS = [];
+// A third element { minify: true } minifies an extra we own (missing sources are skipped).
+const EXTRA_JS = [
+  ['js/Chart.js', 'chart'],
+  ['js/jquery.validate.min.js', 'jquery.validate'],
+  ['js/biodata-builder.js', 'biodata-builder', { minify: true }],
+  ['js/biodata-cropper.js', 'biodata-cropper', { minify: true }],
+  ['js/biodata-pages.js', 'biodata-pages', { minify: true }],
+];
+const EXTRA_CSS = [
+  ['css/biodata-builder.css', 'biodata-builder'],
+  ['css/biodata-pages.css', 'biodata-pages'],
+];
+
+// The shared biodata kit (docs/plans/02-biodata-maker-contract.md §1): browser
+// files listed by the kit itself, concatenated in order. Served as
+// asset('js/biodata-kit.js'); routes/biodata.js serves the same concatenation
+// unminified at /js/biodata-kit.js until a build exists.
+const SHARED_DIR = (() => {
+  try { return path.join(path.dirname(require.resolve('@banjaramatch/shared/package.json')), 'biodata'); } catch { return path.resolve(ROOT, '..', '..', 'packages', 'shared', 'biodata'); }
+})();
+
+function kitBundleFiles() {
+  try {
+    const K = require('@banjaramatch/shared/biodata');
+    return Array.isArray(K.bundleFiles) ? K.bundleFiles : [];
+  } catch (err) {
+    warn(`biodata kit not loadable (${err.message}); js/biodata-kit.js skipped`);
+    return [];
+  }
+}
 
 function buildJs(manifest) {
   const UglifyJS = tryRequire('uglify-js');
@@ -227,11 +259,27 @@ function buildJs(manifest) {
     }).join('\n');
     manifest['js/site.js'] = writeHashed('js', 'site', 'js', minify(code, 'site.js'));
   }
-  for (const [src, name] of EXTRA_JS) {
-    if (exists(src)) manifest[src] = writeHashed('js', name, 'js', read(src));
+  for (const [src, name, opts] of EXTRA_JS) {
+    if (exists(src)) manifest[src] = writeHashed('js', name, 'js', opts && opts.minify ? minify(read(src), src) : read(src));
   }
+  const CleanCSS = tryRequire('clean-css');
   for (const [src, name] of EXTRA_CSS) {
-    if (exists(src)) manifest[src] = writeHashed('css', name, 'css', read(src));
+    if (!exists(src)) continue;
+    let css = read(src);
+    if (CleanCSS) {
+      const out = new CleanCSS({ level: 1, rebase: false }).minify(css);
+      if (out.errors && out.errors.length) warn(`clean-css on ${src}: ${out.errors.join('; ')}; using raw`);
+      else css = out.styles;
+    }
+    manifest[src] = writeHashed('css', name, 'css', css);
+  }
+  const kitFiles = kitBundleFiles();
+  const kitMissing = kitFiles.filter((f) => !fs.existsSync(f));
+  if (kitFiles.length && !kitMissing.length) {
+    const code = kitFiles.map((f) => `/* ${path.basename(f)} */\n${fs.readFileSync(f, 'utf8')}\n;`).join('\n');
+    manifest['js/biodata-kit.js'] = writeHashed('js', 'biodata-kit', 'js', minify(code, 'biodata-kit.js'));
+  } else if (kitMissing.length) {
+    warn(`biodata kit files missing: ${kitMissing.map((f) => path.basename(f)).join(', ')}; js/biodata-kit.js skipped`);
   }
 }
 
@@ -298,6 +346,7 @@ function inputsFingerprint() {
     ...walk(path.join(PUBLIC, 'css')),
     ...walk(path.join(PUBLIC, 'fonts')),
     ...walk(__dirname),
+    ...walk(SHARED_DIR),
     path.join(PUBLIC, 'images', '_r', 'css.json'),
     path.join(ROOT, 'package.json'),
   ].sort();

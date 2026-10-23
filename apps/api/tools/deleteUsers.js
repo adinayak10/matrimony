@@ -44,7 +44,6 @@ const Room = require('./models/Room');
 const RoomUser = require('./models/RoomUser');
 const SecondChanceQueue = require('./models/SecondChanceQueue');
 const Follow = require('./models/Follow');
-// IceBreakerGame model is accessed via mongoose.model('IceBreakerGame') because the file exports managers
 
 // ⚠️ ADD USER IDs TO DELETE HERE ⚠️
 const USER_IDS_TO_DELETE = [
@@ -230,20 +229,7 @@ async function deleteUserCompletely(userId) {
     });
     deletionResults.follows = followResult.deletedCount;
     
-    // 17. Delete Ice Breaker Games
-    console.log('🎮 Deleting ice breaker games...');
-    // Access the model directly since IceBreakerGame.js exports managers, not the model
-    require('./models/IceBreakerGame'); // Ensure model is registered
-    const IceBreakerGameModel = mongoose.model('IceBreakerGame');
-    const iceBreakerResult = await IceBreakerGameModel.deleteMany({
-      $or: [
-        { player1: objectId },
-        { player2: objectId }
-      ]
-    });
-    deletionResults.iceBreakerGames = iceBreakerResult.deletedCount;
-    
-    // 18. Remove user from other users' blocked arrays
+    // 17. Remove user from other users' blocked arrays
     console.log('🔒 Removing from blocked arrays...');
     const blockedArrayResult = await User.updateMany(
       { blocked: objectId },
@@ -251,7 +237,7 @@ async function deleteUserCompletely(userId) {
     );
     deletionResults.blockedArraysUpdated = blockedArrayResult.modifiedCount;
     
-    // 19. Finally, delete the user
+    // 18. Finally, delete the user
     console.log('👤 Deleting user account...');
     const userResult = await User.findByIdAndDelete(objectId);
     deletionResults.user = userResult ? 1 : 0;

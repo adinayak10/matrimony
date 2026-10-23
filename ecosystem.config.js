@@ -54,6 +54,11 @@ const app = (name, dir, script, port, mem) => ({
 module.exports = {
   apps: [
     app('banjaramatch-web', 'web', 'app.js', 4000, '400M'),
+    // The biodata PDF renderer (services/biodataPdf.js) runs Chromium as a CHILD
+    // process: its ~250-300 MB is outside this max_memory_restart (pm2 measures
+    // the node process only). It is bounded instead by one browser, one render
+    // at a time, a 60 s idle close, the MemAvailable >= 350 MB launch guard and
+    // the BIODATA_PDF_DISABLED kill switch.
     app('banjaramatch-api', 'api', 'index.js', 4002, '600M'),
     app('banjaramatch-admin', 'admin', 'server.js', 4001, '200M'),
     {

@@ -536,59 +536,6 @@
                                 </a>
                             </div>
 
-                            <!-- Ice Breaker Game Promotion Banner - Luxury Matrimonial Design -->
-                            <div class="col-md-12" style="margin-top: 30px;">
-                                <a href="/ice-breaker-game" style="text-decoration: none; display: block; cursor: pointer; transition: all 0.4s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 20px 40px rgba(246,175,4,0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 25px rgba(246,175,4,0.2)'">
-                                    <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); border: 2px solid #f6af04; border-radius: 16px; box-shadow: 0 8px 25px rgba(246,175,4,0.2); overflow: hidden; position: relative; padding: 0;">
-                                        <!-- Decorative Gold Border Pattern -->
-                                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, transparent, #f6af04, #ffd700, #f6af04, transparent);"></div>
-                                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, transparent, #f6af04, #ffd700, #f6af04, transparent);"></div>
-                                        
-                                        <!-- Elegant Background Pattern -->
-                                        <div style="position: absolute; top: -50px; right: -50px; width: 250px; height: 250px; background: radial-gradient(circle, rgba(246,175,4,0.1) 0%, transparent 70%); border-radius: 50%; opacity: 0.6;"></div>
-                                        <div style="position: absolute; bottom: -30px; left: -30px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(255,215,0,0.08) 0%, transparent 70%); border-radius: 50%;"></div>
-                                        
-                                        <div class="row align-items-center bm-ib-row" style="padding: 30px 25px; margin: 0;">
-                                            <div class="col-md-8">
-                                                <div class="bm-ib-head" style="display: flex; align-items: center; gap: 20px;">
-                                                    <!-- Elegant Icon Container -->
-                                                    <div style="background: linear-gradient(135deg, #f6af04 0%, #ffd700 100%); border-radius: 50%; width: 75px; height: 75px; display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0; box-shadow: 0 4px 15px rgba(246,175,4,0.4); border: 3px solid rgba(255,215,0,0.3);">
-                                                        <span style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">💝</span>
-                                                    </div>
-                                                    <div>
-                                                        <h4 style="color: #f6af04; margin: 0 0 8px 0; font-weight: 700; font-size: 22px; font-family: 'Georgia', serif; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                                                            <i class="fa fa-heart" style="color: #ffd700;"></i> Ice Breaker Connection Game
-                                                        </h4>
-                                                        <p style="color: #e8e8e8; margin: 0; font-size: 15px; line-height: 1.6;">
-                                                            Break the ice with meaningful conversations. Get matched instantly and discover compatibility through fun questions.
-                                                            <strong style="color: #ffd700; font-family: 'Georgia', serif;">Find your perfect match!</strong>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4 text-end">
-                                                <!-- Live Players Counter - Elegant Design -->
-                                                <div style="background: linear-gradient(135deg, rgba(246,175,4,0.15) 0%, rgba(255,215,0,0.1) 100%); backdrop-filter: blur(10px); border: 1px solid rgba(246,175,4,0.3); border-radius: 12px; padding: 15px 20px; display: inline-block; margin-bottom: 12px;">
-                                                    <div style="color: #f6af04; font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 5px; font-weight: 600;">✨ Players Online</div>
-                                                    <div style="color: #ffd700; font-size: 28px; font-weight: 700; font-family: 'Georgia', serif; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
-                                                        <i class="fa fa-users" style="font-size: 24px;"></i> <span id="livePlayersCount">...</span>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <span class="btn" style="padding: 12px 30px; border-radius: 25px; font-weight: 700; background: linear-gradient(135deg, #f6af04 0%, #ffd700 100%); color: #1a1a2e; border: none; box-shadow: 0 4px 15px rgba(246,175,4,0.4); font-size: 15px; font-family: 'Georgia', serif; transition: all 0.3s ease;">
-                                                        Play Now <i class="fa fa-arrow-circle-right" style="margin-left: 5px;"></i>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Premium Badge -->
-                                        <div style="position: absolute; top: 20px; right: 20px; background: linear-gradient(135deg, #d4af37 0%, #f6af04 100%); color: #1a1a2e; padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; box-shadow: 0 4px 12px rgba(212,175,55,0.4); border: 1px solid rgba(255,215,0,0.5);">
-                                            <i class="fa fa-star" style="color: #1a1a2e; margin-right: 4px;"></i> Featured
-                                        </div>
-                                    </div>
-                                </a>
-                            </div>
                      
                         </div>
                     </div>
@@ -730,31 +677,6 @@ async function loadProfileStats() {
     }
 }
 
-// Load Live Ice Breaker Players Count
-async function loadLivePlayersCount() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/getIcebreakerStats`, {
-            credentials: 'same-origin',
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        const data = await response.json();
-        
-        if (data.status) {
-            const activeCount = (data.data?.activeGames || 0) * 2 + (data.data?.queuedPlayers || 0);
-            $('#livePlayersCount').text(activeCount > 0 ? activeCount : 'Join Now');
-        } else {
-            $('#livePlayersCount').text('Join Now');
-        }
-    } catch (error) {
-        console.error('Error loading ice breaker stats:', error);
-        $('#livePlayersCount').text('Join Now');
-    }
-}
-
 // Load Recent Chats
 async function loadRecentChats() {
     try {
@@ -855,11 +777,7 @@ async function loadLiveActivity() {
 $(document).ready(function() {
     loadProfileStats();
     loadRecentChats();
-    loadLivePlayersCount();
     loadLiveActivity();
-    
-    // Refresh live players count every 10 seconds
-    setInterval(loadLivePlayersCount, 10000);
     
     // Logout confirmation
     $('a[href="/logout"]').on('click', function(e) {
@@ -872,7 +790,6 @@ $(document).ready(function() {
 }); // End DOMContentLoaded
     
   window.loadProfileStats = loadProfileStats;
-  window.loadLivePlayersCount = loadLivePlayersCount;
   window.loadRecentChats = loadRecentChats;
   window.loadLiveActivity = loadLiveActivity;
 });

@@ -40,20 +40,21 @@ class InterestUserScreen extends StatelessWidget {
               const SizedBox(height: 20),
               SoftSegmentBar(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
+                // No icons here: three labels plus counts don't fit otherwise.
+                // Received shows only the ones awaiting a reply, in red, so it
+                // matches the bottom-nav Interests badge.
                 items: [
                   SegmentItem(
                     label: AppKeys.interestsReceived.tr,
-                    icon: Icons.inbox_rounded,
-                    count: controller.receivedList.length,
+                    count: controller.pendingReceivedCount,
+                    alert: true,
                   ),
                   SegmentItem(
                     label: AppKeys.interestsSent.tr,
-                    icon: Icons.send_rounded,
                     count: controller.sentList.length,
                   ),
                   SegmentItem(
                     label: AppKeys.interestsConnections.tr,
-                    icon: Icons.people_alt_rounded,
                     count: controller.connections.length,
                   ),
                 ],

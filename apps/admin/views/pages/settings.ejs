@@ -70,6 +70,40 @@
     </section>
 
     <section class="card">
+      <div class="card__header"><h2 class="card__title">Biodata maker</h2><a class="btn btn--secondary btn--sm" href="/biodata-templates">Templates</a></div>
+      <div class="card__body">
+        <fieldset class="fieldset">
+          <legend class="sr-only">Biodata maker settings</legend>
+          <div class="form-group">
+            <label class="switch" for="set-biodataEnabled"><input type="checkbox" role="switch" id="set-biodataEnabled" name="biodata.enabled" aria-describedby="set-biodataEnabled-help" disabled><span class="switch__track" aria-hidden="true"></span><span>Biodata maker is on</span></label>
+            <p class="form-help" id="set-biodataEnabled-help">When off, the builder, saving and PDF downloads answer "temporarily unavailable". The landing and guide pages stay online.</p>
+          </div>
+          <div class="form-group">
+            <label class="switch" for="set-biodataGuestDownloads"><input type="checkbox" role="switch" id="set-biodataGuestDownloads" name="biodata.guestDownloads" aria-describedby="set-biodataGuestDownloads-help" disabled><span class="switch__track" aria-hidden="true"></span><span>Visitors without an account can download the PDF</span></label>
+            <p class="form-help" id="set-biodataGuestDownloads-help">When off, a visitor can still build and print a biodata, but downloading the PDF asks them to sign in.</p>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="set-biodataMaxPerUser">Saved biodatas per member</label>
+              <input class="form-control" type="number" id="set-biodataMaxPerUser" name="biodata.maxPerUser" min="1" max="50" step="1" data-number aria-describedby="set-biodataMaxPerUser-help" disabled>
+              <p class="form-help" id="set-biodataMaxPerUser-help">Between 1 and 50. Lowering it never deletes existing biodatas; it only blocks new ones.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="set-biodataShareDefaultDays">Share links expire after (days)</label>
+              <input class="form-control" type="number" id="set-biodataShareDefaultDays" name="biodata.shareDefaultDays" min="1" max="365" step="1" data-number aria-describedby="set-biodataShareDefaultDays-help" disabled>
+              <p class="form-help" id="set-biodataShareDefaultDays-help">Between 1 and 365. The default a member sees when creating a share link.</p>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="set-biodataLanguages">Label languages</label>
+              <input class="form-control mono" type="text" id="set-biodataLanguages" name="biodata.languages" maxlength="60" autocomplete="off" spellcheck="false" data-list aria-describedby="set-biodataLanguages-help" disabled>
+              <p class="form-help" id="set-biodataLanguages-help">Two-letter codes, comma separated, for example <span class="mono">en, hi</span>. English (<span class="mono">en</span>) is always included.</p>
+            </div>
+          </div>
+        </fieldset>
+      </div>
+    </section>
+
+    <section class="card">
       <div class="card__header"><h2 class="card__title">Matching and security</h2></div>
       <div class="card__body">
         <div class="form-group">

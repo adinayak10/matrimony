@@ -97,6 +97,8 @@ function createApp() {
         db,
         release: env.RELEASE_SHA,
         uptime: process.uptime(),
+        // biodata PDF renderer (Chromium); informative only, never affects ok
+        pdf: require('./services/biodataPdf').status(),
       });
   });
 
@@ -127,7 +129,10 @@ function createApp() {
   app.use('/api', require('./routes/communityRoutes')); // member community endpoints (own authenticate)
   app.use('/api/success-stories', require('./routes/successStoryRoutes')); // public published stories
   app.use('/api/admin', require('./routes/adminVerificationRoutes')); // verification queue
-  app.use('/api/admin', require('./routes/adminCommunityRoutes')); // stories, announcements, faqs, push, icebreaker, analytics, matchmaking
+  app.use('/api/admin', require('./routes/adminCommunityRoutes')); // stories, announcements, faqs, push, analytics, matchmaking
+  // Biodata maker (docs/plans/02-biodata-maker.md): public/guest/owner + admin
+  app.use('/api/biodata', require('./routes/biodataRoutes'));
+  app.use('/api/admin', require('./routes/adminBiodataRoutes')); // /api/admin/biodata/*
 
   // Root
   app.get('/', (req, res) => {

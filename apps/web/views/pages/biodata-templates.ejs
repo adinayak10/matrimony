@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%
+  // Locals (routes/biodata.js renderGallery): templates (already filtered to the category),
+  // allCount, categories (with counts), category ({slug,name,description} or null),
+  // page (published BiodataPage kind 'category' or null).
+  const _tpls = Array.isArray(templates) ? templates : [];
+  const _cats = Array.isArray(categories) ? categories : [];
+  const _catNames = Object.fromEntries(_cats.map((c) => [c.slug, c.name]));
+  const _page = page || null;
+  const _h1 = (_page && typeof _page.h1 === 'string' && _page.h1.trim())
+    || (category ? `${category.name} Marriage Biodata Templates` : 'Marriage Biodata Templates');
+  const _intro = _page && typeof _page.intro === 'string' ? _page.intro.trim() : '';
+  const _lead = category
+    ? (category.description || `Free ${category.name.toLowerCase()} designs for your marriage biodata.`)
+    : 'Free, print-ready designs for every family: traditional, modern, minimal, photo-focused and community styles. Choose one, fill in your details and download an A4 PDF.';
+%>
+</head>
+
+<body class="bdp-body">
+  <%- include('../partials/header') %>
+  <%- include('../partials/breadcrumb') %>
+
+  <main class="bdp">
+    <header class="bdp-head">
+      <div class="bdp-wrap">
+        <div class="bdp-head-row">
+          <div>
+            <span class="bdp-eyebrow"><%= category ? 'Template category' : 'Template gallery' %></span>
+            <h1><%= _h1 %></h1>
+            <% if (_intro) { %>
+            <div class="bdp-prose"><%- /* raw-ok: BiodataPage intro, sanitised on write by the API (sanitizeRich) */ _intro %></div>
+            <% } else { %>
+            <p><%= _lead %></p>
+            <% } %>
+          </div>
+          <div class="bdp-btns">
+            <a class="bdp-btn bdp-btn-primary" href="/biodata-maker/create"><i class="fa fa-pencil" aria-hidden="true"></i> Create Biodata Free</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="bdp-section is-tight" aria-label="Templates">
+      <div class="bdp-wrap">
+        <% if (_cats.length || _tpls.length) { %>
+        <div class="bdp-toolbar">
+          <% if (_cats.length) { %>
+          <ul class="bdp-chips" aria-label="Template categories">
+            <li><a class="bdp-chip" href="/biodata-maker/templates"<% if (!category) { %> aria-current="page"<% } %>>All <small><%= allCount %></small></a></li>
+            <% _cats.forEach((c) => { %>
+            <li><a class="bdp-chip" href="/biodata-maker/templates/<%= c.slug %>"<% if (category && category.slug === c.slug) { %> aria-current="page"<% } %>><%= c.name %> <small><%= c.count %></small></a></li>
+            <% }); %>
+          </ul>
+          <% } %>
+          <div class="bdp-viewtoggle" role="group" aria-label="Preview as">
+            <button type="button" data-bdp-view="page" aria-pressed="true"><i class="fa fa-file-o" aria-hidden="true"></i> Page</button>
+            <button type="button" data-bdp-view="phone" aria-pressed="false"><i class="fa fa-mobile" aria-hidden="true"></i> Phone</button>
+          </div>
+        </div>
+        <% } %>
+
+        <% if (_tpls.length) { %>
+        <p class="bdp-count"><%= _tpls.length %> template<%= _tpls.length === 1 ? '' : 's' %><%= category ? ' in ' + category.name : '' %>. Phone view shows the top of page 1 as it looks when you share the PDF.</p>
+        <ul class="bdp-grid" data-bdp-grid>
+          <% _tpls.forEach((t, i) => { %><%- include('../partials/biodata-card', { t, categoriesBySlug: _catNames, eager: i < 2 }) %><% }); %>
+        </ul>
+        <% } else { %>
+        <div class="bdp-empty">
+          <i class="fa fa-th-large" aria-hidden="true"></i>
+          <h2>The template gallery is being updated</h2>
+          <p>You can start your biodata right away and choose a design inside the builder.</p>
+          <div class="bdp-btns"><a class="bdp-btn bdp-btn-primary" href="/biodata-maker/create">Create Biodata Free</a></div>
+        </div>
+        <% } %>
+      </div>
+    </section>
+
+    <% if (_page && Array.isArray(_page.contentBlocks) && _page.contentBlocks.length) { %>
+    <section class="bdp-section is-white" aria-label="About these templates">
+      <div class="bdp-wrap">
+        <%- include('../partials/biodata-blocks', { blocks: _page.contentBlocks }) %>
+      </div>
+    </section>
+    <% } %>
+
+    <% const _faqs = Array.isArray(locals.faqs) ? faqs : []; %>
+    <% if (_faqs.length) { %>
+    <section class="bdp-section" aria-labelledby="bdp-faq">
+      <div class="bdp-wrap">
+        <div class="bdp-center"><h2 class="bdp-h2" id="bdp-faq">Questions about these templates</h2><div style="height:14px"></div></div>
+        <div class="bdp-faq">
+          <% _faqs.forEach((f) => { %><details><summary><%= f.question %></summary><p><%= f.answer %></p></details><% }); %>
+        </div>
+      </div>
+    </section>
+    <% } %>
+
+    <section class="bdp-section is-tight" aria-labelledby="bdp-cta">
+      <div class="bdp-wrap">
+        <div class="bdp-cta">
+          <h2 id="bdp-cta">Found a design you like?</h2>
+          <p>Every template is free. Fill in your details once and switch designs as often as you like before you download.</p>
+          <div class="bdp-btns">
+            <a class="bdp-btn bdp-btn-white" href="/biodata-maker/create">Create Biodata Free</a>
+            <a class="bdp-btn bdp-btn-ghost" href="/biodata-maker">How the biodata maker works</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <%- include('../partials/footer') %>
+  <%- include('../partials/scripts') %>
+</body>
+</html>

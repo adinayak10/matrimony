@@ -38,7 +38,6 @@ abstract class AppKeys {
   static const drawerSavedSearches = 'app_drawerSavedSearches';
   static const drawerCommunity = 'app_drawerCommunity';
   static const drawerSuccessStories = 'app_drawerSuccessStories';
-  static const drawerIceBreaker = 'app_drawerIceBreaker';
   static const drawerActivity = 'app_drawerActivity';
   static const drawerCallHistory = 'app_drawerCallHistory';
   static const drawerMore = 'app_drawerMore';
@@ -269,7 +268,6 @@ const Map<String, String> appStringsEn = {
   AppKeys.drawerSavedSearches: 'Saved searches',
   AppKeys.drawerCommunity: 'Community',
   AppKeys.drawerSuccessStories: 'Success stories',
-  AppKeys.drawerIceBreaker: 'Ice Breaker',
   AppKeys.drawerActivity: 'Activity',
   AppKeys.drawerCallHistory: 'Call history',
   AppKeys.drawerMore: 'More',
@@ -474,7 +472,6 @@ const Map<String, String> appStringsHi = {
   AppKeys.drawerSavedSearches: 'सहेजी गई खोजें',
   AppKeys.drawerCommunity: 'समुदाय',
   AppKeys.drawerSuccessStories: 'सफल जोड़ियों की कहानियाँ',
-  AppKeys.drawerIceBreaker: 'आइस ब्रेकर',
   AppKeys.drawerActivity: 'गतिविधि',
   AppKeys.drawerCallHistory: 'कॉल इतिहास',
   AppKeys.drawerMore: 'और',

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="<%= site.lang %>">
+<head>
+<%- include('../partials/head') %>
+<%
+  // Locals (routes/biodata.js /biodata-maker/my): docs [{id,title,templateId,status,version,updatedAt,
+  // hasPhoto,shareActive,shareExpiresAt,thumbnail,hasThumb}], max, loadError, pdfAvailable,
+  // shareDays, shareDefaultDays. Actions run in public/js/biodata-pages.js against /api/biodata/*.
+  const _docs = Array.isArray(docs) ? docs : [];
+  const _fmt = (v) => { const d = v ? new Date(v) : null; return d && !isNaN(d) ? d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''; };
+  const _full = _docs.length >= max;
+%>
+</head>
+
+<body class="bdp-body">
+  <%- include('../partials/header') %>
+  <%- include('../partials/breadcrumb') %>
+
+  <section>
+    <div class="db">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-4 col-lg-3">
+            <%- include('../partials/member-nav', { active: 'biodatas' }) %>
+          </div>
+          <div class="col-md-8 col-lg-9 bdp bdp-my" data-bdp-my data-pdf="<%= pdfAvailable ? '1' : '0' %>">
+            <div class="bdp-my-head">
+              <div>
+                <h1>My biodatas</h1>
+                <p><%= _docs.length %> of <%= max %> saved. Drafts save automatically while you edit.</p>
+              </div>
+              <% if (_full) { %>
+              <span class="bdp-badge">Limit reached: delete one to make a new biodata</span>
+              <% } else { %>
+              <a class="bdp-btn bdp-btn-primary bdp-btn-sm" href="/biodata-maker/create"><i class="fa fa-plus" aria-hidden="true"></i> New biodata</a>
+              <% } %>
+            </div>
+
+            <% if (loadError) { %>
+            <div class="bdp-alert" role="alert">Your biodatas could not be loaded just now. Please refresh the page in a moment.</div>
+            <% } %>
+
+            <% if (_docs.length) { %>
+            <ul class="bdp-docs" data-bdp-docs>
+              <% _docs.forEach((d) => { %>
+              <li class="bdp-doc" data-id="<%= d.id %>" data-title="<%= d.title %>" data-share="<%= d.shareActive ? '1' : '0' %>">
+                <a href="/biodata-maker/create?doc=<%= d.id %>" tabindex="-1" aria-hidden="true">
+                  <%- include('../partials/biodata-thumb', { t: { id: d.templateId || d.id, name: '', thumbnail: d.thumbnail, hasThumb: d.hasThumb }, alt: '' }) %>
+                </a>
+                <div>
+                  <h2><%= d.title %></h2>
+                  <div class="bdp-doc-meta">
+                    <span class="bdp-badge<%= d.status === 'completed' ? ' is-done' : '' %>"><%= d.status === 'completed' ? 'Completed' : 'Draft' %></span>
+                    <% if (_fmt(d.updatedAt)) { %><span>Updated <%= _fmt(d.updatedAt) %></span><% } %>
+                    <span data-share-label><% if (d.shareActive) { %><span class="bdp-badge is-share"><i class="fa fa-link" aria-hidden="true"></i> Shared<%= _fmt(d.shareExpiresAt) ? ' until ' + _fmt(d.shareExpiresAt) : '' %></span><% } %></span>
+                  </div>
+                  <div class="bdp-actions">
+                    <a class="bdp-act is-primary" href="/biodata-maker/create?doc=<%= d.id %>"><i class="fa fa-pencil" aria-hidden="true"></i> Edit</a>
+                    <a class="bdp-act" href="/api/biodata/documents/<%= d.id %>/pdf" data-action="pdf" download><i class="fa fa-download" aria-hidden="true"></i> PDF</a>
+                    <button type="button" class="bdp-act" data-action="share"><i class="fa fa-link" aria-hidden="true"></i> Share</button>
+                    <button type="button" class="bdp-act" data-action="duplicate"<% if (_full) { %> disabled title="Limit reached"<% } %>><i class="fa fa-clone" aria-hidden="true"></i> Duplicate</button>
+                    <button type="button" class="bdp-act is-danger" data-action="delete"><i class="fa fa-trash-o" aria-hidden="true"></i> Delete</button>
+                  </div>
+                </div>
+              </li>
+              <% }); %>
+            </ul>
+            <p class="bdp-limit">You can keep up to <%= max %> biodatas. Share links are private: only people you send the link to can open them, and contact details stay hidden unless you turn them on in the builder.</p>
+            <% } else if (!loadError) { %>
+            <div class="bdp-empty">
+              <i class="fa fa-file-text-o" aria-hidden="true"></i>
+              <h2>No biodatas yet</h2>
+              <p>Pick a template and fill in your details. Your biodata saves to your account as you go, so you can come back to it on any device.</p>
+              <div class="bdp-btns">
+                <a class="bdp-btn bdp-btn-primary" href="/biodata-maker/create">Create your first biodata</a>
+                <a class="bdp-btn bdp-btn-outline" href="/biodata-maker/templates">Browse templates</a>
+              </div>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bdp">
+    <%# Confirm dialog (delete, rotate link) %>
+    <div class="bdp-modal" id="bdpConfirm" hidden>
+      <div class="bdp-dialog" role="alertdialog" aria-modal="true" aria-labelledby="bdpConfirmTitle" aria-describedby="bdpConfirmText">
+        <h2 id="bdpConfirmTitle">Are you sure?</h2>
+        <p id="bdpConfirmText"></p>
+        <div class="bdp-dialog-actions">
+          <button type="button" class="bdp-act" data-confirm="no">Cancel</button>
+          <button type="button" class="bdp-act is-primary" data-confirm="yes">Confirm</button>
+        </div>
+      </div>
+    </div>
+
+    <%# Share dialog %>
+    <div class="bdp-modal" id="bdpShare" hidden>
+      <div class="bdp-dialog" role="dialog" aria-modal="true" aria-labelledby="bdpShareTitle">
+        <h2 id="bdpShareTitle">Share a private link</h2>
+        <p>Anyone with the link can view and download this biodata until it expires. Contact details are hidden unless you turn them on in the builder.</p>
+        <div data-share-state="loading"><p class="bdp-share-info">Loading…</p></div>
+        <div data-share-state="off" hidden>
+          <label for="bdpShareDays">Link valid for</label>
+          <select id="bdpShareDays">
+            <% shareDays.forEach((n) => { %><option value="<%= n %>"<% if (n === shareDefaultDays) { %> selected<% } %>><%= n %> days</option><% }); %>
+          </select>
+          <div class="bdp-dialog-actions">
+            <button type="button" class="bdp-act" data-share="close">Cancel</button>
+            <button type="button" class="bdp-act is-primary" data-share="create"><i class="fa fa-link" aria-hidden="true"></i> Create link</button>
+          </div>
+        </div>
+        <div data-share-state="on" hidden>
+          <label for="bdpShareUrl">Your link</label>
+          <div class="bdp-share-row">
+            <input type="text" id="bdpShareUrl" readonly>
+            <button type="button" class="bdp-act is-primary" data-share="copy"><i class="fa fa-clipboard" aria-hidden="true"></i> Copy</button>
+          </div>
+          <p class="bdp-share-info" id="bdpShareInfo"></p>
+          <div class="bdp-dialog-actions">
+            <button type="button" class="bdp-act is-danger" data-share="off">Turn off link</button>
+            <button type="button" class="bdp-act" data-share="rotate">New link</button>
+            <button type="button" class="bdp-act" data-share="close">Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bdp-toast" id="bdpToast" role="status" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <%- include('../partials/footer') %>
+  <%- include('../partials/scripts') %>
+</body>
+</html>

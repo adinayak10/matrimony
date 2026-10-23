@@ -40,6 +40,10 @@ class InterestUserScreenController extends CupertinoController {
   List<UserInterest> connections = [];
   bool connectionsLoading = false;
 
+  /// Received interests still awaiting a reply (same rule as the server's
+  /// bottom-nav badge: status 'pending').
+  int get pendingReceivedCount => receivedList.where((row) => row.status == 'pending').length;
+
   @override
   void onInit() {
     super.onInit();

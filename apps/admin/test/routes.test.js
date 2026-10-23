@@ -78,8 +78,6 @@ test('proxy allowlist admits every feature-expansion admin endpoint (all under /
     '/api/admin/announcements', `/api/admin/announcements/${ID}`, `/api/admin/announcements/${ID}/publish`, `/api/admin/announcements/${ID}/archive`,
     '/api/admin/faq-categories', `/api/admin/faq-categories/${ID}`, '/api/admin/faqs', `/api/admin/faqs/${ID}`, '/api/admin/faqs/reorder',
     '/api/admin/push/broadcast', '/api/admin/push/preview', '/api/admin/push/filtered', '/api/admin/push/user', '/api/admin/push/jobs',
-    '/api/admin/icebreaker/questions', `/api/admin/icebreaker/questions/${ID}`, `/api/admin/icebreaker/questions/${ID}/toggle`,
-    '/api/admin/icebreaker/questions/seed-defaults', '/api/admin/icebreaker/stats',
     '/api/admin/analytics/funnel', '/api/admin/analytics/activity', '/api/admin/analytics/demographics', '/api/admin/analytics/active',
     `/api/admin/users/${ID}/recommend`, `/api/admin/users/${ID}/recommendations`, '/api/admin/recommendations', `/api/admin/recommendations/${ID}`,
     '/api/admin/membership-plans', '/api/admin/dashboard/stats',
@@ -88,6 +86,39 @@ test('proxy allowlist admits every feature-expansion admin endpoint (all under /
   }
   // The member-side endpoints of the same features stay unreachable from the admin host.
   for (const p of ['/api/profileVerification', '/api/fetchVerificationStatus', '/api/submitSuccessStory', '/api/fetchPlatformNotification', '/api/fetchFAQs', '/api/pushNotificationToSingleUser', '/api/fetchRecommendations']) {
+    assert.equal(proxy.isAllowed(p), false, `${p} must not be proxied`);
+  }
+});
+
+test('biodata maker: nav items live in Content with existing icons', () => {
+  const content = NAV.find((g) => g.group === 'Content');
+  const keys = content.items.map((i) => i.key);
+  assert.ok(keys.includes('biodata-templates'), 'Biodata templates in Content');
+  assert.ok(keys.includes('biodata-pages'), 'Biodata pages in Content');
+  const sprite = fs.readFileSync(path.join(__dirname, '..', 'public', 'img', 'icons.svg'), 'utf8');
+  for (const key of ['biodata-templates', 'biodata-pages']) {
+    const item = content.items.find((i) => i.key === key);
+    assert.match(sprite, new RegExp(`id="${item.icon}"`), `${key}: icon ${item.icon} is in icons.svg`);
+  }
+  const pagesItem = ITEMS.find((i) => i.key === 'biodata-pages');
+  assert.ok(pagesItem.match.test('/biodata-pages/new'));
+  assert.ok(pagesItem.match.test('/biodata-pages/64f000000000000000000000/edit'));
+  assert.equal(ITEMS.find((i) => i.key === 'biodata-templates').match.test('/biodata-pages'), false);
+});
+
+test('biodata maker: the proxy admits the admin API and never the member API', () => {
+  const ID = '64f000000000000000000000';
+  for (const p of [
+    '/api/admin/biodata/stats', '/api/admin/biodata/templates', '/api/admin/biodata/templates/reorder',
+    '/api/admin/biodata/templates/classic-maroon', '/api/admin/biodata/templates/classic-maroon/overrides',
+    '/api/admin/biodata/pages', `/api/admin/biodata/pages/${ID}`, `/api/admin/biodata/pages/${ID}/publish`,
+  ]) {
+    assert.ok(proxy.isAllowed(p), `${p} is not allowed through the proxy`);
+  }
+  for (const p of [
+    '/api/biodata/documents', `/api/biodata/documents/${ID}`, `/api/biodata/documents/${ID}/pdf`, '/api/biodata/render',
+    '/api/biodata/config', '/api/biodata/templates', `/api/biodata/shared/${'a'.repeat(48)}`, `/api/biodata/shared/${'0'.repeat(48)}/photo`,
+  ]) {
     assert.equal(proxy.isAllowed(p), false, `${p} must not be proxied`);
   }
 });
@@ -293,6 +324,87 @@ test('admin server routes', async (t) => {
     assert.match(bad.text, /Blog not found/);
   });
 
+  await t.test('biodata page form: /biodata-pages/new and /:id/edit render, a bad id is a 404', async () => {
+    meImpl = async () => ({ ok: true, admin: ADMIN });
+    const anon = await request(app).get('/biodata-pages/new');
+    assert.equal(anon.status, 302);
+    assert.equal(anon.headers.location, '/login?next=%2Fbiodata-pages%2Fnew');
+    const anonEdit = await request(app).get('/biodata-pages/64f000000000000000000000/edit');
+    assert.equal(anonEdit.status, 302);
+
+    const create = await request(app).get('/biodata-pages/new').set('Cookie', 'admin_session=good');
+    assert.equal(create.status, 200);
+    const page = create.text;
+    assert.match(page, /data-page-id=""/);
+    assert.match(page, /<script type="module" src="\/js\/pages\/biodata-page-form\.js\?v=/);
+    assert.equal((page.match(/aria-current="page"/g) || []).length, 1);
+    assert.match(page, /href="\/biodata-pages" aria-current="page"/, 'Biodata pages stays highlighted');
+    assert.match(page, /<h1 class="topbar__title">New biodata page<\/h1>/);
+    assert.match(page, /<select[^>]*name="kind"(?![^>]*disabled)[^>]*>/, 'kind is editable on create');
+    for (const name of ['kind', 'slug', 'h1', 'intro', 'metaTitle', 'metaDescription', 'canonicalOverride', 'ogImage', 'isPublished',
+      'ctaConfig.heading', 'ctaConfig.text', 'ctaConfig.primaryLabel', 'ctaConfig.primaryHref', 'ctaConfig.secondaryLabel', 'ctaConfig.secondaryHref']) {
+      assert.match(page, new RegExp(`name="${name.replace(/\./g, '\\.')}"`), `biodata page field ${name}`);
+    }
+    assert.match(page, /name="metaTitle"[^>]*maxlength="70"/);
+    assert.match(page, /name="metaDescription"[^>]*maxlength="170"/);
+    assert.match(page, /\^\(marriage\|banjara\)-biodata-\[a-z0-9-\]\{2,60\}\$/, 'slug help shows the guide regex');
+    assert.match(page, /sanitised by the API/);
+    for (const a of ['add-block', 'add-faq', 'add-link']) assert.match(page, new RegExp(`data-action="${a}"`), `action ${a}`);
+    for (const type of ['richText', 'steps', 'checklist', 'table', 'callout', 'cta']) assert.match(page, new RegExp(`<option value="${type}"`), `block type ${type}`);
+    for (const host of ['data-blocks', 'data-faqs', 'data-links', 'data-words', 'data-live-link', 'data-dirty-note']) assert.match(page, new RegExp(host), host);
+    assert.match(page, /href="\/biodata-pages">Cancel<\/a>/);
+
+    const edit = await request(app).get('/biodata-pages/64f000000000000000000000/edit').set('Cookie', 'admin_session=good');
+    assert.equal(edit.status, 200);
+    assert.match(edit.text, /data-page-id="64f000000000000000000000"/);
+    assert.match(edit.text, /<select[^>]*name="kind"[^>]*disabled/, 'kind is frozen on edit');
+    assert.match(edit.text, /<h1 class="topbar__title">Edit biodata page<\/h1>/);
+
+    for (const bad of ['/biodata-pages/not-an-id/edit', '/biodata-pages/64f00000000000000000000z/edit']) {
+      const res = await request(app).get(bad).set('Cookie', 'admin_session=good');
+      assert.equal(res.status, 404, bad);
+      assert.match(res.text, /Page not found/);
+    }
+
+    // Both form renders pass the same C5 checks as the nav pages.
+    for (const html of [page, edit.text]) {
+      const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+      assert.equal(new Set(ids).size, ids.length, `duplicate id ${ids.find((id, i) => ids.indexOf(id) !== i)}`);
+      const labelled = new Set([...html.matchAll(/<label\b[^>]*\sfor="([^"]+)"/g)].map((m) => m[1]));
+      for (const m of html.matchAll(/<(input|select|textarea)\b([^>]*)>/g)) {
+        const id = (m[2].match(/\sid="([^"]+)"/) || [])[1];
+        assert.ok((id && labelled.has(id)) || /aria-label="/.test(m[2]), `unlabelled <${m[1]}${m[2].slice(0, 60)}>`);
+      }
+      for (const m of html.matchAll(/aria-(?:controls|labelledby|describedby)="([^"]+)"/g)) {
+        for (const ref of m[1].split(/\s+/)) assert.ok(ids.includes(ref), `aria reference to missing id "${ref}"`);
+      }
+      for (const tag of html.match(/<button\b[^>]*>/g) || []) assert.match(tag, /\stype="(button|submit)"/, `button without type ${tag}`);
+      assert.doesNotMatch(html, INLINE_STYLE);
+      assert.doesNotMatch(html, INLINE_HANDLER);
+    }
+  });
+
+  await t.test('biodata page modules call only the contract endpoints', () => {
+    const read = (name) => stripComments(fs.readFileSync(path.join(ROOT, 'public', 'js', 'pages', `${name}.js`), 'utf8'));
+    const tplJs = read('biodata-templates');
+    for (const p of ["'/admin/biodata/stats'", "'/admin/biodata/templates'", "'/admin/biodata/templates/reorder'", '`/admin/biodata/templates/${encodeURIComponent(id)}`', '/overrides`']) {
+      assert.ok(tplJs.includes(p), `biodata-templates.js calls ${p}`);
+    }
+    assert.match(tplJs, /body: \{ templateIds \}/, 'reorder sends the full id list');
+    assert.match(tplJs, /\/biodata-maker\/create\?template=/, 'open in builder link');
+    assert.match(tplJs, /\/images\/biodata\//, 'thumbnails from the website');
+    const pagesJs = read('biodata-pages');
+    assert.ok(pagesJs.includes("'/admin/biodata/pages'"));
+    assert.ok(pagesJs.includes('`/admin/biodata/pages/${p._id}/publish`'));
+    for (const a of ['publish', 'unpublish', 'delete']) assert.match(pagesJs, new RegExp(`data-action="${a}"`), `list action ${a}`);
+    assert.match(pagesJs, /&lt;300 words: not indexed/);
+    const formJs = read('biodata-page-form');
+    assert.ok(formJs.includes('`/admin/biodata/pages/${pageId}`'));
+    assert.ok(formJs.includes('`/admin/biodata/pages/${pageId}/publish`'));
+    assert.match(formJs, /\^\(marriage\|banjara\)-biodata-\[a-z0-9-\]\{2,60\}\$/, 'client slug rule mirrors the contract');
+    assert.match(formJs, /beforeunload/, 'dirty-state guard');
+  });
+
   await t.test('page-specific contracts are present in the rendered markup', async () => {
     meImpl = async () => ({ ok: true, admin: ADMIN });
     const get = async (url) => (await request(app).get(url).set('Cookie', 'admin_session=good')).text;
@@ -303,19 +415,46 @@ test('admin server routes', async (t) => {
     assert.match(regional, /city pages are indexed at 300 or more unique words/);
 
     const master = await get('/master-data');
-    for (const key of ['castes', 'gotras', 'clans', 'surname-titles', 'professions', 'qualifications', 'income-ranges', 'interests', 'report-reasons', 'about-options', 'icebreaker-questions']) {
+    for (const key of ['castes', 'gotras', 'clans', 'surname-titles', 'professions', 'qualifications', 'income-ranges', 'interests', 'report-reasons', 'about-options']) {
       assert.match(master, new RegExp(`data-tab="${key}"`), `master-data tab ${key}`);
       assert.match(master, new RegExp(`data-md-mount="${key}"`), `master-data panel ${key}`);
     }
     assert.match(master, /data-action="ai-suggest"/);
-    assert.match(master, /data-action="seed-icebreaker"/);
+    assert.doesNotMatch(master, /icebreaker/i);
 
     const settings = await get('/settings');
     assert.match(settings, /Matching and security/);
     for (const name of ['appName', 'helpUrl', 'termsUrl', 'privacyPolicyUrl', 'setRoomUsersLimit', 'maxImagesCanBeUploadedInOnePost', 'minuteLimitInCreatingStory',
-      'isAdmobOn', 'adBannerAndroid', 'adInterstitialAndroid', 'matching.enforceGotraExogamy', 'security.legacySocketJoin', 'limits.interestDailyCap']) {
+      'isAdmobOn', 'adBannerAndroid', 'adInterstitialAndroid', 'matching.enforceGotraExogamy', 'security.legacySocketJoin', 'limits.interestDailyCap',
+      'biodata.enabled', 'biodata.guestDownloads', 'biodata.maxPerUser', 'biodata.shareDefaultDays', 'biodata.languages']) {
       assert.match(settings, new RegExp(`name="${name.replace(/\./g, '\\.')}"`), `settings field ${name}`);
     }
+    assert.match(settings, /Biodata maker/);
+    assert.match(settings, /name="biodata\.maxPerUser"[^>]*min="1" max="50"/, 'biodata.maxPerUser is 1..50');
+    assert.match(settings, /name="biodata\.shareDefaultDays"[^>]*min="1" max="365"/, 'biodata.shareDefaultDays is 1..365');
+    assert.match(settings, /name="biodata\.languages"[^>]*data-list/, 'biodata.languages is comma text');
+    const settingsJs = fs.readFileSync(path.join(ROOT, 'public', 'js', 'pages', 'settings.js'), 'utf8');
+    for (const key of ['biodata.enabled', 'biodata.guestDownloads', 'biodata.maxPerUser', 'biodata.shareDefaultDays', 'biodata.languages']) {
+      assert.match(settingsJs, new RegExp(`'${key.replace(/\./g, '\\.')}':`), `settings.js DEFAULTS has ${key}`);
+    }
+
+    // ---- Biodata maker ----
+    const tpl = await get('/biodata-templates');
+    for (const k of ['documents', 'last30Days', 'users', 'activeShares', 'pagesPublished']) assert.match(tpl, new RegExp(`data-stat="${k}"`), `biodata tile ${k}`);
+    assert.match(tpl, /data-stat-text="templates"/);
+    assert.match(tpl, /id="biodata-templates-table"/);
+    assert.match(tpl, /data-action="reload"/);
+    assert.match(tpl, /href="https:\/\/www\.banjaramatch\.com\/biodata-maker\/templates" target="_blank" rel="noopener noreferrer"/);
+
+    const bpages = await get('/biodata-pages');
+    assert.match(bpages, /href="\/biodata-pages\/new"/);
+    assert.match(bpages, /id="biodata-pages-table"/);
+    for (const name of ['kind', 'published']) assert.match(bpages, new RegExp(`name="${name}"`), `biodata page filter ${name}`);
+    for (const v of ['landing', 'guide', 'category']) assert.match(bpages, new RegExp(`<option value="${v}">`), `kind filter ${v}`);
+    assert.match(bpages, /300 or more unique words/);
+
+    const dash = await get('/dashboard');
+    assert.match(dash, /data-stat="biodataDocuments"/, 'dashboard biodata tile');
     assert.doesNotMatch(settings, /name="apk/i, 'apk.* is never editable on the settings page');
     assert.match(settings, /name="currentPassword"/);
     assert.match(settings, /minlength="12"/);

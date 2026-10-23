@@ -60,6 +60,37 @@ for tool in curl git rsync flock jq mongodump nginx; do
   command -v "$tool" >/dev/null 2>&1 || echo "WARNING: $tool is not installed" >&2
 done
 
+# ── 2b. Chromium + fonts for biodata PDFs ────────────────────────────────────
+# The API renders biodata PDFs with a system Chromium (puppeteer-core never
+# downloads one). Fonts used by the templates are embedded by the API; the
+# apt fonts are only a glyph safety net (Arabic invocation line, symbols).
+# Point CHROMIUM_PATH in SHARED/env/api.env at the binary. Without it PDF
+# downloads answer 503 and the builder offers Print (same document).
+OS_ID="$(. /etc/os-release 2>/dev/null && echo "${ID:-}")"
+if [ "$OS_ID" = "debian" ]; then
+  if ! command -v chromium >/dev/null 2>&1; then
+    say "Installing chromium + fonts (biodata PDF)"
+    apt-get install -y -qq chromium fonts-liberation fonts-noto-core >/dev/null
+  fi
+  echo "    biodata PDF: set CHROMIUM_PATH=$(command -v chromium || echo /usr/bin/chromium) in $SHARED/env/api.env"
+elif [ "$OS_ID" = "ubuntu" ]; then
+  if command -v google-chrome-stable >/dev/null 2>&1; then
+    echo "    biodata PDF: set CHROMIUM_PATH=$(command -v google-chrome-stable) in $SHARED/env/api.env"
+  else
+    cat <<'CHROME'
+NOTE (biodata PDF): Ubuntu's "chromium" package is a snap, which cannot run
+headless under pm2. Install Google Chrome from Google's apt repository instead:
+  install -d -m 755 /etc/apt/keyrings
+  curl -fsSL https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /etc/apt/keyrings/google-chrome.gpg
+  echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list
+  apt-get update && apt-get install -y google-chrome-stable fonts-liberation fonts-noto-core
+then set CHROMIUM_PATH=/usr/bin/google-chrome-stable in SHARED/env/api.env and reload the API.
+CHROME
+  fi
+else
+  echo "NOTE (biodata PDF): unknown OS '${OS_ID:-?}'; install Chromium or Chrome and set CHROMIUM_PATH in $SHARED/env/api.env" >&2
+fi
+
 # ── 3. ACLs for nginx ────────────────────────────────────────────────────────
 say "ACLs for www-data on uploads/downloads/blog-images/sitemaps"
 for d in uploads downloads blog-images sitemaps; do

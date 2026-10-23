@@ -1,5 +1,5 @@
 'use strict';
-// /api/admin/{success-stories,announcements,faq-categories,faqs,push,icebreaker,analytics,recommendations}
+// /api/admin/{success-stories,announcements,faq-categories,faqs,push,analytics,recommendations}
 // and /api/admin/users/:id/recommend(ations) (feature expansion A3). Every route needs adminAuth;
 // every mutation is audited inside its controller (services/auditLog.record).
 const express = require('express');
@@ -12,7 +12,6 @@ const successStories = require('../controllers/admin/successStoryController');
 const announcements = require('../controllers/admin/announcementController');
 const faqs = require('../controllers/admin/faqController');
 const pushCtl = require('../controllers/admin/pushController');
-const icebreaker = require('../controllers/admin/icebreakerController');
 const analytics = require('../controllers/admin/analyticsController');
 const recommendations = require('../controllers/admin/recommendationController');
 
@@ -77,16 +76,6 @@ router.post('/push/preview', adminAuth, pushCtl.preview);
 router.post('/push/filtered', adminAuth, pushSendLimiter, pushCtl.filtered);
 router.post('/push/user', adminAuth, pushCtl.toUser);
 router.get('/push/jobs', adminAuth, pushCtl.jobs);
-
-// ==================== ICE BREAKER ====================
-router.get('/icebreaker/questions', adminAuth, icebreaker.list);
-router.post('/icebreaker/questions', adminAuth, icebreaker.create);
-router.post('/icebreaker/questions/seed-defaults', adminAuth, icebreaker.seedDefaults);
-router.post('/icebreaker/seed-defaults', adminAuth, icebreaker.seedDefaults); // alias
-router.put('/icebreaker/questions/:id', adminAuth, icebreaker.update);
-router.delete('/icebreaker/questions/:id', adminAuth, icebreaker.remove);
-router.post('/icebreaker/questions/:id/toggle', adminAuth, icebreaker.toggle);
-router.get('/icebreaker/stats', adminAuth, icebreaker.stats);
 
 // ==================== ANALYTICS ====================
 router.get('/analytics/funnel', adminAuth, analytics.funnel);
