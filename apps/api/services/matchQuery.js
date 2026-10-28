@@ -25,6 +25,12 @@ function oppositeGender(g) {
   return null;
 }
 
+/** Both genders known (Male/Female) and equal. An unset gender is not a match. */
+function isSameGender(a, b) {
+  const g = a && a.gender;
+  return !!oppositeGender(g) && g === (b && b.gender);
+}
+
 /** Normalise id | ObjectId | populated doc -> ObjectId or null. */
 function toId(v) {
   if (v === null || v === undefined || v === '') return null;
@@ -219,6 +225,7 @@ module.exports = {
   NO_GENDER_MESSAGE,
   MAX_LIMIT,
   oppositeGender,
+  isSameGender,
   toId,
   toIds,
   calculateAge,

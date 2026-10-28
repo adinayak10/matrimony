@@ -127,6 +127,16 @@ function defineSuite() {
     assert.equal(res.status, 404);
   });
 
+  test('fetchProfile of a same-gender member -> 404 and no visitor row; own profile still 200', async () => {
+    const RecentVisitor = require('../models/RecentVisitor');
+    const F = await factory.makeUser({ gender: 'Female' });
+    const res = await harness.request().post('/api/fetchProfile').set(factory.bearer(tokenA)).send({ user_id: String(F._id) });
+    assert.equal(res.status, 404);
+    assert.equal(await RecentVisitor.countDocuments({ visitor: A._id, visited: F._id }), 0);
+    const self = await harness.request().post('/api/fetchProfile').set(factory.bearer(tokenA)).send({ user_id: String(A._id) });
+    assert.equal(self.status, 200);
+  });
+
   test('fetchProfile: one visitor row per pair (deduped), chat partner email never returned', async () => {
     const RecentVisitor = require('../models/RecentVisitor');
     const P = await factory.makeUser({ full_name: 'Partner P', gender: 'Male', email: `partner_${Date.now()}@secret.test` });

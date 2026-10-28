@@ -22,7 +22,7 @@
   const { computeMatchPercent } = require('../services/matchScore');
   const profileSearch = require('../services/profileSearch');
   const mq = require('../services/matchQuery');
-  const { calculateAge: ageOf } = mq;
+  const { calculateAge: ageOf, isSameGender } = mq;
   const blocks = require('../services/blocks');
   const { visibleNotificationQuery, countUnreadNotifications } = require('../services/notificationVisibility');
   const { getSettings } = require('../services/settingsCache');
@@ -910,7 +910,7 @@ exports.fetchProfile = async (req, res) => {
 
     // --- 1. Fetch viewer and profile data concurrently ---
     const [viewerUser, profileDoc] = await Promise.all([
-      User.findById(viewerId).select('full_name profile'),
+      User.findById(viewerId).select('full_name profile gender'),
       User.findOne({ _id: profileId })
         .populate('membershipPlan interests caste profession qualification gotra incomeRange')
         .populate('location.country location.state location.city')
@@ -919,6 +919,11 @@ exports.fetchProfile = async (req, res) => {
     ]);
 
     if (!profileDoc || (!isSelf && profileDoc.is_block === 1)) {
+      return res.status(404).json({ status: false, message: 'Profile not found' });
+    }
+    // a same-gender profile reads as "not found" (shared links, notifications);
+    // an unset gender on either side is left to the onboarding cleanup
+    if (!isSelf && isSameGender(viewerUser, profileDoc)) {
       return res.status(404).json({ status: false, message: 'Profile not found' });
     }
 
@@ -4418,11 +4423,14 @@ exports.searchProfiles = async (req, res) => {
       }
 
       const [reporter, reported] = await Promise.all([
-        User.findById(my_user_id).select('_id'),
-        User.findById(user_id).select('_id')
+        User.findById(my_user_id).select('_id gender'),
+        User.findById(user_id).select('_id gender')
       ]);
       if (!reporter || !reported) {
         return res.status(404).json({ status: false, message: 'User not found' });
+      }
+      if (isSameGender(reporter, reported)) {
+        return res.status(400).json({ status: false, code: 'SAME_GENDER', message: 'You can only report members of the opposite gender' });
       }
 
       // 10 per day per reporter (the route limiter covers bursts; this covers restarts)

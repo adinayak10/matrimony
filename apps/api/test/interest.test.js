@@ -143,6 +143,22 @@ function defineSuite() {
     assert.equal(require('../controllers/UserController').reportStatus, undefined, 'exports.reportStatus was removed');
   });
 
+  test('reportUser: same gender -> 400 SAME_GENDER and no row; unset gender still reports', async () => {
+    const ReportReason = require('../models/ReportReason');
+    const UserReport = require('../models/UserReport');
+    await ReportReason.updateOne({ title: 'Spam' }, { $set: { title: 'Spam' } }, { upsert: true });
+    const report = (token, user) => harness.request().post('/api/reportUser').set(factory.bearer(token)).send({ user_id: String(user._id), reason: 'Spam' });
+
+    const M = await factory.makeUser({ gender: 'Male' });
+    const same = await report(tokenA, M);
+    assert.equal(same.status, 400);
+    assert.equal(same.body.code, 'SAME_GENDER');
+    assert.equal(await UserReport.countDocuments({ reportedBy: A._id, reportedUser: M._id }), 0);
+
+    const N = await factory.makeUser({ gender: 'Not specified' });
+    assert.equal((await report(tokenA, N)).status, 200);
+  });
+
   test('reportUser: 11th report within 24 h -> 429', async () => {
     const ReportReason = require('../models/ReportReason');
     const UserReport = require('../models/UserReport');
